@@ -23,8 +23,9 @@ class TerraFmtBlocks < Thor
   end
 
   desc "diff FILE", "will show a diff of what will be changed in the file"
+  option :contex, type: :numeric, aliases: 'c'
   def diff(file=nil)
-    BlkDiff.new(:diff, file).go
+    BlkDiff.new(:diff, file, options[:context]).go
   end
 
   desc "count", "counts the number of blocks # and those generating a diff"

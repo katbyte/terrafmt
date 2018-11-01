@@ -5,6 +5,9 @@ require 'colorize'
 require 'open3'
 require 'diffy'
 
+#todo a better way to output message with filename line number etc
+# funtion: message("text") handles rest, outputs as white
+
 BlockPair = Struct.new(:start, :finish, :desc) do
 
   def starts?(line)
@@ -24,9 +27,11 @@ class BlkReader
       BlockPair.new('return fmt.Sprintf(`', '`, ', 'markdown')
   ]
 
-  def initialize(mode, file = nil)
+  def initialize(mode, file = nil, context=5)
     raise Thor::Error, 'ERROR unknown BlkFmt mode'.red unless [:fmt, :diff, :count].include?(mode)
     @mode = mode
+    @file = file
+    @contex = context
 
     @lines = 0
     @lines_block = 0
@@ -35,24 +40,41 @@ class BlkReader
 
   def go
 
-    @buffer = [] #the current block
+    if @file == nil
+      io = $stdin
+    else
+      io  = File.open(@file, 'r+')
+    end
+
+    buffer = [] #the current block
     pair = nil  #current block pair we are in (not nil == buffering)
 
-    STDIN.each_line do |line|
+    io.each_line do |line|
       @lines += 1
 
       if pair != nil #if we have started a pair and should buffer
         @lines_block += 1
         unless pair.finishes? line #check to see if we are at the end of a block
-          @buffer << line #if not buffer line and goto next
+          buffer << line #if not buffer line and goto next
           next
         else
 
-          #block done! so call block_read function
-          block_read(line)
+          block = buffer.join("")
+          block_fmt, error, status = Open3.capture3("terraform fmt -", stdin_data: block)
 
-          #no reset the buffer/pair
-          @buffer = []
+          #common error handling
+          if status.exitstatus != 0
+            if @file == nil
+              STDERR.puts "STDIN@#{@line_block_start}:".white.bold + " #{error}"
+            else
+              STDERR.puts "#{@file}@#{@line_block_start}:".white.bold + " #{error}"
+            end
+          end
+
+          block_read(line, block, block_fmt, status)
+
+          #noe reset the buffer/pair
+          buffer = []
           pair = nil
           next #skip to next line
         end
@@ -62,6 +84,7 @@ class BlkReader
       @@pairs.each do |p|
         if p.starts? line
           @count += 1
+          @line_block_start = @lines
           pair = p
           break
         end
@@ -71,15 +94,11 @@ class BlkReader
       line_read(line)
     end
 
-    done
-  end
+    done(io)
 
-  def block
-    return @buffer.join("")
-  end
-
-  def run_format
-    return Open3.capture3("terraform fmt -", stdin_data: block)
+    if @file != nil
+      io.close
+    end
   end
 
   #after each line is read, default to output it (passthrough)
@@ -88,12 +107,13 @@ class BlkReader
   end
 
   #block has been read ito buffer, line that finished the block is passed in
-  def block_read(line)
-    puts @buffer
+  def block_read(line, block, block_fmt, status)
+    puts buffer
     puts line
   end
 
-  def done
+
+  def done(io)
 
   end
 end
@@ -101,41 +121,49 @@ end
 
 #format each block
 class BlkFmt < BlkReader
-  def line_read(line)
-    puts line
+
+  def initialize(mode, file)
+    super(mode, file)
+    @output = []
   end
 
-  def block_read(line)
-    o, e, s = run_format
+  def line_read(line)
+    @output  << line
+  end
 
-    #check exit status
-    if s.exitstatus == 0
-      #success! output it and the closing line
-      puts o
+  def block_read(line, block, block_fmt, status)
+    if status.exitstatus == 0
+      @output << block_fmt
     else
-      #have error, log it to stderr & output unformatted buffer
-      STDERR.puts e
-      puts @buffer
+      @output  << block
     end
 
-    puts line
+    @output  << line
   end
+
+  def done(io)
+    if @file != nil #read from a file, so lets rewind it and write it back
+      io.rewind
+      io.puts @output
+      puts "#{@file}:".white + " formatted #{@count} blocks".green
+    else
+      STDOUT.puts @output
+    end
+  end
+
 end
 
 class BlkDiff < BlkReader
   def line_read(line)
+    #prevent any non block lines
   end
 
-  def block_read(line)
-    o, e, s = run_format
-
-    #check exit status
-    if s.exitstatus == 0
-      #success! output it and the closing line
-      puts Diffy::Diff.new(block, o, :format => :color).to_s(:color)
-    else
-      #have error, log it to stderr & output unformatted buffer
-      STDERR.puts e
+  def block_read(line, block, block_fmt, status)
+    d = Diffy::Diff.new(block, block_fmt)
+    dstr = d.to_s(:color).strip
+    unless dstr.empty?
+      puts "#{@file}@#{@line_block_start}:".white.bold + " block ##{@count}".magenta
+      puts dstr
     end
   end
 end
@@ -152,20 +180,15 @@ class BlkCount < BlkReader
 
   end
 
-  def block_read(line)
-    o, e, s = run_format
-
-    if s.exitstatus == 0
-      if o != block
-        @count_diff += 1
-      end
-    else
-      STDERR.puts e
+  def block_read(line, block, block_fmt, status)
+    if block_fmt != block
+      @count_diff += 1
     end
   end
 
-  def done
+  def done(io)
     if !@quiet || @count_diff > 0
+      #todo add file name
       puts "#{@count_diff} blocks require formatting (of #{@count})"
     end
   end
