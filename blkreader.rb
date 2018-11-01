@@ -3,6 +3,7 @@
 require 'thor'
 require 'colorize'
 require 'open3'
+require 'diffy'
 
 BlockPair = Struct.new(:start, :finish, :desc) do
 
@@ -73,8 +74,12 @@ class BlkReader
     done
   end
 
+  def block
+    return @buffer.join("")
+  end
+
   def run_format
-    return Open3.capture3("terraform fmt -", stdin_data: @buffer.join(""))
+    return Open3.capture3("terraform fmt -", stdin_data: block)
   end
 
   #after each line is read, default to output it (passthrough)
@@ -117,6 +122,23 @@ class BlkFmt < BlkReader
   end
 end
 
+class BlkDiff < BlkReader
+  def line_read(line)
+  end
+
+  def block_read(line)
+    o, e, s = run_format
+
+    #check exit status
+    if s.exitstatus == 0
+      #success! output it and the closing line
+      puts Diffy::Diff.new(block, o, :format => :color).to_s(:color)
+    else
+      #have error, log it to stderr & output unformatted buffer
+      STDERR.puts e
+    end
+  end
+end
 
 class BlkCount < BlkReader
 
@@ -134,7 +156,7 @@ class BlkCount < BlkReader
     o, e, s = run_format
 
     if s.exitstatus == 0
-      if o != @buffer.join("")
+      if o != block
         @count_diff += 1
       end
     else

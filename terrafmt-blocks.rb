@@ -3,10 +3,11 @@
 
 require 'thor'
 require 'colorize'
-require 'open3'
+
+#todo diff that only shows a couple lines before and after changes
 
 #load class that does all the work
-require_relative 'blkfmt.rb'
+require_relative 'blkreader.rb'
 
 #define the program
 class TerraFmtBlocks < Thor
@@ -22,8 +23,8 @@ class TerraFmtBlocks < Thor
   end
 
   desc "diff FILE", "will show a diff of what will be changed in the file"
-  def count(file=nil)
-    BlkFmt.new(:diff, file).go
+  def diff(file=nil)
+    BlkDiff.new(:diff, file).go
   end
 
   desc "count", "counts the number of blocks # and those generating a diff"
