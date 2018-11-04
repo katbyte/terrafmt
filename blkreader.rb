@@ -1,9 +1,10 @@
 #!/usr/bin/ruby
 
-require 'thor'
 require 'colorize'
-require 'open3'
 require 'diffy'
+require 'fileutils'
+require 'open3'
+require 'thor'
 
 #todo a better way to output message with filename line number etc
 # funtion: message("text") handles rest, outputs as white
@@ -11,7 +12,7 @@ require 'diffy'
 BlockPair = Struct.new(:start, :finish, :desc) do
 
   def starts?(line)
-    return line.start_with?(start)
+    return line.strip.start_with?(start)
   end
 
   def finishes?(line)
@@ -24,7 +25,7 @@ class BlkReader
 
   @@pairs = [
       BlockPair.new('```hcl', '```', 'markdown'),
-      BlockPair.new('return fmt.Sprintf(`', '`, ', 'markdown')
+      BlockPair.new('return fmt.Sprintf(`', '`,', 'acctest')
   ]
 
   def initialize(mode, file = nil, context=5)
@@ -122,6 +123,8 @@ end
 #format each block
 class BlkFmt < BlkReader
 
+  #todo blocks_err, blocks_found, blocks_formatted
+
   def initialize(mode, file)
     super(mode, file)
     @output = []
@@ -143,8 +146,25 @@ class BlkFmt < BlkReader
 
   def done(io)
     if @file != nil #read from a file, so lets rewind it and write it back
-      io.rewind
-      io.puts @output
+
+      io.close
+
+      tmp = Tempfile.new('terrafmt-blocks')
+      tmp.write @output.join("")
+      tmp.flush
+      tmp.close
+      FileUtils.mv(tmp.path, @file)
+
+      #this should work but there are stange IO errors that occue, TODO investigate
+      #io.rewind
+      #io.puts @output
+      #io.flush
+      #io.close
+
+
+      if @count == 0
+        puts "#{@file}:".white + " no blocks found!".yellow
+      end
       puts "#{@file}:".white + " formatted #{@count} blocks".green
     else
       STDOUT.puts @output
