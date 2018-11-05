@@ -20,7 +20,7 @@ class BlkDiff < BlkReader
   def formatted_block(block, block_fmt, status)
     return unless status.exitstatus.zero?
 
-    d = Diffy::Diff.new(block, block_fmt)
+    d = Diffy::Diff.new(block, block_fmt, :context => @context)
     dstr = d.to_s(:color).strip
 
     return if dstr.empty?

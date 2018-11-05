@@ -28,7 +28,7 @@ class TerraFmtBlocks < Thor
   end
 
   desc 'diff FILE', 'will show a diff of what will be changed in the file'
-  option :contex, type: :numeric, aliases: 'c'
+  option :context, type: :numeric, aliases: 'c'
   def diff(file = nil)
     exit BlkDiff.new(file, options[:context]).go
   end
