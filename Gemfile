@@ -7,3 +7,9 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 gem 'colorize'
 gem 'diffy'
 gem 'thor'
+
+group :development, :test do
+  gem 'rake'
+  gem 'rspec'
+  gem 'rubocop'
+end
