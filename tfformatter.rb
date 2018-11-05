@@ -8,7 +8,8 @@ require 'colorize'
 # TODO: diff that only shows a couple lines before and after changes
 
 # load class that does all the work
-require_relative 'tfformatter_blkreader.rb'
+require_relative 'blkfmt.rb'
+require_relative 'blkdiff.rb'
 
 # define the program
 class TerraFmtBlocks < Thor
@@ -21,9 +22,9 @@ class TerraFmtBlocks < Thor
   `terrafmt-blocks |fmt| |FILE|` will format blocks of terraform found in FILE or stdin if no file is specified
   LONGDESC
 
-  option :stdin, type: :boolean, aliases: 'i'
+  option :quiet, type: :boolean, aliases: 'q'
   def fmt(file = nil)
-    exit BlkFmt.new(file).go
+    exit BlkFmt.new(file, options[:quiet]).go
   end
 
   desc 'diff FILE', 'will show a diff of what will be changed in the file'
