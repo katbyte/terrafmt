@@ -203,7 +203,6 @@ class BlkFmt < BlkReader
 
 end
 
-
 #shows a fmt diff for blocks
 class BlkDiff < BlkReader
   def line_read(line)
@@ -221,45 +220,6 @@ class BlkDiff < BlkReader
       else
         return 0
       end
-    end
-  end
-end
-
-
-# counts blocks that need formatting
-# is there any point in having this? maybe remove?
-class BlkCount < BlkReader
-
-  def initialize(quiet, file = nil)
-    super(file)
-    @quiet = quiet
-  end
-
-  #override to do nothing
-  def line_read(line)
-  end
-
-  #override to do nothing
-  def block_read(line, block, block_fmt, status)
-  end
-
-  def done(io)
-    if !@quiet && @count_diff != 0
-      if @is_stdin
-        puts "#{@blocks_diff} blocks require formatting (of #{@blocks_found})"
-        return 0
-      else
-        if @blocks_diff == 0
-          msg = "no blocks found".yellow
-        elsif @blocks_diff == 0
-          msg = "#{@blocks_found} already formatted".green
-        else
-          msg = "#{@blocks_diff} of #{@blocks_found} require formatting".yellow
-        end
-        puts "#{@file}: ".white + msg
-      end
-
-      return 1
     end
   end
 end

@@ -33,12 +33,6 @@ class TerraFmtBlocks < Thor
     exit BlkDiff.new(file, options[:context]).go
   end
 
-  desc "count", "counts the number of blocks # and those generating a diff"
-  option :quiet, type: :boolean, aliases: 'q'
-  def count(file=nil)
-    exit BlkCount.new(options[:quiet], file).go
-  end
-
   default_task :fmt
 end
 
