@@ -99,13 +99,12 @@ class BlkReader
     if !status.exitstatus.zero?
       print_msg(@file, @line_block_start, error)
       @blocks_err += 1
-      return
     else
       @blocks_ok += 1
-    end
 
-    # see if different
-    @blocks_diff += 1 if block_fmt != block
+      # see if different
+      @blocks_diff += 1 if block_fmt != block
+    end
 
     formatted_block(block, block_fmt, status)
   end
