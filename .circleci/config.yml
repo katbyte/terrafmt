@@ -14,7 +14,7 @@ jobs:
     #restore gem cache
     - restore_cache:
         name: Restore Gem Cache
-        key: gemcache-v3-{{ checksum "Gemfile" }}
+        key: gemcache-v4-{{ checksum "Gemfile" }}
 
     #install and clean gems
     - run:
@@ -24,7 +24,7 @@ jobs:
     #save gem cache
     - save_cache:
         name: Save Gem Cache
-        key: gemcache-v3-{{ checksum "Gemfile" }}
+        key: gemcache-v4-{{ checksum "Gemfile" }}
         paths:
         - vendor/bundle
         - ~/repo/Gemfile.lock
