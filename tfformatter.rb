@@ -1,4 +1,5 @@
-#!/usr/bin/ruby
+# frozen_string_literal: true
+
 #take code/markdown as input on stdin, pull out tf blocks, format it with `terraform fmt` and insert pretty tf back in
 
 require 'thor'
@@ -7,7 +8,7 @@ require 'colorize'
 #todo diff that only shows a couple lines before and after changes
 
 #load class that does all the work
-require_relative 'blkreader.rb'
+require_relative 'tfformatter_blkreader.rb'
 
 #define the program
 class TerraFmtBlocks < Thor
