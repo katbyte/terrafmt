@@ -1,0 +1,5 @@
+AllCops:
+  Include:
+  - '**/*.rb'
+  - Gemfile
+  TargetRubyVersion: 2.5
