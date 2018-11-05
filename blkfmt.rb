@@ -43,10 +43,10 @@ class BlkFmt < BlkReader
       # io.flush
       # io.close
 
-      if !@quiet && @blocks_found.zero?
-        puts "#{@file}:".light_white + ' no blocks found!'.yellow
-      elsif !@quiet && @blocks_diff.zero?
-        puts "#{@file}:".light_white + " #{@blocks_ok} already formatted".light_blue
+      if @blocks_found.zero?
+        puts "#{@file}:".light_white + ' no blocks found!'.yellow unless @quiet
+      elsif @blocks_diff.zero?
+        puts "#{@file}:".light_white + " #{@blocks_ok} already formatted".light_blue unless @quiet
       else
         puts "#{@file}:".light_white + " formatted #{@blocks_diff} blocks".green
       end
