@@ -2,6 +2,7 @@ tfformatter
 ==================
 
 [![CircleCI](https://circleci.com/gh/katbyte/chef-crowd/tree/master.svg?style=svg)](https://circleci.com/gh/katbyte/chef-crowd/tree/master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5aa82bb8d0de4c52b270c9030297eea9)](https://www.codacy.com/app/katbyte/tfformatter?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=katbyte/tfformatter&amp;utm_campaign=Badge_Grade)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e6dbb8dfc1fe75929d16/maintainability)](https://codeclimate.com/github/katbyte/tfformatter/maintainability)
 
 Ruby script for formatting terraform blocks found in files. Primarily intended to help with terraform provider development.
