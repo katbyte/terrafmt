@@ -12,6 +12,10 @@ require_relative 'blkreader.rb'
 #define the program
 class TerraFmtBlocks < Thor
 
+  def self.exit_on_failure?
+    true
+  end
+
   desc "fmt FILE", "format blocks of terraform found in FILE"
   long_desc <<-LONGDESC
   `terrafmt-blocks |fmt| |FILE|` will format blocks of terraform found in FILE or stdin if no file is specified
@@ -19,19 +23,20 @@ class TerraFmtBlocks < Thor
 
   option :stdin, type: :boolean, aliases: 'i'
   def fmt(file=nil)
-    BlkFmt.new(:fmt, file).go
+    exit BlkFmt.new(file).go
+
   end
 
   desc "diff FILE", "will show a diff of what will be changed in the file"
   option :contex, type: :numeric, aliases: 'c'
   def diff(file=nil)
-    BlkDiff.new(:diff, file, options[:context]).go
+    exit BlkDiff.new(file, options[:context]).go
   end
 
   desc "count", "counts the number of blocks # and those generating a diff"
   option :quiet, type: :boolean, aliases: 'q'
   def count(file=nil)
-    BlkCount.new(:count, options[:quiet], file).go
+    exit BlkCount.new(options[:quiet], file).go
   end
 
   default_task :fmt

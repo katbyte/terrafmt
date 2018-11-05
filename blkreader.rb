@@ -6,9 +6,7 @@ require 'fileutils'
 require 'open3'
 require 'thor'
 
-#todo a better way to output message with filename line number etc
-# funtion: message("text") handles rest, outputs as white
-
+#defines the start and end of a block
 BlockPair = Struct.new(:start, :finish, :desc) do
 
   def starts?(line)
@@ -21,6 +19,7 @@ BlockPair = Struct.new(:start, :finish, :desc) do
 
 end
 
+#reads a file and finds blocks to work on
 class BlkReader
 
   @@pairs = [
@@ -28,20 +27,35 @@ class BlkReader
       BlockPair.new('return fmt.Sprintf(`', '`,', 'acctest')
   ]
 
-  def initialize(mode, file = nil, context=5)
-    raise Thor::Error, 'ERROR unknown BlkFmt mode'.red unless [:fmt, :diff, :count].include?(mode)
-    @mode = mode
+  def initialize(file = nil, context=5)
     @file = file
     @contex = context
 
+    #line counters
     @lines = 0
     @lines_block = 0
-    @count = 0
+
+    #stats
+    @blocks_found = 0
+    @blocks_ok = 0
+    @blocks_err = 0
+    @blocks_diff = 0
+    @blocks_formatted = 0
+
+    @is_stdin = @file.nil?
+    if @is_stdin
+       @file = 'STDIN'
+    end
+  end
+
+  #common logging
+  def print_msg(file, line, msg)
+    STDERR.puts file.white.bold + '@'.white + line.to_s.white.bold + ' ' + msg
   end
 
   def go
 
-    if @file == nil
+    if @is_stdin
       io = $stdin
     else
       io  = File.open(@file, 'r+')
@@ -55,21 +69,26 @@ class BlkReader
 
       if pair != nil #if we have started a pair and should buffer
         @lines_block += 1
+
         unless pair.finishes? line #check to see if we are at the end of a block
           buffer << line #if not buffer line and goto next
           next
         else
 
           block = buffer.join("")
-          block_fmt, error, status = Open3.capture3("terraform fmt -", stdin_data: block)
+          block_fmt, error, status = Open3.capture3('terraform fmt -', stdin_data: block)
 
           #common error handling
           if status.exitstatus != 0
-            if @file == nil
-              STDERR.puts "STDIN@#{@line_block_start}:".white.bold + " #{error}"
-            else
-              STDERR.puts "#{@file}@#{@line_block_start}:".white.bold + " #{error}"
-            end
+            print_msg(@file, @line_block_start, error)
+            @blocks_err += 1
+          else
+            @blocks_ok += 1
+          end
+
+          #see if different
+          if block_fmt != block
+            @blocks_diff += 1
           end
 
           block_read(line, block, block_fmt, status)
@@ -84,7 +103,7 @@ class BlkReader
       #see if any pairs start here
       @@pairs.each do |p|
         if p.starts? line
-          @count += 1
+          @blocks_found += 1
           @line_block_start = @lines
           pair = p
           break
@@ -95,11 +114,19 @@ class BlkReader
       line_read(line)
     end
 
-    done(io)
+    #if we get here still buffering there is a malformed block
+    if pair != nil
+      print_msg(@file, @line_block_start, "MALFORMED BLOCK: `#{pair.start}` missing `#{pair.finish}`".red)
+      @blocks_err += 1
+    end
 
-    if @file != nil
+    r = done(io)
+
+    if !@is_stdin
       io.close
     end
+
+    return r
   end
 
   #after each line is read, default to output it (passthrough)
@@ -115,7 +142,7 @@ class BlkReader
 
 
   def done(io)
-
+    return 0
   end
 end
 
@@ -125,8 +152,8 @@ class BlkFmt < BlkReader
 
   #todo blocks_err, blocks_found, blocks_formatted
 
-  def initialize(mode, file)
-    super(mode, file)
+  def initialize(file)
+    super(file)
     @output = []
   end
 
@@ -164,52 +191,75 @@ class BlkFmt < BlkReader
 
       if @count == 0
         puts "#{@file}:".white + " no blocks found!".yellow
+      else
+        puts "#{@file}:".white + " formatted #{@count} blocks".green
       end
-      puts "#{@file}:".white + " formatted #{@count} blocks".green
     else
       STDOUT.puts @output
     end
+
+    return 0
   end
 
 end
 
+
+#shows a fmt diff for blocks
 class BlkDiff < BlkReader
   def line_read(line)
     #prevent any non block lines
   end
 
   def block_read(line, block, block_fmt, status)
-    d = Diffy::Diff.new(block, block_fmt)
-    dstr = d.to_s(:color).strip
-    unless dstr.empty?
-      puts "#{@file}@#{@line_block_start}:".white.bold + " block ##{@count}".magenta
-      puts dstr
+    if status.exitstatus == 0
+      d = Diffy::Diff.new(block, block_fmt)
+      dstr = d.to_s(:color).strip
+      unless dstr.empty?
+        puts "#{@file}@#{@line_block_start}:".white.bold + " block ##{@blocks_found}".magenta
+        puts dstr
+        return 1
+      else
+        return 0
+      end
     end
   end
 end
 
+
+# counts blocks that need formatting
+# is there any point in having this? maybe remove?
 class BlkCount < BlkReader
 
-  def initialize(mode, quiet, file = nil)
-    super(mode, file)
+  def initialize(quiet, file = nil)
+    super(file)
     @quiet = quiet
-    @count_diff = 0
   end
 
+  #override to do nothing
   def line_read(line)
-
   end
 
+  #override to do nothing
   def block_read(line, block, block_fmt, status)
-    if block_fmt != block
-      @count_diff += 1
-    end
   end
 
   def done(io)
-    if !@quiet || @count_diff > 0
-      #todo add file name
-      puts "#{@count_diff} blocks require formatting (of #{@count})"
+    if !@quiet && @count_diff != 0
+      if @is_stdin
+        puts "#{@blocks_diff} blocks require formatting (of #{@blocks_found})"
+        return 0
+      else
+        if @blocks_diff == 0
+          msg = "no blocks found".yellow
+        elsif @blocks_diff == 0
+          msg = "#{@blocks_found} already formatted".green
+        else
+          msg = "#{@blocks_diff} of #{@blocks_found} require formatting".yellow
+        end
+        puts "#{@file}: ".white + msg
+      end
+
+      return 1
     end
   end
 end
