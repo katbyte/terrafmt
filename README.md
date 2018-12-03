@@ -8,9 +8,9 @@ terrafmt
 Ruby script for formatting terraform blocks found in files. Primarily intended to help with terraform provider development.
 
 Depends on:
-- thor
-- colorize
-- diffy
+  - thor
+  - colorize
+  - diffy
 
 **PLEASE NOTE: this is a work in progress** 
 
