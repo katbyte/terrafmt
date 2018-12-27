@@ -37,9 +37,9 @@ find . | egrep _test\.go | sort | while read f; do
   sed -i '' -E 's/^%(\[[0-9]]){0,}s$/##__##&/g' $f
   sed -i '' -E 's/ %(\.[0-9]){0,}(\[[0-9]]){0,}[tqsdf]$/ "%_%&#_#"/g' $f
   ruby ~/hashi/2018/terrafmt-blocks/terrafmt.rb fmt $f -q
-  sed -i '' -e 's/^##__##//g' $f
+  sed -i '' -E 's/\s*##__##%/%/g' $f
   sed -i '' -e 's/ "%_%//g' $f
-  sed -i '' -e 's/#_#"//g' $f 
+  sed -i '' -e 's/#_#"$//g' $f 
 done
 ```
 

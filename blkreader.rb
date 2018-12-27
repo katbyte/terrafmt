@@ -78,7 +78,7 @@ class BlkReader
     unless pair.nil?
       print_msg(@file, @line_block_start, "MALFORMED BLOCK: `#{pair.start}` missing `#{pair.finish}`".red)
       @blocks_err += 1
-      #formatted_block(block, block, status) #todo
+      # formatted_block(block, block, status) #todo
     end
 
     done(io)
