@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO multiple start and finish strings
+# TODO: multiple start and finish strings
 
 # defines the start and end of a block
 BlkPair = Struct.new(:start, :finish, :desc) do

@@ -40,7 +40,7 @@ class TerraFmtBlocks < Thor
     exit BlkUpgrade12.new(file, options[:diff], options[:context], options[:quiet]).go
   end
 
-  #default_task :fmt
+  # default_task :fmt
 end
 
 # run the program

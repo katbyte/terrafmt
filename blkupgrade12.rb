@@ -7,29 +7,27 @@ require_relative 'blkreader.rb'
 
 # format each block
 class BlkUpgrade12 < BlkReader
-  def initialize(file, quiet, diff, diffContext)
+  def initialize(file, quiet, diff, diff_context)
     super(file)
     @quiet = quiet
     @diff = diff
-    @context = diffContext
+    @context = diff_context
     @output = []
   end
 
   def notblock_line_read(line)
     # only output non block lines if we are not in 'diff mode'
-    unless @diff
-      @output << line
-    end
+    @output << line unless @diff
   end
 
   def block_read(block)
-    #upgrade command works on directories so
+    # upgrade command works on directories so
     Dir.mktmpdir('terrafmt') do |dir|
       File.open("#{dir}/main.tf", 'w') do |io|
         io.write block
       end
 
-      output, error, status = Open3.capture3("terraform 0.12upgrade #{dir}", stdin_data: "yes\n")
+      _, error, status = Open3.capture3("terraform 0.12upgrade #{dir}", stdin_data: "yes\n")
 
       result = File.read("#{dir}/main.tf")
 
@@ -48,16 +46,10 @@ class BlkUpgrade12 < BlkReader
     end
   end
 
-  #these duplicate other files, figure out a better way to handle this
+  # these duplicate other files, figure out a better way to handle this
   def processed_block(block, block_fmt, status)
-    #output
-    unless @diff
-      @output << if status.exitstatus.zero?
-                   block_fmt
-                 else
-                   block
-                 end
-    else
+    # output
+    if @diff
       return unless status.exitstatus.zero?
 
       d = Diffy::Diff.new(block, block_fmt, context: @context)
@@ -69,6 +61,12 @@ class BlkUpgrade12 < BlkReader
       puts dstr
       puts
       @exit_code = 1
+    else
+      @output << if status.exitstatus.zero?
+                   block_fmt
+                 else
+                   block
+                 end
     end
   end
 
