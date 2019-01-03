@@ -13,11 +13,11 @@ class BlkDiff < BlkReader
     @exit_code = 0
   end
 
-  def line_read(line)
+  def notblock_line_read(line)
     # prevent any non block lines for being output
   end
 
-  def formatted_block(block, block_fmt, status)
+  def processed_block(block, block_fmt, status)
     return unless status.exitstatus.zero?
 
     d = Diffy::Diff.new(block, block_fmt, context: @context)

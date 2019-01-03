@@ -30,7 +30,7 @@ if no file is specified stdin is used
 cat FILE | ./terrafmt.rb diff
 ```
 
-When working with provider acceptance tests with unquoted format strings you can use sed to make the blocks valid:
+When working with provider acceptance tests with unquoted format placeholders you can use sed to make the blocks valid:
 
 ```shell
 find . | egrep _test\.go | sort | while read f; do 

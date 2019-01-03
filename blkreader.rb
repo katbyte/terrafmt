@@ -45,7 +45,7 @@ class BlkReader
       # are we in a block
       if pair.nil?
         # put starting line
-        line_read(line)
+        notblock_line_read(line)
 
         # see if any pairs start here (returns nil for no)
         pair = BlkPairs.check(line)
@@ -62,7 +62,7 @@ class BlkReader
           block_read(buffer.join(''))
 
           # put closing line
-          line_read(line)
+          notblock_line_read(line)
 
           # now reset the buffer/pair
           buffer = []
@@ -78,7 +78,7 @@ class BlkReader
     unless pair.nil?
       print_msg(@file, @line_block_start, "MALFORMED BLOCK: `#{pair.start}` missing `#{pair.finish}`".red)
       @blocks_err += 1
-      # formatted_block(block, block, status) #todo
+      # processed_block(block, block, status) #todo
     end
 
     done(io)
@@ -88,8 +88,8 @@ class BlkReader
     0
   end
 
-  # after each line is read, default to output it (passthrough)
-  def line_read(line)
+  # after each  nonbock line is read, default to output it (passthrough)
+  def notblock_line_read(line)
     puts line
   end
 
@@ -107,11 +107,11 @@ class BlkReader
       @blocks_diff += 1 if block_fmt != block
     end
 
-    formatted_block(block, block_fmt, status)
+    processed_block(block, block_fmt, status)
   end
 
   # block after it has been formatted
-  def formatted_block(block, _block_fmt, _status)
+  def processed_block(block, _block_fmt, _status)
     puts block
   end
 

@@ -13,11 +13,13 @@ class BlkFmt < BlkReader
     @output = []
   end
 
-  def line_read(line)
+  def notblock_line_read(line)
+    #write non block lines
     @output << line
   end
 
-  def formatted_block(block, block_fmt, status)
+
+  def processed_block(block, block_fmt, status)
     @output << if status.exitstatus.zero?
                  block_fmt
                else
