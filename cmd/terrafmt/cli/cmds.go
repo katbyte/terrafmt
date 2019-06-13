@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
+	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,12 +43,13 @@ type BlockReader struct {
 	Writer io.Writer
 
 	//stats
-	LinesTotal int
+	LinesCount int
 	LinesBlock int
-	Blocks     int
+	BlockCount int
 
 	//callbacks
-	ReadLine func(*BlockReader, int, string) error
+	ReadLine  func(*BlockReader, int, string) error
+	ReadBlock func(*BlockReader, int, string) error
 }
 
 func BlockReaderPassthrough(br *BlockReader, number int, line string) error {
@@ -54,14 +57,61 @@ func BlockReaderPassthrough(br *BlockReader, number int, line string) error {
 	return nil
 }
 
+func IsBlockStart(line string) bool {
+	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
+		return true
+	} else if line == "```hcl" { // documentation
+		return true
+	}
+
+	return false
+}
+
+func IsBlockFinished(line string) bool {
+	if line == "`)" { // acctest
+		return true
+	} else if strings.HasPrefix(line, "`, ") { // acctest
+		return true
+	} else if line == "```" { // documentation
+		return true
+	}
+
+	return false
+}
+
 func (br *BlockReader) DoTheThing() error {
 	s := bufio.NewScanner(os.Stdin)
 
-	br.LinesTotal = 0
-	for s.Scan() {
-		br.LinesTotal += 1
-		br.ReadLine(br, br.LinesTotal, s.Text()+"\n")
+	br.LinesCount = 0
+	br.BlockCount = 0
+	for s.Scan() { //move this to a ReadLine function?
+		br.LinesCount += 1
+		//br.CurrentLine = s.Text()+"\n"
+		l := s.Text() + "\n"
+
+		br.ReadLine(br, br.LinesCount, l)
+
+		if IsBlockStart(l) {
+			block := ""
+			br.BlockCount += 1
+
+			for s.Scan() {
+				br.LinesCount += 1
+				l2 := s.Text() + "\n"
+
+				if IsBlockFinished(l2) {
+					br.ReadLine(br, br.LinesCount, l2)
+					break
+				} else {
+					block += l2
+					br.ReadBlock(br, br.LinesCount, block)
+					fmt.Fprint(os.Stderr, block)
+				}
+			}
+		}
 	}
+
+	fmt.Fprintf(os.Stderr, c.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LinesCount, br.BlockCount))
 	return nil
 }
 
@@ -70,7 +120,7 @@ func (br *BlockReader) DoTheThing() error {
 //flag: comment out %s
 // blah = %s^ -> = "$$%s$$"
 
-//reader: start stop paris
+//reader: start stop pairs
 //blocks: ignore %s, ignore ... (docs)
 
 //stats: lines, blocks, blocks formatted (lines formatted?), errors?
@@ -90,7 +140,8 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 				Reader: os.Stdin,
 				Writer: os.Stdout,
 
-				ReadLine: BlockReaderPassthrough,
+				ReadLine:  BlockReaderPassthrough,
+				ReadBlock: BlockReaderPassthrough,
 			}
 			err := br.DoTheThing()
 
