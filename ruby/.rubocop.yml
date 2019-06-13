@@ -1,0 +1,16 @@
+AllCops:
+  Include:
+  - '**/*.rb'
+  - Gemfile
+  TargetRubyVersion: 2.5
+
+LineLength:
+  Enabled: false
+MethodLength:
+  Max: 42
+Metrics/AbcSize:
+  Max: 30
+Metrics/CyclomaticComplexity:
+  Max: 10
+Metrics/PerceivedComplexity:
+  Max: 10

@@ -1,0 +1,35 @@
+# Ruby CircleCI 2.0 configuration file
+
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/ruby:2.4.1
+
+    working_directory: ~/repo
+
+    steps:
+    - checkout
+
+    #restore gem cache
+    - restore_cache:
+        name: Restore Gem Cache
+        key: gemcache-v4-{{ checksum "Gemfile" }}
+
+    #install and clean gems
+    - run:
+        name: Install & Clean Gems
+        command: bundle install --jobs=4 --retry=3 --path vendor/bundle && bundle clean
+
+    #save gem cache
+    - save_cache:
+        name: Save Gem Cache
+        key: gemcache-v4-{{ checksum "Gemfile" }}
+        paths:
+        - vendor/bundle
+        - ~/repo/Gemfile.lock
+
+    #run tests
+    - run:
+        name: Run Tests
+        command: rake
