@@ -125,9 +125,6 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			common.Log.Debugf("terrafmt fmt %s", filename)
 
 			br := BlockReader{
-				Reader: os.Stdin,
-				Writer: os.Stdout,
-
 				LineRead: BlockReaderPassthrough,
 				BlockRead: func(br *BlockReader, i int, l string) error {
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
@@ -162,13 +159,12 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			common.Log.Debugf("terrafmt blocks %s", filename)
 
 			br := BlockReader{
-				Reader: os.Stdin,
-				Writer: os.Stdout,
+				ReadOnly: true,
 
 				LineRead: BlockReaderIgnore,
 				BlockRead: func(br *BlockReader, i int, l string) error {
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>%s</>@<white>%d</> <cyan>B%d</>\n", filename, br.LineCount, br.BlockCount))
-					br.Writer.Write([]byte(l))
+					fmt.Fprint(os.Stdout, l)
 					return nil
 				},
 			}

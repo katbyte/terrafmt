@@ -25,6 +25,8 @@ type BlockReader struct {
 	LinesBlock int
 	BlockCount int
 
+	ReadOnly bool
+
 	//current block line count
 	//blocks formatted
 	//
@@ -80,12 +82,14 @@ func (br *BlockReader) DoTheThing(filename string) error {
 		br.Reader = fs
 
 		// for now write to a temporary file, TODO is there a better way?
-		tmpfile, err = ioutil.TempFile("", "terrafmt")
-		if err != nil {
-			return fmt.Errorf("unable to create tmpfile: %v", err)
+		if !br.ReadOnly {
+			tmpfile, err = ioutil.TempFile("", "terrafmt")
+			if err != nil {
+				return fmt.Errorf("unable to create tmpfile: %v", err)
+			}
+			common.Log.Debugf("opening tmp file %s", tmpfile.Name())
+			br.Writer = tmpfile
 		}
-		common.Log.Debugf("opening tmp file %s", tmpfile.Name())
-		br.Writer = tmpfile
 
 	} else {
 		br.FileName = "stdin"
