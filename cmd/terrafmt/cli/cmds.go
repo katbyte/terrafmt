@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/common"
@@ -43,6 +46,31 @@ func ValidateParams(params []string) func(cmd *cobra.Command, args []string) err
 //reader: start stop pairs
 //blocks: ignore %s, ignore ... (docs)
 
+func FormatBlock(b string) (string, error) {
+
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+
+	common.Log.Debugf("running terraform... ")
+	cmd := exec.Command("terraform", "fmt", "-")
+	cmd.Stdin = strings.NewReader(b)
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	err := cmd.Run()
+
+	if err != nil {
+		return "", fmt.Errorf("cmd.Run() failed with %s: %s", err, stderr)
+	}
+
+	ec := cmd.ProcessState.ExitCode()
+	common.Log.Debugf("terraform exited with %d", ec)
+	if ec != 0 {
+		return "", fmt.Errorf("trerraform failed with %d: %s", ec, stderr)
+	}
+
+	return stdout.String(), nil
+}
+
 //stats: lines, blocks, blocks formatted (lines formatted?), errors?
 func Make() *cobra.Command {
 
@@ -54,27 +82,30 @@ It can also pull the tests to run for a PR on github
 Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("terrafmt bare")
+
+			filename := ""
+			if len(args) == 1 {
+				filename = args[0]
+			}
+			common.Log.Debugf("terrafmt  %s", filename)
 
 			br := BlockReader{
-				Reader: os.Stdin,
-				Writer: os.Stdout,
-
-				LineRead:  BlockReaderPassthrough,
-				BlockRead: BlockReaderPassthrough,
+				LineRead: BlockReaderPassthrough,
+				BlockRead: func(br *BlockReader, i int, l string) error {
+					fb, err := FormatBlock(l)
+					if err != nil {
+						return err
+					}
+					br.Writer.Write([]byte(fb))
+					return nil
+				},
 			}
-			err := br.DoTheThing()
+
+			err := br.DoTheThing(filename)
 
 			if err != nil {
 				return err
 			}
-
-			//reader to read file and find blocks
-
-			//fmt blocks
-
-			//output file + blocks
-
 			return nil
 		},
 	}
@@ -86,7 +117,12 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		Long:  `TODO`,
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("terrafmt diff")
+
+			filename := ""
+			if len(args) == 1 {
+				filename = args[0]
+			}
+			common.Log.Debugf("terrafmt fmt %s", filename)
 
 			br := BlockReader{
 				Reader: os.Stdin,
@@ -99,7 +135,8 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					return nil
 				},
 			}
-			err := br.DoTheThing()
+
+			err := br.DoTheThing(filename)
 
 			if err != nil {
 				return err
@@ -136,17 +173,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 				},
 			}
 
-			if filename != "" {
-				common.Log.Debugf("opening file %s", filename)
-				fs, err := os.Open(args[0]) // For read access.
-				if err != nil {
-					return err
-				}
-				defer fs.Close()
-				br.Reader = fs
-			}
-
-			err := br.DoTheThing()
+			err := br.DoTheThing(filename)
 
 			if err != nil {
 				return err
