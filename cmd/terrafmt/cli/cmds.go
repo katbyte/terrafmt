@@ -1,13 +1,11 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 
 	c "github.com/gookit/color"
+	"github.com/katbyte/terrafmt/common"
 	"github.com/katbyte/terrafmt/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,84 +35,6 @@ func ValidateParams(params []string) func(cmd *cobra.Command, args []string) err
 // block finished
 //
 
-type BlockReader struct {
-	//io
-	Reader io.Reader
-	Writer io.Writer
-
-	//stats
-	LinesCount int
-	LinesBlock int
-	BlockCount int
-
-	//callbacks
-	ReadLine  func(*BlockReader, int, string) error
-	ReadBlock func(*BlockReader, int, string) error
-}
-
-func BlockReaderPassthrough(br *BlockReader, number int, line string) error {
-	br.Writer.Write([]byte(line))
-	return nil
-}
-
-func IsBlockStart(line string) bool {
-	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
-		return true
-	} else if line == "```hcl" { // documentation
-		return true
-	}
-
-	return false
-}
-
-func IsBlockFinished(line string) bool {
-	if line == "`)" { // acctest
-		return true
-	} else if strings.HasPrefix(line, "`, ") { // acctest
-		return true
-	} else if line == "```" { // documentation
-		return true
-	}
-
-	return false
-}
-
-func (br *BlockReader) DoTheThing() error {
-	s := bufio.NewScanner(os.Stdin)
-
-	br.LinesCount = 0
-	br.BlockCount = 0
-	for s.Scan() { //move this to a ReadLine function?
-		br.LinesCount += 1
-		//br.CurrentLine = s.Text()+"\n"
-		l := s.Text() + "\n"
-
-		br.ReadLine(br, br.LinesCount, l)
-
-		if IsBlockStart(l) {
-			block := ""
-			br.BlockCount += 1
-
-			for s.Scan() {
-				br.LinesCount += 1
-				l2 := s.Text() + "\n"
-
-				if IsBlockFinished(l2) {
-					br.ReadLine(br, br.LinesCount, l2)
-					break
-				} else {
-					block += l2
-					br.ReadBlock(br, br.LinesCount, block)
-					fmt.Fprint(os.Stderr, block)
-				}
-			}
-		}
-	}
-
-	fmt.Fprintf(os.Stderr, c.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LinesCount, br.BlockCount))
-	return nil
-}
-
 // reader -> stream -> blocks & non blocks
 
 //flag: comment out %s
@@ -140,8 +60,8 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 				Reader: os.Stdin,
 				Writer: os.Stdout,
 
-				ReadLine:  BlockReaderPassthrough,
-				ReadBlock: BlockReaderPassthrough,
+				LineRead:  BlockReaderPassthrough,
+				BlockRead: BlockReaderPassthrough,
 			}
 			err := br.DoTheThing()
 
@@ -168,11 +88,22 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Println("terrafmt diff")
 
-			//reader to read file and find blocks
+			br := BlockReader{
+				Reader: os.Stdin,
+				Writer: os.Stdout,
 
-			//fmt blocks
+				LineRead: BlockReaderPassthrough,
+				BlockRead: func(br *BlockReader, i int, l string) error {
+					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
+					br.Writer.Write([]byte(l))
+					return nil
+				},
+			}
+			err := br.DoTheThing()
 
-			//blocks that are different etc
+			if err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -183,10 +114,43 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		Use:   "blocks [file]",
 		Short: "extract terraform blocks from a file ",
 		Long:  `TODO`,
-		Args:  cobra.RangeArgs(0, 1),
+		//options: no header (######), format (json? xml? ect), only should block x?
+		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("terrafmt block")
-			//reader to read file and find blocks
+
+			filename := ""
+			if len(args) == 1 {
+				filename = args[0]
+			}
+			common.Log.Debugf("terrafmt blocks %s", filename)
+
+			br := BlockReader{
+				Reader: os.Stdin,
+				Writer: os.Stdout,
+
+				LineRead: BlockReaderIgnore,
+				BlockRead: func(br *BlockReader, i int, l string) error {
+					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>%s</>@<white>%d</> <cyan>B%d</>\n", filename, br.LineCount, br.BlockCount))
+					br.Writer.Write([]byte(l))
+					return nil
+				},
+			}
+
+			if filename != "" {
+				common.Log.Debugf("opening file %s", filename)
+				fs, err := os.Open(args[0]) // For read access.
+				if err != nil {
+					return err
+				}
+				defer fs.Close()
+				br.Reader = fs
+			}
+
+			err := br.DoTheThing()
+
+			if err != nil {
+				return err
+			}
 
 			//blocks
 			return nil
