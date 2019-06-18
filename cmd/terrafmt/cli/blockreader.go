@@ -48,7 +48,7 @@ func BlockReaderIgnore(br *BlockReader, number int, line string) error {
 func IsBlockStart(line string) bool {
 	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
 		return true
-	} else if line == "```hcl" { // documentation
+	} else if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
 	}
 
@@ -60,7 +60,7 @@ func IsBlockFinished(line string) bool {
 		return true
 	} else if strings.HasPrefix(line, "`, ") { // acctest
 		return true
-	} else if line == "```" { // documentation
+	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
 	}
 
@@ -129,11 +129,20 @@ func (br *BlockReader) DoTheThing(filename string) error {
 						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l2, err)
 					}
 
+					block = ""
 					break
 				} else {
 					block += l2
 				}
 			}
+
+			/*if block != "" { //couldn't find the end of the block, output as lines
+						for each line {
+								if err := br.LineRead(br, br.LineCount, l); err != nil {
+								return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
+							}
+							}
+			 			}*/
 		}
 	}
 
