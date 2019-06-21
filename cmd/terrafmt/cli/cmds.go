@@ -76,9 +76,8 @@ func Make() *cobra.Command {
 
 	root := &cobra.Command{
 		Use:   "terrafmt [file]",
-		Short: "terrafmt is a small utility to trigger acceptance tests on teamcity",
-		Long: `A small utility to trigger acceptance tests on teamcity. 
-It can also pull the tests to run for a PR on github
+		Short: "terrafmt is a small utility to format terraform blocks found in files.",
+		Long: `A small utility to for formatting terraform blocks found in files. Primarily intended to help with terraform provider development.
 Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -113,8 +112,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 	//options : only count, blocks diff/found, total lines diff, etc
 	diff := &cobra.Command{
 		Use:   "diff [file]",
-		Short: "formats terraform blocks in a file and shows the differnce",
-		Long:  `TODO`,
+		Short: "formats terraform blocks in a file and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -138,6 +136,8 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			if err != nil {
 				return err
 			}
+			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+
 			return nil
 		},
 	}
@@ -146,8 +146,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 	// options
 	blocks := &cobra.Command{
 		Use:   "blocks [file]",
-		Short: "extract terraform blocks from a file ",
-		Long:  `TODO`,
+		Short: "extracts terraform blocks from a file ",
 		//options: no header (######), format (json? xml? ect), only should block x?
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -176,6 +175,8 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 
 			//blocks
+			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+
 			return nil
 		},
 	}
@@ -184,7 +185,6 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of terrafmt",
-		Long:  `Print the version number of terrafmt`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
