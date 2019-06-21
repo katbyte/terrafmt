@@ -29,4 +29,3 @@ cat FILE | ./terrafmt diff
 When working with provider acceptance tests with unquoted format placeholders you can use sed to make the blocks valid:
 
 (todo proper examples with input & output)
-
