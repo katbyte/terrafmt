@@ -21,9 +21,10 @@ type BlockReader struct {
 	Writer io.Writer
 
 	//stats
-	LineCount  int
-	LinesBlock int
-	BlockCount int
+	LineCount      int
+	LinesBlock     int
+	BlockCount     int
+	BlockLineCount int
 
 	ReadOnly bool
 
@@ -100,7 +101,7 @@ func (br *BlockReader) DoTheThing(filename string) error {
 	br.LineCount = 0
 	br.BlockCount = 0
 	s := bufio.NewScanner(br.Reader)
-	for s.Scan() { //move this to a LineRead function?
+	for s.Scan() { // scan file
 		br.LineCount += 1
 		//br.CurrentLine = s.Text()+"\n"
 		l := s.Text() + "\n"
@@ -111,17 +112,35 @@ func (br *BlockReader) DoTheThing(filename string) error {
 
 		if IsBlockStart(l) {
 			block := ""
+			br.BlockLineCount = 0
 			br.BlockCount += 1
 
-			for s.Scan() {
+			for s.Scan() { // scan block
 				br.LineCount += 1
+				br.BlockLineCount += 1
 				l2 := s.Text() + "\n"
 
+				// make sure we don't run into another block
+				if IsBlockStart(l2) {
+
+					// the end of current block must be malformed, so lets pass it through and log an error
+					logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockLineCount)
+					BlockReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
+
+					if err := br.LineRead(br, br.LineCount, l2); err != nil {
+						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
+					}
+
+					block = ""
+					br.BlockCount += 1
+					continue
+				}
+
 				if IsBlockFinished(l2) {
-					// todo configure this behaviour with switchs
+					// todo configure this behaviour with switch's
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
-						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount, err)
+						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockLineCount, err)
 						BlockReaderPassthrough(br, br.LineCount, block)
 					}
 
@@ -136,13 +155,12 @@ func (br *BlockReader) DoTheThing(filename string) error {
 				}
 			}
 
-			/*if block != "" { //couldn't find the end of the block, output as lines
-						for each line {
-								if err := br.LineRead(br, br.LineCount, l); err != nil {
-								return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
-							}
-							}
-			 			}*/
+			// ensure last block in the file was propertly handled
+			if block != "" {
+				//for each line { Lineread()?
+				logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockLineCount)
+				BlockReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
+			}
 		}
 	}
 
