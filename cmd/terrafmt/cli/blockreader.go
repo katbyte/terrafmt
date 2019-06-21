@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/common"
 	"github.com/sirupsen/logrus"
 )
@@ -171,6 +170,6 @@ func (br *BlockReader) DoTheThing(filename string) error {
 	}
 
 	// todo should this be at the end of a command?
-	fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	//fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
 	return nil
 }
