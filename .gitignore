@@ -3,7 +3,7 @@
 
 # Binaries for programs and plugins
 
-terrafmt
+/terrafmt
 
 # Test binary, built with `go test -c`
 *.test
