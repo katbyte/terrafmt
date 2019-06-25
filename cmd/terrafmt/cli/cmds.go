@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/common"
@@ -13,18 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-func ValidateParams(params []string) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, p := range params {
-			if viper.GetString(p) == "" {
-				return fmt.Errorf(p + " paramter can't be empty")
-			}
-		}
-
-		return nil
-	}
-}
 
 // data -> read -> chunk block & non block
 //  non block -> passthrough
@@ -46,40 +31,32 @@ func ValidateParams(params []string) func(cmd *cobra.Command, args []string) err
 //reader: start stop pairs
 //blocks: ignore %s, ignore ... (docs)
 
-func FormatBlock(b string) (string, error) {
-
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-
-	common.Log.Debugf("running terraform... ")
-	cmd := exec.Command("terraform", "fmt", "-")
-	cmd.Stdin = strings.NewReader(b)
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	err := cmd.Run()
-
-	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed with %s: %s", err, stderr)
-	}
-
-	ec := cmd.ProcessState.ExitCode()
-	common.Log.Debugf("terraform exited with %d", ec)
-	if ec != 0 {
-		return "", fmt.Errorf("trerraform failed with %d: %s", ec, stderr)
-	}
-
-	return stdout.String(), nil
-}
-
 //stats: lines, blocks, blocks formatted (lines formatted?), errors?
 func Make() *cobra.Command {
 
+	//shared options
+	// acctest mode (format string compatible)
+	// quite
+	// verbose?
+
 	root := &cobra.Command{
-		Use:   "terrafmt [file]",
+		Use:   "terrafmt [fmt|diff|blocks]",
 		Short: "terrafmt is a small utility to format terraform blocks found in files.",
 		Long: `A small utility to for formatting terraform blocks found in files. Primarily intended to help with terraform provider development.
 Complete documentation is available at https://github.com/katbyte/terrafmt`,
-		Args: cobra.RangeArgs(0, 1),
+		Args:          cobra.RangeArgs(0, 0),
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			return fmt.Errorf("No command specified")
+		},
+	}
+
+	//options : only count, blocks diff/found, total lines diff, etc
+	root.AddCommand(&cobra.Command{
+		Use:   "fmt [file]",
+		Short: "formats terraform blocks in a single file or on stdin",
+		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			filename := ""
@@ -91,7 +68,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			br := BlockReader{
 				LineRead: BlockReaderPassthrough,
 				BlockRead: func(br *BlockReader, i int, l string) error {
-					fb, err := FormatBlock(l)
+					fb, err := FormatBlock(l, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
@@ -99,7 +76,6 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					return nil
 				},
 			}
-
 			err := br.DoTheThing(filename)
 
 			if err != nil {
@@ -107,10 +83,10 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 			return nil
 		},
-	}
+	})
 
 	//options : only count, blocks diff/found, total lines diff, etc
-	diff := &cobra.Command{
+	root.AddCommand(&cobra.Command{
 		Use:   "diff [file]",
 		Short: "formats terraform blocks in a file and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
@@ -123,6 +99,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			common.Log.Debugf("terrafmt fmt %s", filename)
 
 			br := BlockReader{
+				ReadOnly: true,
 				LineRead: BlockReaderPassthrough,
 				BlockRead: func(br *BlockReader, i int, l string) error {
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
@@ -130,7 +107,6 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					return nil
 				},
 			}
-
 			err := br.DoTheThing(filename)
 
 			if err != nil {
@@ -140,11 +116,10 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 
 			return nil
 		},
-	}
-	root.AddCommand(diff)
+	})
 
 	// options
-	blocks := &cobra.Command{
+	root.AddCommand(&cobra.Command{
 		Use:   "blocks [file]",
 		Short: "extracts terraform blocks from a file ",
 		//options: no header (######), format (json? xml? ect), only should block x?
@@ -159,10 +134,9 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 
 			br := BlockReader{
 				ReadOnly: true,
-
 				LineRead: BlockReaderIgnore,
 				BlockRead: func(br *BlockReader, i int, l string) error {
-					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>%s</>@<white>%d</> <cyan>B%d</>\n", filename, br.LineCount, br.BlockCount))
+					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
 					fmt.Fprint(os.Stdout, l)
 					return nil
 				},
@@ -179,8 +153,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 
 			return nil
 		},
-	}
-	root.AddCommand(blocks)
+	})
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -190,6 +163,13 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 		},
 	})
+
+	pflags := root.PersistentFlags()
+	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d ect) compatibility")
+
+	viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat"))
+
+	//todo bind to env?
 
 	return root
 }
