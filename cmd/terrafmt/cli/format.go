@@ -19,7 +19,7 @@ func FormatBlock(b string, fmtCompat bool) (string, error) {
 	if fmtCompat {
 
 		// handle bare %s
-		//figure this out later
+		// figure out why the * doesn't match both later
 		b = string(regexp.MustCompile(`(?m:^%s$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0`))
 		b = string(regexp.MustCompile(`(?m:^[\s]*%s$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0`))
 

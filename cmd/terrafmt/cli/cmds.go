@@ -65,18 +65,26 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 			common.Log.Debugf("terrafmt  %s", filename)
 
+			blocksFormatted := 0
 			br := BlockReader{
 				LineRead: BlockReaderPassthrough,
-				BlockRead: func(br *BlockReader, i int, l string) error {
-					fb, err := FormatBlock(l, viper.GetBool("fmtcompat"))
+				BlockRead: func(br *BlockReader, i int, b string) error {
+					fb, err := FormatBlock(b, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
 					br.Writer.Write([]byte(fb))
+
+					if fb != b {
+						blocksFormatted++
+					}
+
 					return nil
 				},
 			}
 			err := br.DoTheThing(filename)
+
+			fmt.Fprintf(os.Stderr, c.Sprintf("Processed <magenta>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 
 			if err != nil {
 				return err
@@ -98,12 +106,25 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 			common.Log.Debugf("terrafmt fmt %s", filename)
 
+			blocksWithDiff := 0
 			br := BlockReader{
 				ReadOnly: true,
-				LineRead: BlockReaderPassthrough,
-				BlockRead: func(br *BlockReader, i int, l string) error {
-					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-					br.Writer.Write([]byte(l))
+				LineRead: func(br *BlockReader, i int, b string) error {
+					return nil
+				},
+				BlockRead: func(br *BlockReader, i int, b string) error {
+					fb, err := FormatBlock(b, viper.GetBool("fmtcompat"))
+					if err != nil {
+						return err
+					}
+
+					if fb == b {
+						return nil
+					}
+					blocksWithDiff++
+
+					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @</> <lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.BlockCount, br.FileName, br.LineCount))
+					br.Writer.Write([]byte(fb))
 					return nil
 				},
 			}
