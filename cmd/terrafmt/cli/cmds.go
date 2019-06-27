@@ -9,6 +9,7 @@ import (
 	"github.com/katbyte/terrafmt/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 // data -> read -> chunk block & non block
@@ -124,6 +125,12 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					blocksWithDiff++
 
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @</> <lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.BlockCount, br.FileName, br.LineCount))
+
+					dmp := diffmatchpatch.New()
+					diffs := dmp.DiffMain(b, fb, false)
+					fmt.Println(dmp.DiffPrettyText(diffs))
+
+
 					br.Writer.Write([]byte(fb))
 					return nil
 				},
