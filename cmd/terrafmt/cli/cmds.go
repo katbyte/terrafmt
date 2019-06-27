@@ -1,15 +1,17 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/andreyvit/diff"
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/common"
 	"github.com/katbyte/terrafmt/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 // data -> read -> chunk block & non block
@@ -124,14 +126,21 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					}
 					blocksWithDiff++
 
-					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @</> <lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.BlockCount, br.FileName, br.LineCount))
+					fmt.Fprintf(os.Stderr, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @</> <lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine))
 
-					dmp := diffmatchpatch.New()
-					diffs := dmp.DiffMain(b, fb, false)
-					fmt.Println(dmp.DiffPrettyText(diffs))
+					d := diff.LineDiff(b, fb)
+					scanner := bufio.NewScanner(strings.NewReader(d))
+					for scanner.Scan() {
+						l := scanner.Text()
+						if strings.HasPrefix(l, "+") {
+							fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
+						} else if strings.HasPrefix(l, "-") {
+							fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
+						} else {
+							fmt.Fprint(os.Stdout, l+"\n")
+						}
+					}
 
-
-					br.Writer.Write([]byte(fb))
 					return nil
 				},
 			}
@@ -140,7 +149,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+			fmt.Fprintf(os.Stderr, c.Sprintf("\nProcessed <magenta>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
 
 			return nil
 		},
@@ -163,9 +172,9 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			br := BlockReader{
 				ReadOnly: true,
 				LineRead: BlockReaderIgnore,
-				BlockRead: func(br *BlockReader, i int, l string) error {
+				BlockRead: func(br *BlockReader, i int, b string) error {
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-					fmt.Fprint(os.Stdout, l)
+					fmt.Fprint(os.Stdout, b)
 					return nil
 				},
 			}
