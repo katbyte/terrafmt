@@ -1,4 +1,4 @@
-package cli
+package blocks
 
 import (
 	"bufio"
@@ -8,11 +8,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/katbyte/terrafmt/common"
+	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/sirupsen/logrus"
 )
 
-type BlockReader struct {
+type Reader struct {
 	FileName string
 
 	//io
@@ -28,20 +28,20 @@ type BlockReader struct {
 	ReadOnly bool
 
 	//callbacks
-	LineRead  func(*BlockReader, int, string) error
-	BlockRead func(*BlockReader, int, string) error
+	LineRead  func(*Reader, int, string) error
+	BlockRead func(*Reader, int, string) error
 }
 
-func BlockReaderPassthrough(br *BlockReader, number int, line string) error {
+func ReaderPassthrough(br *Reader, number int, line string) error {
 	br.Writer.Write([]byte(line))
 	return nil
 }
 
-func BlockReaderIgnore(br *BlockReader, number int, line string) error {
+func ReaderIgnore(br *Reader, number int, line string) error {
 	return nil
 }
 
-func IsBlockStart(line string) bool {
+func IsStartLine(line string) bool {
 	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```hcl") { // documentation
@@ -51,7 +51,7 @@ func IsBlockStart(line string) bool {
 	return false
 }
 
-func IsBlockFinished(line string) bool {
+func IsFinishLine(line string) bool {
 	if line == "`)" { // acctest
 		return true
 	} else if strings.HasPrefix(line, "`, ") { // acctest
@@ -63,7 +63,7 @@ func IsBlockFinished(line string) bool {
 	return false
 }
 
-func (br *BlockReader) DoTheThing(filename string) error {
+func (br *Reader) DoTheThing(filename string) error {
 
 	var tmpfile *os.File
 
@@ -111,7 +111,7 @@ func (br *BlockReader) DoTheThing(filename string) error {
 			return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
 		}
 
-		if IsBlockStart(l) {
+		if IsStartLine(l) {
 			block := ""
 			br.BlockCurrentLine = 0
 			br.BlockCount += 1
@@ -122,11 +122,11 @@ func (br *BlockReader) DoTheThing(filename string) error {
 				l2 := s.Text() + "\n"
 
 				// make sure we don't run into another block
-				if IsBlockStart(l2) {
+				if IsStartLine(l2) {
 
 					// the end of current block must be malformed, so lets pass it through and log an error
 					logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
-					BlockReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
+					ReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
 						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
@@ -137,7 +137,7 @@ func (br *BlockReader) DoTheThing(filename string) error {
 					continue
 				}
 
-				if IsBlockFinished(l2) {
+				if IsFinishLine(l2) {
 
 					br.LinesBlock += br.BlockCurrentLine
 
@@ -145,7 +145,7 @@ func (br *BlockReader) DoTheThing(filename string) error {
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
 						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
-						BlockReaderPassthrough(br, br.LineCount, block)
+						ReaderPassthrough(br, br.LineCount, block)
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
@@ -163,7 +163,7 @@ func (br *BlockReader) DoTheThing(filename string) error {
 			if block != "" {
 				//for each line { Lineread()?
 				logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
-				BlockReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
+				ReaderPassthrough(br, br.LineCount, block) // is this ok or should we loop with LineRead?
 			}
 		}
 	}

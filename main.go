@@ -4,8 +4,8 @@ import (
 	"os"
 
 	c "github.com/gookit/color"
-	"github.com/katbyte/terrafmt/cmd/terrafmt/cli"
-	"github.com/katbyte/terrafmt/common"
+	"github.com/katbyte/terrafmt/cli"
+	"github.com/katbyte/terrafmt/lib/common"
 )
 
 func main() {

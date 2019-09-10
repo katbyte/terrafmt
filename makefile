@@ -14,10 +14,10 @@ imports:
 
 build:
 	@echo "==> building..."
-	cd cmd/terrafmt && go build -ldflags "-X github.com/katbyte/terrafmt/version.GitCommit=${GIT_COMMIT}" . && mv terrafmt ../../
+	go build -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}"
 
 install:
 	@echo "==> installing..."
-	cd cmd/terrafmt && go install -ldflags "-X github.com/katbyte/terrafmt/version.GitCommit=${GIT_COMMIT}" .
+	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}" .
 
 .PHONY: fmt imports build

@@ -1,4 +1,4 @@
-package cli
+package format
 
 import (
 	"bytes"
@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/katbyte/terrafmt/common"
+	"github.com/katbyte/terrafmt/lib/common"
 )
 
-func FormatBlock(b string, fmtCompat bool) (string, error) {
+func Block(b string, fmtCompat bool) (string, error) {
 
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)

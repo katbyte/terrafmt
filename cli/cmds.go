@@ -8,8 +8,10 @@ import (
 
 	"github.com/andreyvit/diff"
 	c "github.com/gookit/color"
-	"github.com/katbyte/terrafmt/common"
-	"github.com/katbyte/terrafmt/version"
+	`github.com/katbyte/terrafmt/lib/blocks`
+	"github.com/katbyte/terrafmt/lib/common"
+	`github.com/katbyte/terrafmt/lib/format`
+	"github.com/katbyte/terrafmt/lib/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -68,10 +70,10 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			common.Log.Debugf("terrafmt  %s", filename)
 
 			blocksFormatted := 0
-			br := BlockReader{
-				LineRead: BlockReaderPassthrough,
-				BlockRead: func(br *BlockReader, i int, b string) error {
-					fb, err := FormatBlock(b, viper.GetBool("fmtcompat"))
+			br := blocks.Reader{
+				LineRead: blocks.ReaderPassthrough,
+				BlockRead: func(br *blocks.Reader, i int, b string) error {
+					fb, err := format.Block(b, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
@@ -115,11 +117,11 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			common.Log.Debugf("terrafmt fmt %s", filename)
 
 			blocksWithDiff := 0
-			br := BlockReader{
+			br := blocks.Reader{
 				ReadOnly: true,
-				LineRead: BlockReaderPassthrough,
-				BlockRead: func(br *BlockReader, i int, b string) error {
-					fb, err := FormatBlock(b, viper.GetBool("fmtcompat"))
+				LineRead: blocks.ReaderPassthrough,
+				BlockRead: func(br *blocks.Reader, i int, b string) error {
+					fb, err := format.Block(b, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
@@ -179,10 +181,10 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 			common.Log.Debugf("terrafmt blocks %s", filename)
 
-			br := BlockReader{
+			br := blocks.Reader{
 				ReadOnly: true,
-				LineRead: BlockReaderIgnore,
-				BlockRead: func(br *BlockReader, i int, b string) error {
+				LineRead: blocks.ReaderIgnore,
+				BlockRead: func(br *blocks.Reader, i int, b string) error {
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
 					fmt.Fprint(os.Stdout, b)
 					return nil
