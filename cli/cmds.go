@@ -8,9 +8,9 @@ import (
 
 	"github.com/andreyvit/diff"
 	c "github.com/gookit/color"
-	`github.com/katbyte/terrafmt/lib/blocks`
+	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
-	`github.com/katbyte/terrafmt/lib/format`
+	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -73,7 +73,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			br := blocks.Reader{
 				LineRead: blocks.ReaderPassthrough,
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					fb, err := format.Block(b, viper.GetBool("fmtcompat"))
+					fb, err := format.FmtVerbBlock(b, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
@@ -121,7 +121,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 				ReadOnly: true,
 				LineRead: blocks.ReaderPassthrough,
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					fb, err := format.Block(b, viper.GetBool("fmtcompat"))
+					fb, err := format.FmtVerbBlock(b, viper.GetBool("fmtcompat"))
 					if err != nil {
 						return err
 					}
