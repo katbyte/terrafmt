@@ -13,7 +13,6 @@ func TestBlock(t *testing.T) {
 			name:     "empty",
 			block:    "",
 			expected: "\n",
-			error:    false,
 		},
 		{
 			name: "oneline",
@@ -23,7 +22,6 @@ resource   "resource"    "test" {}
 			expected: `
 resource "resource" "test" {}
 `,
-			error: false,
 		},
 		{
 			name: "basic",
@@ -37,7 +35,6 @@ resource "resource" "test" {
   kay = "tee"
 }
 `,
-			error: false,
 		},
 		{
 			name: "whitespace",
@@ -65,7 +62,6 @@ resource "resource" "test" {
   }
 }
 `,
-			error: false,
 		},
 		{
 			name: "invalid",

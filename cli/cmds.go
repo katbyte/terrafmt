@@ -73,10 +73,18 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			br := blocks.Reader{
 				LineRead: blocks.ReaderPassthrough,
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					fb, err := format.FmtVerbBlock(b, viper.GetBool("fmtcompat"))
+					var fb string
+					var err error
+					if viper.GetBool("fmtcompat") {
+						fb, err = format.FmtVerbBlock(b)
+					} else {
+						fb, err = format.Block(b)
+					}
+
 					if err != nil {
 						return err
 					}
+
 					br.Writer.Write([]byte(fb))
 
 					if fb != b {
@@ -121,7 +129,14 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 				ReadOnly: true,
 				LineRead: blocks.ReaderPassthrough,
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					fb, err := format.FmtVerbBlock(b, viper.GetBool("fmtcompat"))
+					var fb string
+					var err error
+					if viper.GetBool("fmtcompat") {
+						fb, err = format.FmtVerbBlock(b)
+					} else {
+						fb, err = format.Block(b)
+					}
+
 					if err != nil {
 						return err
 					}
