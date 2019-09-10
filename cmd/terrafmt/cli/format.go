@@ -24,7 +24,6 @@ func FormatBlock(b string, fmtCompat bool) (string, error) {
 		b = string(regexp.MustCompile(`(?m:^[\s]*%s$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0`))
 
 		// handle [%s]
-
 		b = string(regexp.MustCompile(`(?m:\[%s\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`))
 	}
 

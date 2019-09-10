@@ -85,12 +85,18 @@ func (br *BlockReader) DoTheThing(filename string) error {
 			}
 			common.Log.Debugf("opening tmp file %s", tmpfile.Name())
 			br.Writer = tmpfile
+		} else {
+			br.Writer = ioutil.Discard
 		}
 
 	} else {
 		br.FileName = "stdin"
 		br.Reader = os.Stdin
 		br.Writer = os.Stdout
+
+		if br.ReadOnly {
+			br.Writer = ioutil.Discard
+		}
 	}
 
 	br.LineCount = 0

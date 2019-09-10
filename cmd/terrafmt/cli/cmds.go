@@ -50,7 +50,6 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			return fmt.Errorf("No command specified")
 		},
 	}
@@ -87,8 +86,14 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			}
 			err := br.DoTheThing(filename)
 
-			fmt.Fprintf(os.Stderr, c.Sprintf("Processed <magenta>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+			fc := "magenta"
+			if blocksFormatted > 0 {
+				fc = "lightMagenta"
+			}
 
+			if !viper.GetBool("quiet") {
+				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+			}
 			if err != nil {
 				return err
 			}
@@ -112,9 +117,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			blocksWithDiff := 0
 			br := BlockReader{
 				ReadOnly: true,
-				LineRead: func(br *BlockReader, i int, b string) error {
-					return nil
-				},
+				LineRead: BlockReaderPassthrough,
 				BlockRead: func(br *BlockReader, i int, b string) error {
 					fb, err := FormatBlock(b, viper.GetBool("fmtcompat"))
 					if err != nil {
@@ -126,7 +129,7 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 					}
 					blocksWithDiff++
 
-					fmt.Fprintf(os.Stderr, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @</> <lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine))
+					fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
 					d := diff.LineDiff(b, fb)
 					scanner := bufio.NewScanner(strings.NewReader(d))
@@ -149,8 +152,15 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(os.Stderr, c.Sprintf("\nProcessed <magenta>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
 
+			fc := "magenta"
+			if blocksWithDiff > 0 {
+				fc = "lightMagenta"
+			}
+
+			if !viper.GetBool("quiet") {
+				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
+			}
 			return nil
 		},
 	})
@@ -203,8 +213,10 @@ Complete documentation is available at https://github.com/katbyte/terrafmt`,
 
 	pflags := root.PersistentFlags()
 	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d ect) compatibility")
+	pflags.BoolP("quiet", "q", false, "only show differences")
 
 	viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat"))
+	viper.BindPFlag("quiet", pflags.Lookup("quiet"))
 
 	//todo bind to env?
 
