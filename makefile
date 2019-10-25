@@ -12,6 +12,9 @@ imports:
 	@echo "==> Fixing imports code with goimports..."
 	goimports -w .
 
+test: fmt build
+	go test ./...
+
 build:
 	@echo "==> building..."
 	go build -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}"

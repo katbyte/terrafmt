@@ -77,17 +77,89 @@ resource "resource" "test" {
 		},
 
 		{
+			name: "bareverb-positional",
+			block: `
+%[1]s
+    %[7]s
+	%[77]s
+
+%[7]d
+    %[7]d
+
+%[42]t
+    %[1]t
+
+%[7]q
+    %[77]q
+
+%[7]f
+    %[77]f
+
+%[1]g
+    %[2]g
+
+resource "resource" "test" {
+	kat = "byte"
+} 
+`,
+			expected: `
+%[1]s
+    %[7]s
+	%[77]s
+
+%[7]d
+    %[7]d
+
+%[42]t
+    %[1]t
+
+%[7]q
+    %[77]q
+
+%[7]f
+    %[77]f
+
+%[1]g
+    %[2]g
+
+resource "resource" "test" {
+  kat = "byte"
+}
+`,
+		},
+
+		{
 			name: "assigned_array",
 			block: `
 resource  "resource"    "test" {
 	kat = [%s]
-    byte = [%d]
+mega = [%d]
+    byte =   [%d]
 } 
 `,
 			expected: `
 resource "resource" "test" {
   kat  = [%s]
+  mega = [%d]
   byte = [%d]
+}
+`,
+		},
+
+		{
+			name: "assigned_array-positional",
+			block: `
+resource  "resource"    "test" {
+	kat = [%[1]s]
+mega = [%[3]d]
+    byte =   [%[5]d]
+} 
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = [%[1]s]
+  mega = [%[3]d]
+  byte = [%[5]d]
 }
 `,
 		},
