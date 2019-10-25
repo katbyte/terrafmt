@@ -18,6 +18,12 @@ func FmtVerbBlock(b string) (string, error) {
 	// handle = [%s]
 	b = string(regexp.MustCompile(`(?m:\[%[sd]\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`))
 
+	// handle = %s/%t
+
+	// handle = %[n]s
+	// handle bare %[n]s
+	// handle = [%[n]s]
+
 	fb, err := Block(b)
 	if err != nil {
 		return fb, err

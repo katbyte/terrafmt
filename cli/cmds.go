@@ -16,33 +16,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// data -> read -> chunk block & non block
-//  non block -> passthrough
-//  block     -> act on blocks
-// combine -> final stream
-
-// reader:
-// non block line: blah
-// block line ?
-// block start ?
-// block finished
-//
-
-// reader -> stream -> blocks & non blocks
-
-//flag: comment out %s
-// blah = %s^ -> = "$$%s$$"
-
-//reader: start stop pairs
-//blocks: ignore %s, ignore ... (docs)
-
-//stats: lines, blocks, blocks formatted (lines formatted?), errors?
 func Make() *cobra.Command {
-
-	//shared options
-	// acctest mode (format string compatible)
-	// quite
-	// verbose?
 
 	root := &cobra.Command{
 		Use:   "terrafmt [fmt|diff|blocks]",
