@@ -147,19 +147,37 @@ resource "resource" "test" {
 		},
 
 		{
-			name: "assigned_array-positional",
+			name: "assigned",
 			block: `
 resource  "resource"    "test" {
-	kat = [%[1]s]
-mega = [%[3]d]
-    byte =   [%[5]d]
+	kat = %s
+mega = %d
+    byte =   %d
 } 
 `,
 			expected: `
 resource "resource" "test" {
-  kat  = [%[1]s]
-  mega = [%[3]d]
-  byte = [%[5]d]
+  kat  = %s
+  mega = %d
+  byte = %d
+}
+`,
+		},
+
+		{
+			name: "assigned-positional",
+			block: `
+resource  "resource"    "test" {
+	kat = %[1]s
+mega = %[22]d
+    byte =   %[333]d
+} 
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = %[1]s
+  mega = %[22]d
+  byte = %[333]d
 }
 `,
 		},
