@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/katbyte/terrafmt/lib/common"
 )
@@ -23,9 +24,6 @@ func Block(b string) (string, error) {
 	}
 
 	defer os.RemoveAll(dir) // clean up
-
-	common.Log.Debugf("running terraform... ")
-	cmd := exec.Command("terraform", "0.12upgrade", "-yes", dir)
 
 	// Create temp file
 	tmpFile, err := ioutil.TempFile(dir, "*.tf")
@@ -45,12 +43,22 @@ func Block(b string) (string, error) {
 		log.Fatal(err)
 	}
 
+	cmd := exec.Command("terraform", "init", dir)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	err = cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("cmd.Run() failed in terraform init with %s: %s", err, stderr)
+	}
+
+	defer os.RemoveAll(".terraform") // clean up
+
+	common.Log.Debugf("running terraform... ")
+	cmd = exec.Command("terraform", "0.12upgrade", "-yes", dir)
+	err = cmd.Run()
 
 	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed with %s: %s", err, stderr)
+		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s", err, stderr)
 	}
 
 	ec := cmd.ProcessState.ExitCode()
@@ -60,7 +68,11 @@ func Block(b string) (string, error) {
 	}
 
 	// Read from temp file
-	fb, err := ioutil.ReadFile(tmpFile.Name())
+	raw, err := ioutil.ReadFile(tmpFile.Name())
+
+	// 0.12upgrade always adds a trailing newline, even if it's already there
+	// strip it here
+	fb := strings.TrimSuffix(string(raw), "\n")
 
 	return string(fb), nil
 }

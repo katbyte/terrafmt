@@ -20,7 +20,6 @@ func TestBlock(t *testing.T) {
 `,
 			expected: `data "google_compute_lb_ip_ranges" "some" {
 }
-
 `,
 		},
 		{
@@ -44,7 +43,6 @@ data "google_dns_managed_zone" "qa" {
 data "google_dns_managed_zone" "qa" {
   name = google_dns_managed_zone.foo.name
 }
-
 `,
 		},
 		{
@@ -134,7 +132,6 @@ resource "google_container_cluster" "with_private_cluster" {
     services_secondary_range_name = google_compute_subnetwork.container_subnetwork.secondary_ip_range[1].range_name
   }
 }
-
 `,
 		},
 		{
