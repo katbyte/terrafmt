@@ -44,7 +44,6 @@ func Block(b string) (string, error) {
 	}
 
 	cmd := exec.Command("terraform", "init", dir)
-	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	err = cmd.Run()
 	if err != nil {
@@ -55,9 +54,14 @@ func Block(b string) (string, error) {
 
 	common.Log.Debugf("running terraform... ")
 	cmd = exec.Command("terraform", "0.12upgrade", "-yes", dir)
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 	err = cmd.Run()
 
 	if err != nil {
+		if stdout != nil {
+			fmt.Println(stdout)
+		}
 		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s", err, stderr)
 	}
 

@@ -107,7 +107,11 @@ func Make() *cobra.Command {
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
 					var fb string
 					var err error
-					fb, err = upgrade012.Block(b)
+					if viper.GetBool("fmtcompat") {
+						fb, err = upgrade012.FmtVerbBlock(b)
+					} else {
+						fb, err = upgrade012.Block(b)
+					}
 
 					if err != nil {
 						return err
