@@ -4,6 +4,10 @@ default: fmt build
 
 all: fmt imports build
 
+tools:
+	@echo "==> installing required tooling..."
+	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
@@ -27,4 +31,4 @@ install:
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}" .
 
-.PHONY: fmt imports build
+.PHONY: fmt imports build lint install tools
