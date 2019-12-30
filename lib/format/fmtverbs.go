@@ -32,7 +32,7 @@ func FmtVerbBlock(b string) (string, error) {
 
 	// handle = %[n]s
 	b = string(regexp.MustCompile(`(?m:%\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`))
-	
+
 	fb, err := Block(b)
 	if err != nil {
 		return fb, err
