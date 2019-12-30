@@ -16,7 +16,7 @@ imports:
 	@echo "==> Fixing imports code with goimports..."
 	goimports -w .
 
-test: fmt build
+test: build
 	go test ./...
 
 build:
