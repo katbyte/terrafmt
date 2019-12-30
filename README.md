@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/katbyte/terrafmt.svg?branch=master)](https://travis-ci.com/katbyte/terrafmt)
+
 # terrafmt
 
 A tool for extracting or formatting [Terraform](https://www.terraform.io/docs/) configuration embedded withing [provider](https://www.terraform.io/docs/providers/index.html) code 
