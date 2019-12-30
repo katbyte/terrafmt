@@ -21,8 +21,7 @@ func Make() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "terrafmt [fmt|diff|blocks]",
 		Short: "terrafmt is a small utility to format terraform blocks found in files.",
-		Long: `A small utility to for formatting terraform blocks found in files. Primarily intended to help with terraform provider development.
-Complete documentation is available at https://github.com/katbyte/terrafmt`,
+		Long: `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
