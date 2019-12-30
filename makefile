@@ -19,6 +19,10 @@ build:
 	@echo "==> building..."
 	go build -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}"
 
+lint:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run ./...
+
 install:
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}" .

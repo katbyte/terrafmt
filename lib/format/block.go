@@ -10,7 +10,6 @@ import (
 )
 
 func Block(b string) (string, error) {
-
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 

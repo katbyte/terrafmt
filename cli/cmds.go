@@ -17,11 +17,10 @@ import (
 )
 
 func Make() *cobra.Command {
-
 	root := &cobra.Command{
-		Use:   "terrafmt [fmt|diff|blocks]",
-		Short: "terrafmt is a small utility to format terraform blocks found in files.",
-		Long: `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
+		Use:           "terrafmt [fmt|diff|blocks]",
+		Short:         "terrafmt is a small utility to format terraform blocks found in files.",
+		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +34,6 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a single file or on stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
@@ -58,13 +56,13 @@ func Make() *cobra.Command {
 						return err
 					}
 
-					br.Writer.Write([]byte(fb))
+					_, err = br.Writer.Write([]byte(fb))
 
-					if fb != b {
+					if err == nil && fb != b {
 						blocksFormatted++
 					}
 
-					return nil
+					return err
 				},
 			}
 			err := br.DoTheThing(filename)
@@ -75,6 +73,7 @@ func Make() *cobra.Command {
 			}
 
 			if !viper.GetBool("quiet") {
+				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
 			if err != nil {
@@ -90,7 +89,6 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a file and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
@@ -119,6 +117,7 @@ func Make() *cobra.Command {
 					}
 					blocksWithDiff++
 
+					// nolint staticcheck
 					fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
 					d := diff.LineDiff(b, fb)
@@ -149,6 +148,7 @@ func Make() *cobra.Command {
 			}
 
 			if !viper.GetBool("quiet") {
+				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
 			}
 			return nil
@@ -159,10 +159,9 @@ func Make() *cobra.Command {
 	root.AddCommand(&cobra.Command{
 		Use:   "blocks [file]",
 		Short: "extracts terraform blocks from a file ",
-		//options: no header (######), format (json? xml? ect), only should block x?
+		//options: no header (######), format (json? xml? etc), only should block x?
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
@@ -173,6 +172,7 @@ func Make() *cobra.Command {
 				ReadOnly: true,
 				LineRead: blocks.ReaderIgnore,
 				BlockRead: func(br *blocks.Reader, i int, b string) error {
+					// nolint staticcheck
 					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
 					fmt.Fprint(os.Stdout, b)
 					return nil
@@ -186,6 +186,7 @@ func Make() *cobra.Command {
 			}
 
 			//blocks
+			// nolint staticcheck
 			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
 
 			return nil
@@ -197,16 +198,21 @@ func Make() *cobra.Command {
 		Short: "Print the version number of terrafmt",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			//nolint errcheck
 			fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 		},
 	})
 
 	pflags := root.PersistentFlags()
-	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d ect) compatibility")
+	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d etc) compatibility")
 	pflags.BoolP("quiet", "q", false, "only show differences")
 
-	viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat"))
-	viper.BindPFlag("quiet", pflags.Lookup("quiet"))
+	if err := viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("quiet", pflags.Lookup("quiet")); err != nil {
+		panic(err)
+	}
 
 	//todo bind to env?
 
