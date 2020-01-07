@@ -25,6 +25,8 @@ type Reader struct {
 	BlockCount       int // total blocks found
 	BlockCurrentLine int // current block line count
 
+	ErrorBlocks      int
+
 	ReadOnly bool
 
 	//callbacks
@@ -142,6 +144,7 @@ func (br *Reader) DoTheThing(filename string) error {
 					// todo configure this behaviour with switch's
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
+						br.ErrorBlocks += 1
 						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err

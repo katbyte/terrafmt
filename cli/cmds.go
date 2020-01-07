@@ -79,6 +79,10 @@ func Make() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			if br.ErrorBlocks > 0 {
+				os.Exit(-1)
+			}
 			return nil
 		},
 	})
@@ -154,6 +158,10 @@ func Make() *cobra.Command {
 			if viper.GetBool("verbose") {
 				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
+			}
+
+			if br.ErrorBlocks > 0 {
+				os.Exit(-1)
 			}
 
 			if viper.GetBool("check") && hasDiff {
