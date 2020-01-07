@@ -31,6 +31,7 @@ The tool currently supports blocks with the following start and end lines:
 |start               |end |
 |--------------------|----|
 |```hcl              |``` |
+|```tf               |`,  |
 |return fmt.Sprintf(`|`,  |
 |return fmt.Sprintf(`|`)  |
 
@@ -70,6 +71,12 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 ./website/docs/d/app_service_certificate.html.markdown: 54 lines & formatted 0/1 blocks!
 ./website/docs/d/app_service_certificate_order.html.markdown: 79 lines & formatted 0/1 blocks!
 ```
+
+### Upgrade Terraform in a File to 0.12
+
+Use the `upgrade012` command to upgrade the blocks to 0.12:
+
+![fmt](_docs/upgrade.png)
 
 ## Development and Testing
 

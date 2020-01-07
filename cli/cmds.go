@@ -11,6 +11,7 @@ import (
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/katbyte/terrafmt/lib/format"
+	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -18,7 +19,7 @@ import (
 
 func Make() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "terrafmt [fmt|diff|blocks]",
+		Use:           "terrafmt [fmt|diff|blocks|upgrade012]",
 		Short:         "terrafmt is a small utility to format terraform blocks found in files.",
 		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
@@ -83,6 +84,64 @@ func Make() *cobra.Command {
 			if br.ErrorBlocks > 0 {
 				os.Exit(-1)
 			}
+			return nil
+		},
+	})
+
+	//options : only count, blocks diff/found, total lines diff, etc
+	root.AddCommand(&cobra.Command{
+		Use:   "upgrade012 [file]",
+		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
+		Args:  cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			filename := ""
+			if len(args) == 1 {
+				filename = args[0]
+			}
+			common.Log.Debugf("terrafmt upgrade012 %s", filename)
+
+			blocksFormatted := 0
+			br := blocks.Reader{
+				LineRead: blocks.ReaderPassthrough,
+				BlockRead: func(br *blocks.Reader, i int, b string) error {
+					var fb string
+					var err error
+					if viper.GetBool("fmtcompat") {
+						fb, err = upgrade012.FmtVerbBlock(b)
+					} else {
+						fb, err = upgrade012.Block(b)
+					}
+
+					if err != nil {
+						return err
+					}
+
+					if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
+						blocksFormatted++
+					}
+
+					return nil
+				},
+			}
+			err := br.DoTheThing(filename)
+			if err != nil {
+				return err
+			}
+
+			fc := "magenta"
+			if blocksFormatted > 0 {
+				fc = "lightMagenta"
+			}
+
+			if viper.GetBool("verbose") {
+				// nolint staticcheck
+				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+			}
+
+			if br.ErrorBlocks > 0 {
+				os.Exit(-1)
+			}
+
 			return nil
 		},
 	})

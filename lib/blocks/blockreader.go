@@ -48,6 +48,8 @@ func IsStartLine(line string) bool {
 		return true
 	} else if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
+	} else if strings.HasPrefix(line, "```tf") { // documentation
+		return true
 	}
 
 	return false
@@ -56,7 +58,7 @@ func IsStartLine(line string) bool {
 func IsFinishLine(line string) bool {
 	if line == "`)" { // acctest
 		return true
-	} else if strings.HasPrefix(line, "`, ") { // acctest
+	} else if strings.HasPrefix(line, "`,") { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
