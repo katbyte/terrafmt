@@ -74,7 +74,7 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 
 Use the `upgrade012` command to upgrade the blocks to 0.12:
 
-![fmt](_docs/fmt.png)
+![fmt](_docs/upgrade.png)
 
 ## Development and Testing
 
