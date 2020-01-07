@@ -70,6 +70,12 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 ./website/docs/d/app_service_certificate_order.html.markdown: 79 lines & formatted 0/1 blocks!
 ```
 
+### Upgrade Terraform in a File to 0.12
+
+Use the `upgrade012` command to upgrade the blocks to 0.12:
+
+![fmt](_docs/fmt.png)
+
 ## Development and Testing
 
 This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency management.

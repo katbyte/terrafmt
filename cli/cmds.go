@@ -19,7 +19,7 @@ import (
 
 func Make() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "terrafmt [fmt|diff|blocks]",
+		Use:           "terrafmt [fmt|diff|blocks|upgrade012]",
 		Short:         "terrafmt is a small utility to format terraform blocks found in files.",
 		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
