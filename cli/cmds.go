@@ -94,7 +94,6 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
@@ -117,9 +116,9 @@ func Make() *cobra.Command {
 						return err
 					}
 
-					br.Writer.Write([]byte(fb))
+					_, err = br.Writer.Write([]byte(fb))
 
-					if fb != b {
+					if err == nil && fb != b {
 						blocksFormatted++
 					}
 
@@ -133,7 +132,8 @@ func Make() *cobra.Command {
 				fc = "lightMagenta"
 			}
 
-			if !viper.GetBool("quiet") {
+			if viper.GetBool("verbose") {
+				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
 			if err != nil {

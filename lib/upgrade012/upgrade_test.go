@@ -10,9 +10,9 @@ func TestBlock(t *testing.T) {
 		error    bool
 	}{
 		{
-			name:     "empty",
-			block:    "",
-			expected: "",
+			name:     "noblocks",
+			block:    "// nothing here",
+			expected: "// nothing here",
 		},
 		{
 			name: "oneline",

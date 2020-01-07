@@ -13,7 +13,6 @@ import (
 )
 
 func Block(b string) (string, error) {
-
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
@@ -59,9 +58,11 @@ func Block(b string) (string, error) {
 	err = cmd.Run()
 
 	if err != nil {
-		if stdout != nil {
-			fmt.Println(stdout)
+		_, err := fmt.Println(stdout)
+		if err != nil {
+			return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s | %s", err, stdout, stderr)
 		}
+
 		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s", err, stderr)
 	}
 
@@ -73,10 +74,13 @@ func Block(b string) (string, error) {
 
 	// Read from temp file
 	raw, err := ioutil.ReadFile(tmpFile.Name())
+	if err != nil {
+		return "", fmt.Errorf("terrafmt failed with readfile: %s", err)
+	}
 
 	// 0.12upgrade always adds a trailing newline, even if it's already there
 	// strip it here
 	fb := strings.TrimSuffix(string(raw), "\n")
 
-	return string(fb), nil
+	return fb, nil
 }
