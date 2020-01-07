@@ -25,7 +25,7 @@ type Reader struct {
 	BlockCount       int // total blocks found
 	BlockCurrentLine int // current block line count
 
-	ErrorBlocks      int
+	ErrorBlocks int
 
 	ReadOnly bool
 
