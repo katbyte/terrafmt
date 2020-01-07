@@ -72,7 +72,7 @@ func Make() *cobra.Command {
 				fc = "lightMagenta"
 			}
 
-			if !viper.GetBool("quiet") {
+			if viper.GetBool("verbose") {
 				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
@@ -120,37 +120,46 @@ func Make() *cobra.Command {
 					// nolint staticcheck
 					fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
-					d := diff.LineDiff(b, fb)
-					scanner := bufio.NewScanner(strings.NewReader(d))
-					for scanner.Scan() {
-						l := scanner.Text()
-						if strings.HasPrefix(l, "+") {
-							fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
-						} else if strings.HasPrefix(l, "-") {
-							fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
-						} else {
-							fmt.Fprint(os.Stdout, l+"\n")
+					if !viper.GetBool("quiet") {
+						d := diff.LineDiff(b, fb)
+						scanner := bufio.NewScanner(strings.NewReader(d))
+						for scanner.Scan() {
+							l := scanner.Text()
+							if strings.HasPrefix(l, "+") {
+								fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
+							} else if strings.HasPrefix(l, "-") {
+								fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
+							} else {
+								fmt.Fprint(os.Stdout, l+"\n")
+							}
 						}
 					}
 
 					return nil
 				},
 			}
-			err := br.DoTheThing(filename)
 
+			err := br.DoTheThing(filename)
 			if err != nil {
 				return err
 			}
 
+			hasDiff := blocksWithDiff > 0
+
 			fc := "magenta"
-			if blocksWithDiff > 0 {
+			if hasDiff {
 				fc = "lightMagenta"
 			}
 
-			if !viper.GetBool("quiet") {
+			if viper.GetBool("verbose") {
 				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
 			}
+
+			if viper.GetBool("check") && hasDiff {
+				os.Exit(-1)
+			}
+
 			return nil
 		},
 	})
@@ -205,12 +214,20 @@ func Make() *cobra.Command {
 
 	pflags := root.PersistentFlags()
 	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d etc) compatibility")
-	pflags.BoolP("quiet", "q", false, "only show differences")
+	pflags.BoolP("check", "c", false, "return an error during diff if formatting is required")
+	pflags.BoolP("verbose", "v", false, "show files as they are processed& additional stats")
+	pflags.BoolP("quiet", "q", false, "quiet mode, only shows block line numbers ")
 
 	if err := viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat")); err != nil {
 		panic(err)
 	}
+	if err := viper.BindPFlag("check", pflags.Lookup("check")); err != nil {
+		panic(err)
+	}
 	if err := viper.BindPFlag("quiet", pflags.Lookup("quiet")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("verbose", pflags.Lookup("verbose")); err != nil {
 		panic(err)
 	}
 
