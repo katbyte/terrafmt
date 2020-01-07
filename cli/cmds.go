@@ -116,9 +116,7 @@ func Make() *cobra.Command {
 						return err
 					}
 
-					_, err = br.Writer.Write([]byte(fb))
-
-					if err == nil && fb != b {
+					if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
 						blocksFormatted++
 					}
 
@@ -126,6 +124,9 @@ func Make() *cobra.Command {
 				},
 			}
 			err := br.DoTheThing(filename)
+			if err != nil {
+				return err
+			}
 
 			fc := "magenta"
 			if blocksFormatted > 0 {
@@ -136,9 +137,11 @@ func Make() *cobra.Command {
 				// nolint staticcheck
 				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
-			if err != nil {
-				return err
+
+			if br.ErrorBlocks > 0 {
+				os.Exit(-1)
 			}
+
 			return nil
 		},
 	})
