@@ -107,7 +107,7 @@ func Make() *cobra.Command {
 					var fb string
 					var err error
 					if viper.GetBool("fmtcompat") {
-						fb, err = upgrade012.FmtVerbBlock(b)
+						fb, err = upgrade012.Upgrade12VerbBlock(b)
 					} else {
 						fb, err = upgrade012.Block(b)
 					}

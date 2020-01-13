@@ -1,11 +1,10 @@
 package upgrade012
 
 import (
-	`github.com/katbyte/terrafmt/lib/fmtverbs`
+	"github.com/katbyte/terrafmt/lib/fmtverbs"
 )
 
-func FmtVerbBlock(b string) (string, error) {
-
+func Upgrade12VerbBlock(b string) (string, error) {
 	b = fmtverbs.Escape(b)
 
 	fb, err := Block(b)

@@ -1,8 +1,8 @@
 package fmtverbs
 
 import (
-	`regexp`
-	`strings`
+	"regexp"
+	"strings"
 )
 
 func Escape(b string) string {

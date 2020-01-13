@@ -182,7 +182,7 @@ data "google_dns_managed_zone" "qa" {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := FmtVerbBlock(test.block)
+			result, err := Upgrade12VerbBlock(test.block)
 			if err != nil && !test.error {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}
