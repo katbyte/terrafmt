@@ -56,7 +56,7 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	if line == "`)" { // acctest
+	if line == "`)\n" { // acctest
 		return true
 	} else if strings.HasPrefix(line, "`,") { // acctest
 		return true
