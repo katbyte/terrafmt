@@ -4,7 +4,7 @@
 [![GolangCI](https://golangci.com/badges/github.com/katbyte/terrafmt.svg)](https://golangci.com)
 [![Go Report Card](https://goreportcard.com/badge/github.com/katbyte/terrafmt)](https://goreportcard.com/report/github.com/katbyte/terrafmt)
 
-A tool for extracting or formatting [Terraform](https://www.terraform.io/docs/) configuration embedded withing [provider](https://www.terraform.io/docs/providers/index.html) code 
+A tool for extracting or formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in [provider](https://www.terraform.io/docs/providers/index.html) code 
 
 ## Install
 
