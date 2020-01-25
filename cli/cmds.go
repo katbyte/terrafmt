@@ -317,5 +317,5 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	}
 	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
 	// nolint errcheck
-	fmt.Println(" . + " + terraformVersion)
+	fmt.Println("  + " + terraformVersion)
 }
