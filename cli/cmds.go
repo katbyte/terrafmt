@@ -2,8 +2,10 @@ package cli
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/andreyvit/diff"
@@ -273,10 +275,7 @@ func Make() *cobra.Command {
 		Use:   "version",
 		Short: "Print the version number of terrafmt",
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			//nolint errcheck
-			fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
-		},
+		Run:   versionCmd,
 	})
 
 	pflags := root.PersistentFlags()
@@ -301,4 +300,22 @@ func Make() *cobra.Command {
 	//todo bind to env?
 
 	return root
+}
+
+func versionCmd(cmd *cobra.Command, args []string) {
+	// nolint errcheck
+	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
+
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	tfCmd := exec.Command("terraform", "version")
+	tfCmd.Stdout = stdout
+	tfCmd.Stderr = stderr
+	if err := tfCmd.Run(); err != nil {
+		common.Log.Warnf("Error running terraform: %s", err)
+		return
+	}
+	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
+	// nolint errcheck
+	fmt.Println("  + " + terraformVersion)
 }
