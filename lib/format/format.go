@@ -17,6 +17,5 @@ func Block(content, path string) (string, error) {
 	if syntaxDiags.HasErrors() {
 		return "", fmt.Errorf("failed to parse hcl: %w", errors.New(syntaxDiags.Error()))
 	}
-	fmt.Println(string(hclwrite.Format(b)))
 	return string(hclwrite.Format(b)), nil
 }
