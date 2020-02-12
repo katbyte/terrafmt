@@ -184,7 +184,7 @@ resource "resource" "test" {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := FmtVerbBlock(test.block)
+			result, err := FmtVerbBlock(test.block, "test")
 			if err != nil && !test.error {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}
