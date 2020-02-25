@@ -22,8 +22,9 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
-	"time"
 )
+
+import "time"
 
 const FilePathSeparator = string(filepath.Separator)
 

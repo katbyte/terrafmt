@@ -1,35 +1,21 @@
 package format
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
-	"os/exec"
-	"strings"
 
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl2/hclwrite"
 	"github.com/katbyte/terrafmt/lib/common"
 )
 
-func Block(b string) (string, error) {
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-
-	common.Log.Debugf("running terraform... ")
-	cmd := exec.Command("terraform", "fmt", "-")
-	cmd.Stdin = strings.NewReader(b)
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	err := cmd.Run()
-
-	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed with %s: %s", err, stderr)
+func Block(content, path string) (string, error) {
+	b := []byte(content)
+	common.Log.Debugf("format terraform config... ")
+	_, syntaxDiags := hclsyntax.ParseConfig(b, path, hcl.Pos{Line: 1, Column: 1})
+	if syntaxDiags.HasErrors() {
+		return "", fmt.Errorf("failed to parse hcl: %w", errors.New(syntaxDiags.Error()))
 	}
-
-	ec := cmd.ProcessState.ExitCode()
-	common.Log.Debugf("terraform exited with %d", ec)
-	if ec != 0 {
-		return "", fmt.Errorf("trerraform failed with %d: %s", ec, stderr)
-	}
-	fb := stdout.String()
-
-	return fb, nil
+	return string(hclwrite.Format(b)), nil
 }

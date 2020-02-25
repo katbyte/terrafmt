@@ -4,10 +4,10 @@ import (
 	"github.com/katbyte/terrafmt/lib/fmtverbs"
 )
 
-func FmtVerbBlock(b string) (string, error) {
-	b = fmtverbs.Escape(b)
+func FmtVerbBlock(content, path string) (string, error) {
+	content = fmtverbs.Escape(content)
 
-	fb, err := Block(b)
+	fb, err := Block(content, path)
 	if err != nil {
 		return fb, err
 	}

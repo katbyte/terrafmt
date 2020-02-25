@@ -50,9 +50,9 @@ func Make() *cobra.Command {
 					var fb string
 					var err error
 					if viper.GetBool("fmtcompat") {
-						fb, err = format.FmtVerbBlock(b)
+						fb, err = format.FmtVerbBlock(b, filename)
 					} else {
-						fb, err = format.Block(b)
+						fb, err = format.Block(b, filename)
 					}
 
 					if err != nil {
@@ -168,9 +168,9 @@ func Make() *cobra.Command {
 					var fb string
 					var err error
 					if viper.GetBool("fmtcompat") {
-						fb, err = format.FmtVerbBlock(b)
+						fb, err = format.FmtVerbBlock(b, filename)
 					} else {
-						fb, err = format.Block(b)
+						fb, err = format.Block(b, filename)
 					}
 
 					if err != nil {
