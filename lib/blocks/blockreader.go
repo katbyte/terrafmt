@@ -2,6 +2,7 @@ package blocks
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -68,7 +69,7 @@ func IsFinishLine(line string) bool {
 }
 
 func (br *Reader) DoTheThing(filename string) error {
-	var tmpfile *os.File
+	var buf *bytes.Buffer
 
 	if filename != "" {
 		br.FileName = filename
@@ -80,14 +81,10 @@ func (br *Reader) DoTheThing(filename string) error {
 		defer fs.Close()
 		br.Reader = fs
 
-		// for now write to a temporary file, TODO is there a better way?
+		// for now write to buffer
 		if !br.ReadOnly {
-			tmpfile, err = ioutil.TempFile("", "terrafmt")
-			if err != nil {
-				return fmt.Errorf("unable to create tmpfile: %v", err)
-			}
-			common.Log.Debugf("opening tmp file %s", tmpfile.Name())
-			br.Writer = tmpfile
+			buf = bytes.NewBuffer([]byte{})
+			br.Writer = buf
 		} else {
 			br.Writer = ioutil.Discard
 		}
@@ -175,19 +172,8 @@ func (br *Reader) DoTheThing(filename string) error {
 		}
 	}
 
-	//todo add better error checking and cleanup
-	if tmpfile != nil {
-		common.Log.Debugf("tmp file %s exists", tmpfile.Name())
-		tmpfile.Close()
-
-		common.Log.Debugf("reopening tmp file %s", tmpfile.Name())
-		source, err := os.Open(tmpfile.Name())
-		if err != nil {
-			return err
-		}
-		defer source.Close()
-
-		common.Log.Debugf("creating destination @ %s", tmpfile.Name())
+	// If not read-only, need to write back to file.
+	if !br.ReadOnly {
 		destination, err := os.Create(filename)
 		if err != nil {
 			return err
@@ -195,7 +181,7 @@ func (br *Reader) DoTheThing(filename string) error {
 		defer destination.Close()
 
 		common.Log.Debugf("copying..")
-		_, err = io.Copy(destination, source)
+		_, err = io.Copy(destination, buf)
 		return err
 	}
 
