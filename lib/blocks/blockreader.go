@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/katbyte/terrafmt/lib/common"
@@ -57,9 +58,8 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	if line == "`)\n" { // acctest
-		return true
-	} else if strings.HasPrefix(line, "`,") { // acctest
+	matcher := regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
+	if matcher.MatchString(line) { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
