@@ -15,6 +15,8 @@ import (
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
+	"github.com/mitchellh/panicwrap"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -91,60 +93,100 @@ func Make() *cobra.Command {
 	})
 
 	//options : only count, blocks diff/found, total lines diff, etc
+	realRunUpgrade012 := func(cmd *cobra.Command, args []string) {
+		// Enable force color for child process, otherwise since the
+		// stderr is a pipe rather than TTY, logrus will not print colored
+		// log, which will in turn forwarded to parent process and rendered
+		// to user.
+		common.Log.Formatter.(*logrus.TextFormatter).ForceColors = true
+
+		filename := ""
+		if len(args) == 1 {
+			filename = args[0]
+		}
+		common.Log.Debugf("terrafmt upgrade012 %s", filename)
+
+		blocksFormatted := 0
+		br := blocks.Reader{
+			LineRead: blocks.ReaderPassthrough,
+			BlockRead: func(br *blocks.Reader, i int, b string) error {
+				var fb string
+				var err error
+				if viper.GetBool("fmtcompat") {
+					fb, err = upgrade012.Upgrade12VerbBlock(b)
+				} else {
+					fb, err = upgrade012.Block(b)
+				}
+
+				if err != nil {
+					return err
+				}
+
+				if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
+					blocksFormatted++
+				}
+
+				return nil
+			},
+		}
+		err := br.DoTheThing(filename)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+			return
+		}
+
+		fc := "magenta"
+		if blocksFormatted > 0 {
+			fc = "lightMagenta"
+		}
+
+		if viper.GetBool("verbose") {
+			// nolint staticcheck
+			fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+		}
+
+		if br.ErrorBlocks > 0 {
+			os.Exit(-1)
+		}
+
+		return
+	}
 	root.AddCommand(&cobra.Command{
 		Use:   "upgrade012 [file]",
 		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
 		Args:  cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			filename := ""
-			if len(args) == 1 {
-				filename = args[0]
+		Run: func(cmd *cobra.Command, args []string) {
+			// wrap command with stdout/stderr buffers, otherwise logs from provider
+			// (and this tool itself) cannot be muted.
+			logStderr := bytes.NewBufferString("")
+			logStdout := bytes.NewBufferString("")
+			wrapConfig := &panicwrap.WrapConfig{
+				Handler: func(string) {},
+				Writer:  logStderr,
+				Stdout:  logStdout,
 			}
-			common.Log.Debugf("terrafmt upgrade012 %s", filename)
 
-			blocksFormatted := 0
-			br := blocks.Reader{
-				LineRead: blocks.ReaderPassthrough,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					var fb string
-					var err error
-					if viper.GetBool("fmtcompat") {
-						fb, err = upgrade012.Upgrade12VerbBlock(b)
-					} else {
-						fb, err = upgrade012.Block(b)
-					}
+			exitStatus, err := panicwrap.Wrap(wrapConfig)
 
-					if err != nil {
-						return err
-					}
-
-					if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-						blocksFormatted++
-					}
-
-					return nil
-				},
-			}
-			err := br.DoTheThing(filename)
 			if err != nil {
-				return err
+				fmt.Fprintf(os.Stderr, "Couldn't start wrapper to run upgrade command: %s", err)
+				return
 			}
 
-			fc := "magenta"
-			if blocksFormatted > 0 {
-				fc = "lightMagenta"
+			// parent process, means the re-exec command (child) has finished,
+			// just exit process with exit code of the child process and print
+			// error if any.
+			if exitStatus >= 0 {
+				if viper.GetBool("verbose") {
+					fmt.Fprintln(os.Stdout, logStdout.String())
+					fmt.Fprintf(os.Stderr, logStderr.String())
+				} else if exitStatus != 0 {
+					fmt.Fprintf(os.Stderr, logStderr.String())
+				}
+				return
 			}
 
-			if viper.GetBool("verbose") {
-				// nolint staticcheck
-				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
-			}
-
-			if br.ErrorBlocks > 0 {
-				os.Exit(-1)
-			}
-
-			return nil
+			realRunUpgrade012(cmd, args)
 		},
 	})
 

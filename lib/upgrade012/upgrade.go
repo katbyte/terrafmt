@@ -6,16 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
-	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/hashicorp/terraform/command"
+	"github.com/hashicorp/terraform/plugin"
+	"github.com/mitchellh/cli"
 )
 
 func Block(b string) (string, error) {
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-
 	// Make temp directory
 	dir, err := ioutil.TempDir(".", "tmp-module")
 	if err != nil {
@@ -30,11 +28,8 @@ func Block(b string) (string, error) {
 		return "", err
 	}
 
-	defer os.Remove(tmpFile.Name()) // clean up
-
 	// Write from Reader to File
 	if _, err := tmpFile.Write(bytes.NewBufferString(b).Bytes()); err != nil {
-		tmpFile.Close()
 		log.Fatal(err)
 	}
 
@@ -42,34 +37,28 @@ func Block(b string) (string, error) {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("terraform", "init", dir)
-	cmd.Stderr = stderr
-	err = cmd.Run()
-	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed in terraform init with %s: %s", err, stderr)
+	// Empty the internal provisioners so as to avoid any setup job,
+	// which is not necessary for upgrade job.
+	command.InternalProvisioners = map[string]plugin.ProvisionerFunc{}
+
+	// Buffer the upgrade ui output, to be part of the error message (if any)
+	uiBuffer := bytes.NewBufferString("")
+	meta := command.Meta{
+		Ui: &cli.BasicUi{
+			Writer: uiBuffer,
+			Reader: nil,
+		},
 	}
 
-	defer os.RemoveAll(".terraform") // clean up
+	upgradeCmd := &command.ZeroTwelveUpgradeCommand{Meta: meta}
 
-	common.Log.Debugf("running terraform... ")
-	cmd = exec.Command("terraform", "0.12upgrade", "-yes", dir)
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	err = cmd.Run()
-
-	if err != nil {
-		_, err := fmt.Println(stdout)
-		if err != nil {
-			return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s | %s", err, stdout, stderr)
-		}
-
-		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %s: %s", err, stderr)
-	}
-
-	ec := cmd.ProcessState.ExitCode()
-	common.Log.Debugf("terraform exited with %d", ec)
-	if ec != 0 {
-		return "", fmt.Errorf("terraform failed with %d: %s", ec, stderr)
+	// We specify "-force" here to allow a re-upgrade, otherwise it will complain the
+	// cfg has already been upgraded.
+	// Though, a re-upgrade will not always work, since it might failed to parse the 0.12 syntax
+	// using 0.11 syntax parser.
+	rc := upgradeCmd.Run([]string{"-yes", "-force", dir})
+	if rc != 0 {
+		return "", fmt.Errorf("upgrade to 0.12 failed (rc: %d): %s", rc, uiBuffer.String())
 	}
 
 	// Read from temp file

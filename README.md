@@ -16,6 +16,8 @@ Use Go to install directly into your `$GOBIN` directory (e.g. `$GOPATH/bin`):
 go get github.com/katbyte/terrafmt
 ```
 
+**NOTE**: terraform providers are pre-requisite for subcommand `upgrade012` to work. Refer to [official doc](https://www.terraform.io/docs/plugins/provider.html#provider-plugin-codebases) to see how to install them. 
+
 ## Usage
 
 Information about usage and options can be found by using the `help` command:

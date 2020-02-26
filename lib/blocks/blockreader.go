@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/katbyte/terrafmt/lib/common"
-	"github.com/sirupsen/logrus"
 )
 
 type Reader struct {
@@ -123,7 +122,7 @@ func (br *Reader) DoTheThing(filename string) error {
 				// make sure we don't run into another block
 				if IsStartLine(l2) {
 					// the end of current block must be malformed, so lets pass it through and log an error
-					logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+					common.Log.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 					if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 						return err
 					}
@@ -144,7 +143,7 @@ func (br *Reader) DoTheThing(filename string) error {
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
 						br.ErrorBlocks += 1
-						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
+						common.Log.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err
 						}
@@ -164,7 +163,7 @@ func (br *Reader) DoTheThing(filename string) error {
 			// ensure last block in the file was property handled
 			if block != "" {
 				//for each line { Lineread()?
-				logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+				common.Log.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
