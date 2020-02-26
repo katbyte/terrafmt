@@ -10,7 +10,6 @@ require (
 	github.com/hashicorp/terraform v0.12.21
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mitchellh/cli v1.0.0
-	github.com/mitchellh/panicwrap v1.0.0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/cobra v0.0.3
