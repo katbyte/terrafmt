@@ -38,6 +38,11 @@ func createLogger() *logrus.Logger {
 	return l
 }
 
+// CaptureRun run the specified function and return its stdout and stderr as stirng
+// , all together with the returned error of function to caller.
+// This is useful for function which call library out of your control that will log
+// to stdout/stderr in variable ways, which you might want to suppress in some cases.
+// (e.g. if everything goes fine, and non-verbose mode, then nothing should be output)
 func CaptureRun(f func() error) (stdout, stderr string, err error) {
 	// setup stdout
 	outpipeR, outpipeW, err := os.Pipe()
