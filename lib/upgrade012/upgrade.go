@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/terraform/command"
@@ -50,6 +52,14 @@ func Block(b string) (string, error) {
 			Writer: uiBuffer,
 			Reader: nil,
 		},
+		GlobalPluginDirs: func() []string {
+			ret := []string{}
+			dir := filepath.Join(os.Getenv("HOME"), ".terraform.d")
+			machineDir := fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)
+			ret = append(ret, filepath.Join(dir, "plugins"))
+			ret = append(ret, filepath.Join(dir, "plugins", machineDir))
+			return ret
+		}(),
 	}
 
 	upgradeCmd := &command.ZeroTwelveUpgradeCommand{Meta: meta}
