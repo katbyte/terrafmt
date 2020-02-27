@@ -1,10 +1,10 @@
 dist: xenial
 sudo: required
 services:
-- docker
+  - docker
 language: go
 go:
-- "1.13.x"
+  - "1.13.x"
 
 branches:
   only:
@@ -13,12 +13,11 @@ branches:
 env:
   global:
     GOFLAGS=-mod=vendor
+    GOOGLE_PROVIDER_URI="https://releases.hashicorp.com/terraform-provider-google/3.10.0/terraform-provider-google_3.10.0_linux_amd64.zip?checksum=sha256:5ccd58dd5792d2bc3bf3ccf8e09906a1709f9496e501de287554dfe86940f454"
 
 install:
   - make tools
-  - wget https://releases.hashicorp.com/terraform/0.12.7/terraform_0.12.7_linux_amd64.zip
-  - unzip terraform_0.12.7_linux_amd64.zip
-  - sudo mv terraform /usr/local/bin/
+  - wget ${GOOGLE_PROVIDER_URI} -O /tmp/tmp.zip && mkdir -p $HOME/.terraform.d/plugins && unzip /tmp/tmp.zip -d $HOME/.terraform.d/plugins && rm /tmp/tmp.zip
 
 matrix:
   fast_finish: true
