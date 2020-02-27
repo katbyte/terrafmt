@@ -82,7 +82,7 @@ func CaptureRun(f func() error) (stdout, stderr string, err error) {
 
 	// replace log writer
 	defer log.SetOutput(log.Writer())
-	log.SetOutput(errpipeR)
+	log.SetOutput(errpipeW)
 
 	// invoke function
 	err = f()
