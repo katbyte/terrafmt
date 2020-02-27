@@ -31,4 +31,4 @@ linters:
 
 linters-settings:
   errcheck:
-    ignore: io:Close
+    ignore: io:Close,Copy,fmt:.*
