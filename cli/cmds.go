@@ -206,13 +206,13 @@ func Make() *cobra.Command {
 					LineRead: blocks.ReaderPassthrough,
 					BlockRead: func(br *blocks.Reader, i int, b string) error {
 						var fb string
+            
 						var err error
 						if viper.GetBool("fmtcompat") {
 							fb, err = format.FmtVerbBlock(b, filename)
 						} else {
 							fb, err = format.Block(b, filename)
 						}
-
 						if err != nil {
 							return err
 						}
@@ -223,7 +223,7 @@ func Make() *cobra.Command {
 						blocksWithDiff++
 
 						// nolint staticcheck
-						fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>#</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
+            fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
 						if !viper.GetBool("quiet") {
 							d := diff.LineDiff(b, fb)
