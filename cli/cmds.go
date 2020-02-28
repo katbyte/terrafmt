@@ -206,7 +206,6 @@ func Make() *cobra.Command {
 					LineRead: blocks.ReaderPassthrough,
 					BlockRead: func(br *blocks.Reader, i int, b string) error {
 						var fb string
-            
 						var err error
 						if viper.GetBool("fmtcompat") {
 							fb, err = format.FmtVerbBlock(b, filename)
