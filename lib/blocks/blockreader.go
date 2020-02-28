@@ -107,7 +107,7 @@ func (br *Reader) DoTheThing(filename string) error {
 		l := s.Text() + "\n"
 
 		if err := br.LineRead(br, br.LineCount, l); err != nil {
-			return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
+			return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l, err)
 		}
 
 		if IsStartLine(l) {
@@ -123,7 +123,7 @@ func (br *Reader) DoTheThing(filename string) error {
 				// make sure we don't run into another block
 				if IsStartLine(l2) {
 					// the end of current block must be malformed, so lets pass it through and log an error
-					logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+					logrus.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 					if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 						return err
 					}
@@ -144,14 +144,14 @@ func (br *Reader) DoTheThing(filename string) error {
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
 						br.ErrorBlocks += 1
-						logrus.Errorf("block %d @ %s#%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
+						logrus.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err
 						}
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
-						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l2, err)
+						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l2, err)
 					}
 
 					block = ""
@@ -164,7 +164,7 @@ func (br *Reader) DoTheThing(filename string) error {
 			// ensure last block in the file was property handled
 			if block != "" {
 				//for each line { Lineread()?
-				logrus.Errorf("block %d @ %s#%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+				logrus.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
