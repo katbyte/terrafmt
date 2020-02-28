@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/andreyvit/diff"
 	c "github.com/gookit/color"
+	"github.com/hashicorp/go-multierror"
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/katbyte/terrafmt/lib/format"
@@ -32,63 +34,89 @@ func Make() *cobra.Command {
 	}
 
 	//options : only count, blocks diff/found, total lines diff, etc
-	root.AddCommand(&cobra.Command{
-		Use:   "fmt [file]",
-		Short: "formats terraform blocks in a single file or on stdin",
+	fmtCmd := &cobra.Command{
+		Use:   "fmt [path]",
+		Short: "formats terraform blocks in a directory, file, or stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			filename := ""
+			path := ""
 			if len(args) == 1 {
-				filename = args[0]
+				path = args[0]
 			}
-			common.Log.Debugf("terrafmt  %s", filename)
+			common.Log.Debugf("terrafmt  %s", path)
 
-			blocksFormatted := 0
-			br := blocks.Reader{
-				LineRead: blocks.ReaderPassthrough,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					var fb string
-					var err error
-					if viper.GetBool("fmtcompat") {
-						fb, err = format.FmtVerbBlock(b, filename)
-					} else {
-						fb, err = format.Block(b, filename)
-					}
+			pattern, _ := cmd.Flags().GetString("pattern")
+			filenames, err := allFiles(path, pattern)
 
-					if err != nil {
-						return err
-					}
-
-					_, err = br.Writer.Write([]byte(fb))
-
-					if err == nil && fb != b {
-						blocksFormatted++
-					}
-
-					return err
-				},
-			}
-			err := br.DoTheThing(filename)
-
-			fc := "magenta"
-			if blocksFormatted > 0 {
-				fc = "lightMagenta"
-			}
-
-			if viper.GetBool("verbose") {
-				// nolint staticcheck
-				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
-			}
 			if err != nil {
 				return err
 			}
 
-			if br.ErrorBlocks > 0 {
-				os.Exit(-1)
+			var errs *multierror.Error
+			var exitStatus int
+
+			for _, filename := range filenames {
+				blocksFormatted := 0
+
+				br := blocks.Reader{
+					LineRead: blocks.ReaderPassthrough,
+					BlockRead: func(br *blocks.Reader, i int, b string) error {
+						var fb string
+						var err error
+						if viper.GetBool("fmtcompat") {
+							fb, err = format.FmtVerbBlock(b, filename)
+						} else {
+							fb, err = format.Block(b, filename)
+						}
+
+						if err != nil {
+							return err
+						}
+
+						_, err = br.Writer.Write([]byte(fb))
+
+						if err == nil && fb != b {
+							blocksFormatted++
+						}
+
+						return err
+					},
+				}
+				err := br.DoTheThing(filename)
+
+				fc := "magenta"
+				if blocksFormatted > 0 {
+					fc = "lightMagenta"
+				}
+
+				if viper.GetBool("verbose") {
+					// nolint staticcheck
+					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+				}
+
+				if err != nil {
+					errs = multierror.Append(errs, err)
+				}
+
+				if br.ErrorBlocks > 0 {
+					exitStatus = 1
+				}
 			}
+
+			if errs != nil {
+				return errs
+			}
+
+			if exitStatus != 0 {
+				os.Exit(exitStatus)
+			}
+
 			return nil
 		},
-	})
+	}
+
+	root.AddCommand(fmtCmd)
+	fmtCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	//options : only count, blocks diff/found, total lines diff, etc
 	root.AddCommand(&cobra.Command{
@@ -149,89 +177,115 @@ func Make() *cobra.Command {
 	})
 
 	//options : only count, blocks diff/found, total lines diff, etc
-	root.AddCommand(&cobra.Command{
-		Use:   "diff [file]",
-		Short: "formats terraform blocks in a file and shows the difference",
+	diffCmd := &cobra.Command{
+		Use:   "diff [path]",
+		Short: "formats terraform blocks in a directory, file, or stdin and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			filename := ""
+			path := ""
 			if len(args) == 1 {
-				filename = args[0]
+				path = args[0]
 			}
-			common.Log.Debugf("terrafmt fmt %s", filename)
+			common.Log.Debugf("terrafmt fmt %s", path)
 
-			blocksWithDiff := 0
-			br := blocks.Reader{
-				ReadOnly: true,
-				LineRead: blocks.ReaderPassthrough,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					var fb string
-					var err error
-					if viper.GetBool("fmtcompat") {
-						fb, err = format.FmtVerbBlock(b, filename)
-					} else {
-						fb, err = format.Block(b, filename)
-					}
+			pattern, _ := cmd.Flags().GetString("pattern")
+			filenames, err := allFiles(path, pattern)
 
-					if err != nil {
-						return err
-					}
-
-					if fb == b {
-						return nil
-					}
-					blocksWithDiff++
-
-					// nolint staticcheck
-					fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
-
-					if !viper.GetBool("quiet") {
-						d := diff.LineDiff(b, fb)
-						scanner := bufio.NewScanner(strings.NewReader(d))
-						for scanner.Scan() {
-							l := scanner.Text()
-							if strings.HasPrefix(l, "+") {
-								fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
-							} else if strings.HasPrefix(l, "-") {
-								fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
-							} else {
-								fmt.Fprint(os.Stdout, l+"\n")
-							}
-						}
-					}
-
-					return nil
-				},
-			}
-
-			err := br.DoTheThing(filename)
 			if err != nil {
 				return err
 			}
 
-			hasDiff := blocksWithDiff > 0
+			var errs *multierror.Error
+			var exitStatus int
+			var hasDiff bool
 
-			fc := "magenta"
-			if hasDiff {
-				fc = "lightMagenta"
+			for _, filename := range filenames {
+				blocksWithDiff := 0
+				br := blocks.Reader{
+					ReadOnly: true,
+					LineRead: blocks.ReaderPassthrough,
+					BlockRead: func(br *blocks.Reader, i int, b string) error {
+						var fb string
+						var err error
+						if viper.GetBool("fmtcompat") {
+							fb, err = format.FmtVerbBlock(b, filename)
+						} else {
+							fb, err = format.Block(b, filename)
+						}
+						if err != nil {
+							return err
+						}
+
+						if fb == b {
+							return nil
+						}
+						blocksWithDiff++
+
+						// nolint staticcheck
+						fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
+
+						if !viper.GetBool("quiet") {
+							d := diff.LineDiff(b, fb)
+							scanner := bufio.NewScanner(strings.NewReader(d))
+							for scanner.Scan() {
+								l := scanner.Text()
+								if strings.HasPrefix(l, "+") {
+									fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
+								} else if strings.HasPrefix(l, "-") {
+									fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
+								} else {
+									fmt.Fprint(os.Stdout, l+"\n")
+								}
+							}
+						}
+
+						return nil
+					},
+				}
+
+				err := br.DoTheThing(filename)
+				if err != nil {
+					errs = multierror.Append(errs, err)
+					continue
+				}
+
+				if blocksWithDiff > 0 {
+					hasDiff = true
+				}
+
+				fc := "magenta"
+				if hasDiff {
+					fc = "lightMagenta"
+				}
+
+				if viper.GetBool("verbose") {
+					// nolint staticcheck
+					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
+				}
+
+				if br.ErrorBlocks > 0 {
+					exitStatus = 1
+				}
 			}
 
-			if viper.GetBool("verbose") {
-				// nolint staticcheck
-				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
-			}
-
-			if br.ErrorBlocks > 0 {
-				os.Exit(-1)
+			if errs != nil {
+				return errs
 			}
 
 			if viper.GetBool("check") && hasDiff {
-				os.Exit(-1)
+				exitStatus = 1
+			}
+
+			if exitStatus != 0 {
+				os.Exit(exitStatus)
 			}
 
 			return nil
 		},
-	})
+	}
+
+	root.AddCommand(diffCmd)
+	diffCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	// options
 	root.AddCommand(&cobra.Command{
@@ -300,6 +354,61 @@ func Make() *cobra.Command {
 	//todo bind to env?
 
 	return root
+}
+
+func allFiles(path string, pattern string) ([]string, error) {
+	if path == "" {
+		return []string{""}, nil
+	}
+
+	info, err := os.Stat(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading path (%s): %s", path, err)
+	}
+
+	if !info.IsDir() {
+		return []string{path}, nil
+	}
+
+	var filenames []string
+
+	err = filepath.Walk(
+		path,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			if pattern == "" {
+				filenames = append(filenames, path)
+
+				return nil
+			}
+
+			matched, err := filepath.Match(pattern, filepath.Base(path))
+
+			if err != nil {
+				return err
+			}
+
+			if matched {
+				filenames = append(filenames, path)
+			}
+
+			return nil
+		},
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("error walking path (%s): %s", path, err)
+	}
+
+	return filenames, nil
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
