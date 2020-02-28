@@ -223,7 +223,7 @@ func Make() *cobra.Command {
 						blocksWithDiff++
 
 						// nolint staticcheck
-            fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
+						fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
 						if !viper.GetBool("quiet") {
 							d := diff.LineDiff(b, fb)
