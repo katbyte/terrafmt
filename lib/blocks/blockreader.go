@@ -58,8 +58,8 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	matcher := regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
-	if matcher.MatchString(line) { // acctest
+	spaceLeftAccTestMatcher := regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
+	if spaceLeftAccTestMatcher.MatchString(line) { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
@@ -97,6 +97,8 @@ func (br *Reader) DoTheThing(filename string) error {
 			br.Writer = ioutil.Discard
 		}
 	}
+
+	spaceLeftMatcher := regexp.MustCompile("^[[:space:]]*(.*\n)$")
 
 	br.LineCount = 0
 	br.BlockCount = 0
@@ -138,6 +140,8 @@ func (br *Reader) DoTheThing(filename string) error {
 				}
 
 				if IsFinishLine(l2) {
+					l2 = spaceLeftMatcher.ReplaceAllString(l2, `$1`)
+
 					br.LinesBlock += br.BlockCurrentLine
 
 					// todo configure this behaviour with switch's
