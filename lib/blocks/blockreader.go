@@ -34,7 +34,9 @@ type Reader struct {
 
 	ErrorBlocks int
 
-	ReadOnly bool
+	//options
+	ReadOnly       bool
+	FixFinishLines bool
 
 	//callbacks
 	LineRead  func(*Reader, int, string) error
@@ -142,7 +144,9 @@ func (br *Reader) DoTheThing(filename string) error {
 				}
 
 				if IsFinishLine(l2) {
-					l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
+					if br.FixFinishLines {
+						l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
+					}
 
 					br.LinesBlock += br.BlockCurrentLine
 
