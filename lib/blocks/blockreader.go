@@ -14,6 +14,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	accTestFinishLineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
+	lineWithLeadingSpacesMatcher              = regexp.MustCompile("^[[:space:]]*(.*\n)$")
+)
+
 type Reader struct {
 	FileName string
 
@@ -58,8 +63,7 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	spaceLeftAccTestMatcher := regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
-	if spaceLeftAccTestMatcher.MatchString(line) { // acctest
+	if accTestFinishLineWithLeadingSpacesMatcher.MatchString(line) { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
@@ -97,8 +101,6 @@ func (br *Reader) DoTheThing(filename string) error {
 			br.Writer = ioutil.Discard
 		}
 	}
-
-	spaceLeftMatcher := regexp.MustCompile("^[[:space:]]*(.*\n)$")
 
 	br.LineCount = 0
 	br.BlockCount = 0
@@ -140,7 +142,7 @@ func (br *Reader) DoTheThing(filename string) error {
 				}
 
 				if IsFinishLine(l2) {
-					l2 = spaceLeftMatcher.ReplaceAllString(l2, `$1`)
+					l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
 
 					br.LinesBlock += br.BlockCurrentLine
 
