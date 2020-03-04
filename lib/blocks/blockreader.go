@@ -131,7 +131,7 @@ func (br *Reader) DoTheThing(filename string) error {
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
-						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
+						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l, err)
 					}
 
 					block = ""
