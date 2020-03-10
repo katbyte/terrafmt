@@ -47,6 +47,7 @@ func Make() *cobra.Command {
 
 			pattern, _ := cmd.Flags().GetString("pattern")
 			filenames, err := allFiles(path, pattern)
+			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
 
 			if err != nil {
 				return err
@@ -81,6 +82,7 @@ func Make() *cobra.Command {
 
 						return err
 					},
+					FixFinishLines: fixFinishLines,
 				}
 				err := br.DoTheThing(filename)
 
@@ -116,6 +118,7 @@ func Make() *cobra.Command {
 	}
 
 	root.AddCommand(fmtCmd)
+	fmtCmd.Flags().Bool("fix-finish-lines", false, "fix block finish lines by removing any leading spaces")
 	fmtCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	//options : only count, blocks diff/found, total lines diff, etc

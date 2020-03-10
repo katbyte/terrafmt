@@ -7,10 +7,16 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	accTestFinishLineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
+	lineWithLeadingSpacesMatcher              = regexp.MustCompile("^[[:space:]]*(.*\n)$")
 )
 
 type Reader struct {
@@ -28,7 +34,9 @@ type Reader struct {
 
 	ErrorBlocks int
 
-	ReadOnly bool
+	//options
+	ReadOnly       bool
+	FixFinishLines bool
 
 	//callbacks
 	LineRead  func(*Reader, int, string) error
@@ -57,9 +65,7 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	if line == "`)\n" { // acctest
-		return true
-	} else if strings.HasPrefix(line, "`,") { // acctest
+	if accTestFinishLineWithLeadingSpacesMatcher.MatchString(line) { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
@@ -129,7 +135,7 @@ func (br *Reader) DoTheThing(filename string) error {
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
-						return fmt.Errorf("NB LineRead failed @ %s#%d for %s: %v", br.FileName, br.LineCount, l, err)
+						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l, err)
 					}
 
 					block = ""
@@ -138,6 +144,10 @@ func (br *Reader) DoTheThing(filename string) error {
 				}
 
 				if IsFinishLine(l2) {
+					if br.FixFinishLines {
+						l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
+					}
+
 					br.LinesBlock += br.BlockCurrentLine
 
 					// todo configure this behaviour with switch's
