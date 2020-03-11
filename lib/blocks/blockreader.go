@@ -4,9 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -17,6 +21,8 @@ var (
 	accTestFinishLineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
 	lineWithLeadingSpacesMatcher              = regexp.MustCompile("^[[:space:]]*(.*\n)$")
 )
+
+type blockReadFunc func(*Reader, int, string) error
 
 type Reader struct {
 	FileName string
@@ -41,7 +47,7 @@ type Reader struct {
 
 	//callbacks
 	LineRead  func(*Reader, int, string) error
-	BlockRead func(*Reader, int, string) error
+	BlockRead blockReadFunc
 }
 
 func ReaderPassthrough(br *Reader, number int, line string) error {
@@ -75,6 +81,70 @@ func IsFinishLine(line string) bool {
 	}
 
 	return false
+}
+
+type blockVisitor struct {
+	br *Reader
+	f  blockReadFunc
+}
+
+func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
+	if v, ok := node.(*ast.BasicLit); ok && v.Kind == token.STRING {
+		if value, err := strconv.Unquote(v.Value); err == nil {
+			value = strings.TrimSpace(value)
+			if strings.Contains(value, "\n") {
+				fmt.Printf("got: %q\n", value)
+				bv.f(bv.br, 0, value)
+			}
+		}
+	}
+	return bv
+}
+
+func (br *Reader) DoTheThing2(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
+	var buf *bytes.Buffer
+
+	if filename != "" {
+		br.FileName = filename
+		common.Log.Debugf("opening src file %s", filename)
+		file, err := fs.Open(filename) // For read access.
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		br.Reader = file
+
+		// for now write to buffer
+		if !br.ReadOnly {
+			buf = bytes.NewBuffer([]byte{})
+			br.Writer = buf
+		} else {
+			br.Writer = ioutil.Discard
+		}
+	} else {
+		br.FileName = "stdin"
+		br.Reader = stdin
+		br.Writer = stdout
+
+		if br.ReadOnly {
+			br.Writer = ioutil.Discard
+		}
+	}
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, filename, br.Reader, 0)
+	if err != nil {
+		return err
+	}
+	visitor := blockVisitor{
+		br: br,
+		f:  br.BlockRead,
+	}
+	ast.Walk(visitor, f)
+
+	// todo should this be at the end of a command?
+	//fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	return nil
 }
 
 func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
