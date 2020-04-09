@@ -1,0 +1,13 @@
+expected_results:
+  - |
+    resource "aws_s3_bucket" "simple" {
+      bucket = "tf-test-bucket-simple"
+    }
+  - |
+    resource "aws_s3_bucket" "with-parameters" {
+      bucket = "tf-test-bucket-with-parameters-%d"
+    }
+  - |
+    resource "aws_s3_bucket" "with-parameters-and-append" {
+      bucket = "tf-test-bucket-parameters-and-append-%d"
+    }

@@ -1,6 +1,12 @@
 package blocks
 
-import "testing"
+import (
+	"io/ioutil"
+	"testing"
+
+	"github.com/kylelemons/godebug/diff"
+	"gopkg.in/yaml.v2"
+)
 
 func TestBlockReaderIsFinishLine(t *testing.T) {
 	tests := []struct {
@@ -36,5 +42,61 @@ func TestBlockReaderIsFinishLine(t *testing.T) {
 				t.Errorf("Got: \n%#v\nexpected:\n%#v\n", result, test.expected)
 			}
 		})
+	}
+}
+
+type results struct {
+	ExpectedResults []string `yaml:"expected_results"`
+}
+
+func TestBlockDetection(t *testing.T) {
+	testcases := []struct {
+		sourcefile string
+		resultfile string
+	}{
+		{
+			sourcefile: "testdata/test1.go",
+			resultfile: "testdata/test1_results.yaml",
+		},
+	}
+
+	for _, testcase := range testcases {
+		data, err := ioutil.ReadFile(testcase.resultfile)
+		if err != nil {
+			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+		}
+		var expectedResults results
+		err = yaml.Unmarshal(data, &expectedResults)
+		if err != nil {
+			t.Fatalf("Error parsing test result file %q: %s", testcase.resultfile, err)
+		}
+
+		var actualBlocks []string
+		br := Reader{
+			ReadOnly: true,
+			LineRead: ReaderIgnore,
+			BlockRead: func(br *Reader, i int, b string) error {
+				actualBlocks = append(actualBlocks, b)
+				return nil
+			},
+		}
+		err = br.DoTheThing(testcase.sourcefile)
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
+			continue
+		}
+
+		if len(expectedResults.ExpectedResults) != len(actualBlocks) {
+			t.Errorf("Case %q: expected %d blocks, got %d", testcase.sourcefile, len(expectedResults.ExpectedResults), len(actualBlocks))
+			continue
+		}
+
+		for i, actual := range actualBlocks {
+			expected := expectedResults.ExpectedResults[i]
+			if actual != expected {
+				t.Errorf("Case %q, block %d:\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
+				continue
+			}
+		}
 	}
 }
