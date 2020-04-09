@@ -58,6 +58,10 @@ func TestBlockDetection(t *testing.T) {
 			sourcefile: "testdata/test1.go",
 			resultfile: "testdata/test1_results.yaml",
 		},
+		{
+			sourcefile: "testdata/test2.markdown",
+			resultfile: "testdata/test2_results.yaml",
+		},
 	}
 
 	for _, testcase := range testcases {
