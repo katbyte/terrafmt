@@ -76,7 +76,7 @@ func IsFinishLine(line string) bool {
 	return false
 }
 
-func (br *Reader) DoTheThing(filename string) error {
+func (br *Reader) DoTheThing(filename string, stdin io.Reader, stdout io.Writer) error {
 	var buf *bytes.Buffer
 
 	if filename != "" {
@@ -98,8 +98,8 @@ func (br *Reader) DoTheThing(filename string) error {
 		}
 	} else {
 		br.FileName = "stdin"
-		br.Reader = os.Stdin
-		br.Writer = os.Stdout
+		br.Reader = stdin
+		br.Writer = stdout
 
 		if br.ReadOnly {
 			br.Writer = ioutil.Discard

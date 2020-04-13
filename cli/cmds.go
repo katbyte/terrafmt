@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -84,7 +85,7 @@ func Make() *cobra.Command {
 					},
 					FixFinishLines: fixFinishLines,
 				}
-				err := br.DoTheThing(filename)
+				err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
 
 				fc := "magenta"
 				if blocksFormatted > 0 {
@@ -156,7 +157,7 @@ func Make() *cobra.Command {
 					return nil
 				},
 			}
-			err := br.DoTheThing(filename)
+			err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
@@ -246,7 +247,7 @@ func Make() *cobra.Command {
 					},
 				}
 
-				err := br.DoTheThing(filename)
+				err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
@@ -303,28 +304,7 @@ func Make() *cobra.Command {
 			}
 			common.Log.Debugf("terrafmt blocks %s", filename)
 
-			br := blocks.Reader{
-				ReadOnly: true,
-				LineRead: blocks.ReaderIgnore,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-					fmt.Fprint(os.Stdout, b)
-					return nil
-				},
-			}
-
-			err := br.DoTheThing(filename)
-
-			if err != nil {
-				return err
-			}
-
-			//blocks
-			// nolint staticcheck
-			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
-
-			return nil
+			return findBlocksInFile(filename, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 
@@ -430,4 +410,28 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
 	// nolint errcheck
 	fmt.Println("  + " + terraformVersion)
+}
+
+func findBlocksInFile(filename string, stdin io.Reader, stdout, stderr io.Writer) error {
+	br := blocks.Reader{
+		ReadOnly: true,
+		LineRead: blocks.ReaderIgnore,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			outW := stdout
+			fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
+			fmt.Fprint(outW, b)
+			return nil
+		},
+	}
+
+	err := br.DoTheThing(filename, stdin, stdout)
+	if err != nil {
+		return err
+	}
+
+	if viper.GetBool("verbose") {
+		fmt.Fprint(stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	}
+
+	return nil
 }

@@ -1,17 +1,18 @@
 package common
 
 import (
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
 )
 
-var Log = createLogger()
+var Log = CreateLogger(os.Stderr)
 
-func createLogger() *logrus.Logger {
+func CreateLogger(w io.Writer) *logrus.Logger {
 	l := logrus.New()
 
-	l.SetOutput(os.Stderr)
+	l.SetOutput(w)
 
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
