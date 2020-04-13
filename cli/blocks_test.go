@@ -10,14 +10,22 @@ import (
 	"github.com/kylelemons/godebug/diff"
 )
 
-func TestBlocksCmd(t *testing.T) {
+func TestCmdBlocks(t *testing.T) {
 	testcases := []struct {
 		sourcefile string
 		resultfile string
 	}{
 		{
-			sourcefile: "testdata/test1.go",
-			resultfile: "testdata/test1_blocks.txt",
+			sourcefile: "testdata/no_diffs.go",
+			resultfile: "testdata/no_diffs_blocks.txt",
+		},
+		{
+			sourcefile: "testdata/has_diffs.go",
+			resultfile: "testdata/has_diffs_blocks.txt",
+		},
+		{
+			sourcefile: "testdata/fmt_compat.go",
+			resultfile: "testdata/fmt_compat_blocks.txt",
 		},
 	}
 

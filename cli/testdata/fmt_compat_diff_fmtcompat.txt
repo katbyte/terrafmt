@@ -1,0 +1,7 @@
+<lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>26</>
+ resource "aws_s3_bucket" "extra-space" {
+<red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
+<green>+  bucket = "tf-test-bucket-extra-space-%d"</>
+ 
+   %s
+ }

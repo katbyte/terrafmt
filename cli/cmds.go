@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -200,88 +201,31 @@ func Make() *cobra.Command {
 			}
 
 			var errs *multierror.Error
-			var exitStatus int
 			var hasDiff bool
+			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				blocksWithDiff := 0
-				br := blocks.Reader{
-					ReadOnly: true,
-					LineRead: blocks.ReaderPassthrough,
-					BlockRead: func(br *blocks.Reader, i int, b string) error {
-						var fb string
-						var err error
-						if viper.GetBool("fmtcompat") {
-							fb, err = format.FmtVerbBlock(b, filename)
-						} else {
-							fb, err = format.Block(b, filename)
-						}
-						if err != nil {
-							return err
-						}
-
-						if fb == b {
-							return nil
-						}
-						blocksWithDiff++
-
-						// nolint staticcheck
-						fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
-
-						if !viper.GetBool("quiet") {
-							d := diff.LineDiff(b, fb)
-							scanner := bufio.NewScanner(strings.NewReader(d))
-							for scanner.Scan() {
-								l := scanner.Text()
-								if strings.HasPrefix(l, "+") {
-									fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
-								} else if strings.HasPrefix(l, "-") {
-									fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
-								} else {
-									fmt.Fprint(os.Stdout, l+"\n")
-								}
-							}
-						}
-
-						return nil
-					},
-				}
-
-				err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
+				br, fileDiff, err := diffFile(filename, viper.GetBool("fmtcompat"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
 				}
-
-				if blocksWithDiff > 0 {
+				if br.ErrorBlocks > 0 {
+					hasProcessingErrors = true
+				}
+				if fileDiff {
 					hasDiff = true
 				}
-
-				fc := "magenta"
-				if hasDiff {
-					fc = "lightMagenta"
-				}
-
-				if viper.GetBool("verbose") {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
-				}
-
-				if br.ErrorBlocks > 0 {
-					exitStatus = 1
-				}
 			}
-
 			if errs != nil {
 				return errs
 			}
 
 			if viper.GetBool("check") && hasDiff {
-				exitStatus = 1
+				os.Exit(1)
 			}
-
-			if exitStatus != 0 {
-				os.Exit(exitStatus)
+			if hasProcessingErrors {
+				os.Exit(1)
 			}
 
 			return nil
@@ -434,4 +378,68 @@ func findBlocksInFile(filename string, stdin io.Reader, stdout, stderr io.Writer
 	}
 
 	return nil
+}
+
+func diffFile(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+	blocksWithDiff := 0
+	br := blocks.Reader{
+		ReadOnly: true,
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = format.FmtVerbBlock(b, filename)
+			} else {
+				fb, err = format.Block(b, filename)
+			}
+			if err != nil {
+				return err
+			}
+
+			if fb == b {
+				return nil
+			}
+			blocksWithDiff++
+
+			outW := stdout
+
+			fmt.Fprint(outW, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
+
+			if !viper.GetBool("quiet") {
+				d := diff.LineDiff(b, fb)
+				scanner := bufio.NewScanner(strings.NewReader(d))
+				for scanner.Scan() {
+					l := scanner.Text()
+					if strings.HasPrefix(l, "+") {
+						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
+					} else if strings.HasPrefix(l, "-") {
+						fmt.Fprint(outW, c.Sprintf("<red>%s</>\n", l))
+					} else {
+						fmt.Fprint(outW, l+"\n")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+
+	err := br.DoTheThing(filename, stdin, stdout)
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasDiff := (blocksWithDiff > 0)
+
+	fc := "magenta"
+	if hasDiff {
+		fc = "lightMagenta"
+	}
+
+	if viper.GetBool("verbose") {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
+	}
+
+	return &br, hasDiff, nil
 }

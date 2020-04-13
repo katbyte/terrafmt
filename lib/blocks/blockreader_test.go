@@ -1,9 +1,11 @@
 package blocks
 
 import (
+	"bytes"
 	"io/ioutil"
 	"testing"
 
+	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
 	"gopkg.in/yaml.v2"
 )
@@ -64,6 +66,9 @@ func TestBlockDetection(t *testing.T) {
 		},
 	}
 
+	errB := bytes.NewBufferString("")
+	common.Log = common.CreateLogger(errB)
+
 	for _, testcase := range testcases {
 		data, err := ioutil.ReadFile(testcase.resultfile)
 		if err != nil {
@@ -101,6 +106,11 @@ func TestBlockDetection(t *testing.T) {
 				t.Errorf("Case %q, block %d:\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
 				continue
 			}
+		}
+
+		actualErr := errB.String()
+		if actualErr != "" {
+			t.Errorf("Case %q: Got error output:\n%s", testcase.sourcefile, actualErr)
 		}
 	}
 }
