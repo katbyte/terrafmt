@@ -184,7 +184,7 @@ func (br *Reader) DoTheThing(filename string, stdin io.Reader, stdout io.Writer)
 	}
 
 	// If not read-only, need to write back to file.
-	if !br.ReadOnly {
+	if !br.ReadOnly && filename != "" {
 		destination, err := os.Create(filename)
 		if err != nil {
 			return err

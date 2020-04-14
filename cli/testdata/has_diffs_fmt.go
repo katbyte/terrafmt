@@ -7,7 +7,7 @@ import (
 func testExtraLines() string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "extra-lines" {
-  
+
   bucket = "tf-test-bucket-extra-lines"
 }
 `)
@@ -25,7 +25,7 @@ resource "aws_s3_bucket" "no-errors" {
 func testExtraSpace(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+  bucket = "tf-test-bucket-extra-space-%d"
 }
 `, randInt) + testReturnSprintfSimple()
 }

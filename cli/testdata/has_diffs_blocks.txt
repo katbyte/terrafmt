@@ -14,3 +14,8 @@ resource "aws_s3_bucket" "no-errors" {
 resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 }
+
+<white>#######</> <cyan>B4</><darkGray> @ #38</>
+resource "aws_s3_bucket" "end-line" {
+  bucket = "tf-test-bucket-end-line-%d"
+}

@@ -3,7 +3,6 @@ package cli
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -49,70 +48,31 @@ func Make() *cobra.Command {
 
 			pattern, _ := cmd.Flags().GetString("pattern")
 			filenames, err := allFiles(path, pattern)
-			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
-
 			if err != nil {
 				return err
 			}
+			fmtCompat := viper.GetBool("fmtcompat")
+			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
 
 			var errs *multierror.Error
-			var exitStatus int
+			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				blocksFormatted := 0
-
-				br := blocks.Reader{
-					LineRead: blocks.ReaderPassthrough,
-					BlockRead: func(br *blocks.Reader, i int, b string) error {
-						var fb string
-						var err error
-						if viper.GetBool("fmtcompat") {
-							fb, err = format.FmtVerbBlock(b, filename)
-						} else {
-							fb, err = format.Block(b, filename)
-						}
-
-						if err != nil {
-							return err
-						}
-
-						_, err = br.Writer.Write([]byte(fb))
-
-						if err == nil && fb != b {
-							blocksFormatted++
-						}
-
-						return err
-					},
-					FixFinishLines: fixFinishLines,
-				}
-				err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
-
-				fc := "magenta"
-				if blocksFormatted > 0 {
-					fc = "lightMagenta"
-				}
-
-				if viper.GetBool("verbose") {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
-				}
+				br, err := formatFile(filename, fmtCompat, fixFinishLines, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
 				if err != nil {
 					errs = multierror.Append(errs, err)
 				}
 
 				if br.ErrorBlocks > 0 {
-					exitStatus = 1
+					hasProcessingErrors = true
 				}
 			}
-
 			if errs != nil {
 				return errs
 			}
-
-			if exitStatus != 0 {
-				os.Exit(exitStatus)
+			if hasProcessingErrors {
+				os.Exit(1)
 			}
 
 			return nil
@@ -195,7 +155,6 @@ func Make() *cobra.Command {
 
 			pattern, _ := cmd.Flags().GetString("pattern")
 			filenames, err := allFiles(path, pattern)
-
 			if err != nil {
 				return err
 			}
@@ -442,4 +401,45 @@ func diffFile(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io
 	}
 
 	return &br, hasDiff, nil
+}
+
+func formatFile(filename string, fmtverbs, fixFinishLines bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	blocksFormatted := 0
+
+	br := blocks.Reader{
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = format.FmtVerbBlock(b, filename)
+			} else {
+				fb, err = format.Block(b, filename)
+			}
+			if err != nil {
+				return err
+			}
+
+			_, err = br.Writer.Write([]byte(fb))
+
+			if err == nil && fb != b {
+				blocksFormatted++
+			}
+
+			return err
+		},
+		FixFinishLines: fixFinishLines,
+	}
+	err := br.DoTheThing(filename, stdin, stdout)
+
+	fc := "magenta"
+	if blocksFormatted > 0 {
+		fc = "lightMagenta"
+	}
+
+	if viper.GetBool("verbose") {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+	}
+
+	return &br, err
 }
