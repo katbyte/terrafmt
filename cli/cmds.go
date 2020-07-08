@@ -95,42 +95,11 @@ func Make() *cobra.Command {
 			}
 			common.Log.Debugf("terrafmt upgrade012 %s", filename)
 
-			blocksFormatted := 0
-			br := blocks.Reader{
-				LineRead: blocks.ReaderPassthrough,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					var fb string
-					var err error
-					if viper.GetBool("fmtcompat") {
-						fb, err = upgrade012.Upgrade12VerbBlock(b)
-					} else {
-						fb, err = upgrade012.Block(b)
-					}
+			fmtverbs := viper.GetBool("fmtcompat")
 
-					if err != nil {
-						return err
-					}
-
-					if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-						blocksFormatted++
-					}
-
-					return nil
-				},
-			}
-			err := br.DoTheThing(filename, cmd.InOrStdin(), cmd.OutOrStdout())
+			br, err := upgrade012File(filename, fmtverbs, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 			if err != nil {
 				return err
-			}
-
-			fc := "magenta"
-			if blocksFormatted > 0 {
-				fc = "lightMagenta"
-			}
-
-			if viper.GetBool("verbose") {
-				// nolint staticcheck
-				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
 
 			if br.ErrorBlocks > 0 {
@@ -439,6 +408,47 @@ func formatFile(filename string, fmtverbs, fixFinishLines bool, stdin io.Reader,
 
 	if viper.GetBool("verbose") {
 		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+	}
+
+	return &br, err
+}
+
+func upgrade012File(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	blocksFormatted := 0
+	br := blocks.Reader{
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = upgrade012.Upgrade12VerbBlock(b)
+			} else {
+				fb, err = upgrade012.Block(b)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
+				blocksFormatted++
+			}
+
+			return nil
+		},
+	}
+	err := br.DoTheThing(filename, stdin, stdout)
+	if err != nil {
+		return &br, err
+	}
+
+	fc := "magenta"
+	if blocksFormatted > 0 {
+		fc = "lightMagenta"
+	}
+
+	if viper.GetBool("verbose") {
+		fmt.Fprint(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 	}
 
 	return &br, err

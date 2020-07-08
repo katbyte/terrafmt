@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -11,54 +12,55 @@ import (
 	"github.com/kylelemons/godebug/diff"
 )
 
-func TestCmdDiff(t *testing.T) {
+func TestCmdUpgrade012(t *testing.T) {
 	testcases := []struct {
 		name         string
 		sourcefile   string
 		resultfile   string
-		noDiff       bool
 		expectErrMsg bool
 		fmtcompat    bool
 	}{
 		{
 			name:       "no change",
 			sourcefile: "testdata/no_diffs.go",
-			noDiff:     true,
+			resultfile: "testdata/no_diffs.go", // No change expected
 		},
 		{
 			name:       "formatting",
 			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_diff.txt",
+			resultfile: "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
 		},
 		{
 			name:         "fmt verbs",
 			sourcefile:   "testdata/fmt_compat.go",
-			resultfile:   "testdata/fmt_compat_diff_nofmtcompat.txt",
+			resultfile:   "testdata/fmt_compat.go", // No change expected
 			fmtcompat:    false,
 			expectErrMsg: true,
 		},
 		{
 			name:       "fmt verbs --fmtcompat",
 			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_diff_fmtcompat.txt",
+			resultfile: "testdata/fmt_compat_upgrade012.go",
 			fmtcompat:  true,
 		},
 	}
 
 	for _, testcase := range testcases {
-		expected := ""
-		if !testcase.noDiff {
-			data, err := ioutil.ReadFile(testcase.resultfile)
-			if err != nil {
-				t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
-			}
-			expected = c.String(string(data))
+		inR, err := os.Open(testcase.sourcefile)
+		if err != nil {
+			t.Fatalf("Error reading test input file %q: %s", testcase.resultfile, err)
 		}
+
+		data, err := ioutil.ReadFile(testcase.resultfile)
+		if err != nil {
+			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+		}
+		expected := c.String(string(data))
 
 		outB := bytes.NewBufferString("")
 		errB := bytes.NewBufferString("")
 		common.Log = common.CreateLogger(errB)
-		_, _, err := diffFile(testcase.sourcefile, testcase.fmtcompat, nil, outB, errB)
+		_, err = upgrade012File("", testcase.fmtcompat, inR, outB, errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 
