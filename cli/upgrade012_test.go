@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -57,10 +56,10 @@ func TestCmdUpgrade012(t *testing.T) {
 		}
 		expected := c.String(string(data))
 
-		outB := bytes.NewBufferString("")
-		errB := bytes.NewBufferString("")
-		common.Log = common.CreateLogger(errB)
-		_, err = upgrade012File("", testcase.fmtcompat, inR, outB, errB)
+		var outB strings.Builder
+		var errB strings.Builder
+		common.Log = common.CreateLogger(&errB)
+		_, err = upgrade012File("", testcase.fmtcompat, inR, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 

@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"bytes"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	c "github.com/gookit/color"
@@ -12,18 +12,22 @@ import (
 
 func TestCmdBlocks(t *testing.T) {
 	testcases := []struct {
+		name       string
 		sourcefile string
 		resultfile string
 	}{
 		{
+			name:       "no change",
 			sourcefile: "testdata/no_diffs.go",
 			resultfile: "testdata/no_diffs_blocks.txt",
 		},
 		{
+			name:       "formatting",
 			sourcefile: "testdata/has_diffs.go",
 			resultfile: "testdata/has_diffs_blocks.txt",
 		},
 		{
+			name:       "fmt verbs",
 			sourcefile: "testdata/fmt_compat.go",
 			resultfile: "testdata/fmt_compat_blocks.txt",
 		},
@@ -36,10 +40,10 @@ func TestCmdBlocks(t *testing.T) {
 		}
 		expected := c.String(string(data))
 
-		outB := bytes.NewBufferString("")
-		errB := bytes.NewBufferString("")
-		common.Log = common.CreateLogger(errB)
-		err = findBlocksInFile(testcase.sourcefile, nil, outB, errB)
+		var outB strings.Builder
+		var errB strings.Builder
+		common.Log = common.CreateLogger(&errB)
+		err = findBlocksInFile(testcase.sourcefile, nil, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 

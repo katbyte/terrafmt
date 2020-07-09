@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -64,10 +63,10 @@ func TestCmdFmt(t *testing.T) {
 		}
 		expected := c.String(string(data))
 
-		outB := bytes.NewBufferString("")
-		errB := bytes.NewBufferString("")
-		common.Log = common.CreateLogger(errB)
-		_, err = formatFile("", testcase.fmtcompat, testcase.fixFinishLines, inR, outB, errB)
+		var outB strings.Builder
+		var errB strings.Builder
+		common.Log = common.CreateLogger(&errB)
+		_, err = formatFile("", testcase.fmtcompat, testcase.fixFinishLines, inR, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 

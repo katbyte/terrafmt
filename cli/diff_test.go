@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -55,10 +54,10 @@ func TestCmdDiff(t *testing.T) {
 			expected = c.String(string(data))
 		}
 
-		outB := bytes.NewBufferString("")
-		errB := bytes.NewBufferString("")
-		common.Log = common.CreateLogger(errB)
-		_, _, err := diffFile(testcase.sourcefile, testcase.fmtcompat, nil, outB, errB)
+		var outB strings.Builder
+		var errB strings.Builder
+		common.Log = common.CreateLogger(&errB)
+		_, _, err := diffFile(testcase.sourcefile, testcase.fmtcompat, nil, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 
