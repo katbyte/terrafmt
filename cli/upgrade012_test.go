@@ -16,13 +16,14 @@ func TestCmdUpgrade012(t *testing.T) {
 		name         string
 		sourcefile   string
 		resultfile   string
+		noDiff       bool
 		expectErrMsg bool
 		fmtcompat    bool
 	}{
 		{
 			name:       "no change",
 			sourcefile: "testdata/no_diffs.go",
-			resultfile: "testdata/no_diffs.go", // No change expected
+			noDiff:     true,
 		},
 		{
 			name:       "formatting",
@@ -32,7 +33,7 @@ func TestCmdUpgrade012(t *testing.T) {
 		{
 			name:         "fmt verbs",
 			sourcefile:   "testdata/fmt_compat.go",
-			resultfile:   "testdata/fmt_compat.go", // No change expected
+			noDiff:       true,
 			fmtcompat:    false,
 			expectErrMsg: true,
 		},
@@ -50,9 +51,13 @@ func TestCmdUpgrade012(t *testing.T) {
 			t.Fatalf("Error reading test input file %q: %s", testcase.resultfile, err)
 		}
 
-		data, err := ioutil.ReadFile(testcase.resultfile)
+		resultfile := testcase.resultfile
+		if testcase.noDiff {
+			resultfile = testcase.sourcefile
+		}
+		data, err := ioutil.ReadFile(resultfile)
 		if err != nil {
-			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+			t.Fatalf("Error reading test result file %q: %s", resultfile, err)
 		}
 		expected := c.String(string(data))
 
