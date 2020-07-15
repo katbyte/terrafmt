@@ -1,0 +1,11 @@
+<lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>8</>
+ resource "aws_s3_bucket" "extra-lines" {
+<red>-  </>
+<green>+</>
+   bucket = "tf-test-bucket-extra-lines"
+ }
+<lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>26</>
+ resource "aws_s3_bucket" "extra-space" {
+<red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
+<green>+  bucket = "tf-test-bucket-extra-space-%d"</>
+ }

@@ -31,6 +31,16 @@ func TestCmdBlocks(t *testing.T) {
 			sourcefile: "testdata/fmt_compat.go",
 			resultfile: "testdata/fmt_compat_blocks.go.txt",
 		},
+		{
+			name:       "Markdown no change",
+			sourcefile: "testdata/no_diffs.md",
+			resultfile: "testdata/no_diffs_blocks.md.txt",
+		},
+		{
+			name:       "Markdown formatting",
+			sourcefile: "testdata/has_diffs.md",
+			resultfile: "testdata/has_diffs_blocks.md.txt",
+		},
 	}
 
 	for _, testcase := range testcases {
