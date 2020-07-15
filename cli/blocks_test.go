@@ -17,19 +17,19 @@ func TestCmdBlocks(t *testing.T) {
 		resultfile string
 	}{
 		{
-			name:       "no change",
+			name:       "Go no change",
 			sourcefile: "testdata/no_diffs.go",
-			resultfile: "testdata/no_diffs_blocks.txt",
+			resultfile: "testdata/no_diffs_blocks.go.txt",
 		},
 		{
-			name:       "formatting",
+			name:       "Go formatting",
 			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_blocks.txt",
+			resultfile: "testdata/has_diffs_blocks.go.txt",
 		},
 		{
-			name:       "fmt verbs",
+			name:       "Go fmt verbs",
 			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_blocks.txt",
+			resultfile: "testdata/fmt_compat_blocks.go.txt",
 		},
 	}
 

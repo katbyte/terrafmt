@@ -20,26 +20,26 @@ func TestCmdDiff(t *testing.T) {
 		fmtcompat    bool
 	}{
 		{
-			name:       "no change",
+			name:       "Go no change",
 			sourcefile: "testdata/no_diffs.go",
 			noDiff:     true,
 		},
 		{
-			name:       "formatting",
+			name:       "Go formatting",
 			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_diff.txt",
+			resultfile: "testdata/has_diffs_diff.go.txt",
 		},
 		{
-			name:         "fmt verbs",
+			name:         "Go fmt verbs",
 			sourcefile:   "testdata/fmt_compat.go",
-			resultfile:   "testdata/fmt_compat_diff_nofmtcompat.txt",
+			resultfile:   "testdata/fmt_compat_diff_nofmtcompat.go.txt",
 			fmtcompat:    false,
 			expectErrMsg: true,
 		},
 		{
-			name:       "fmt verbs --fmtcompat",
+			name:       "Go fmt verbs --fmtcompat",
 			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_diff_fmtcompat.txt",
+			resultfile: "testdata/fmt_compat_diff_fmtcompat.go.txt",
 			fmtcompat:  true,
 		},
 	}
