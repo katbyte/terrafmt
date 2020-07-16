@@ -61,9 +61,10 @@ func TestCmdFmt(t *testing.T) {
 			resultfile: "testdata/has_diffs_fmt.md",
 		},
 		{
-			name:       "Markdown formatting, fix finish line",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_fmt.md",
+			name:           "Markdown formatting, fix finish line",
+			sourcefile:     "testdata/has_diffs.md",
+			resultfile:     "testdata/has_diffs_fmt.md",
+			fixFinishLines: true,
 		},
 	}
 
