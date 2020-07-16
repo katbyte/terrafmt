@@ -9,19 +9,19 @@ resource "aws_s3_bucket" "extra-lines" {
 
 ```hcl
 resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+  bucket = "tf-test-bucket-no-errors"
 }
 ```
 
 ```hcl
 resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+  bucket    = "tf-test-bucket-extra-space"
 }
 ```
 
 ```hcl
 resource "aws_s3_bucket" "end-line" {
-  bucket = "tf-test-bucket-end-line-%d"
+  bucket = "tf-test-bucket-end-line"
 }
   
 ```
