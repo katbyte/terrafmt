@@ -22,33 +22,48 @@ func TestCmdFmt(t *testing.T) {
 		fixFinishLines bool
 	}{
 		{
-			name:       "no change",
+			name:       "Go no change",
 			sourcefile: "testdata/no_diffs.go",
 			noDiff:     true,
 		},
 		{
-			name:       "formatting",
+			name:       "Go formatting",
 			sourcefile: "testdata/has_diffs.go",
 			resultfile: "testdata/has_diffs_fmt.go",
 		},
 		{
-			name:           "formatting, fix finish line",
+			name:           "Go formatting, fix finish line",
 			sourcefile:     "testdata/has_diffs.go",
 			resultfile:     "testdata/has_diffs_fmt_fix_finish.go",
 			fixFinishLines: true,
 		},
 		{
-			name:         "fmt verbs",
+			name:         "Go fmt verbs",
 			sourcefile:   "testdata/fmt_compat.go",
 			noDiff:       true,
 			fmtcompat:    false,
 			expectErrMsg: true,
 		},
 		{
-			name:       "fmt verbs --fmtcompat",
+			name:       "Go fmt verbs --fmtcompat",
 			sourcefile: "testdata/fmt_compat.go",
 			resultfile: "testdata/fmt_compat_fmtcompat.go",
 			fmtcompat:  true,
+		},
+		{
+			name:       "Markdown no change",
+			sourcefile: "testdata/no_diffs.md",
+			noDiff:     true,
+		},
+		{
+			name:       "Markdown formatting",
+			sourcefile: "testdata/has_diffs.md",
+			resultfile: "testdata/has_diffs_fmt.md",
+		},
+		{
+			name:       "Markdown formatting, fix finish line",
+			sourcefile: "testdata/has_diffs.md",
+			resultfile: "testdata/has_diffs_fmt.md",
 		},
 	}
 
