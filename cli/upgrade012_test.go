@@ -43,6 +43,16 @@ func TestCmdUpgrade012(t *testing.T) {
 			resultfile: "testdata/fmt_compat_upgrade012.go",
 			fmtcompat:  true,
 		},
+		{
+			name:       "Markdown no change",
+			sourcefile: "testdata/no_diffs.md",
+			noDiff:     true,
+		},
+		{
+			name:       "Markdown formatting",
+			sourcefile: "testdata/has_diffs.md",
+			resultfile: "testdata/has_diffs_upgrade012.md", // This has stricter formatting than `fmt`
+		},
 	}
 
 	for _, testcase := range testcases {
