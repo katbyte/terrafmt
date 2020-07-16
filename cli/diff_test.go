@@ -42,6 +42,16 @@ func TestCmdDiff(t *testing.T) {
 			resultfile: "testdata/fmt_compat_diff_fmtcompat.go.txt",
 			fmtcompat:  true,
 		},
+		{
+			name:       "Markdown no change",
+			sourcefile: "testdata/no_diffs.md",
+			noDiff:     true,
+		},
+		{
+			name:       "Markdown formatting",
+			sourcefile: "testdata/has_diffs.md",
+			resultfile: "testdata/has_diffs_diff.md.txt",
+		},
 	}
 
 	for _, testcase := range testcases {
