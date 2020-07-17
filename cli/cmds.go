@@ -18,6 +18,7 @@ import (
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -46,8 +47,10 @@ func Make() *cobra.Command {
 			}
 			common.Log.Debugf("terrafmt  %s", path)
 
+			fs := afero.NewOsFs()
+
 			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(path, pattern)
+			filenames, err := allFiles(fs, path, pattern)
 			if err != nil {
 				return err
 			}
@@ -58,7 +61,7 @@ func Make() *cobra.Command {
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, err := formatFile(filename, fmtCompat, fixFinishLines, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, err := formatFile(fs, filename, fmtCompat, fixFinishLines, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
 				if err != nil {
 					errs = multierror.Append(errs, err)
@@ -97,7 +100,8 @@ func Make() *cobra.Command {
 
 			fmtverbs := viper.GetBool("fmtcompat")
 
-			br, err := upgrade012File(filename, fmtverbs, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			fs := afero.NewOsFs()
+			br, err := upgrade012File(fs, filename, fmtverbs, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 			if err != nil {
 				return err
 			}
@@ -122,8 +126,10 @@ func Make() *cobra.Command {
 			}
 			common.Log.Debugf("terrafmt fmt %s", path)
 
+			fs := afero.NewOsFs()
+
 			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(path, pattern)
+			filenames, err := allFiles(fs, path, pattern)
 			if err != nil {
 				return err
 			}
@@ -133,7 +139,7 @@ func Make() *cobra.Command {
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, fileDiff, err := diffFile(filename, viper.GetBool("fmtcompat"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, fileDiff, err := diffFile(fs, filename, viper.GetBool("fmtcompat"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
@@ -176,7 +182,8 @@ func Make() *cobra.Command {
 			}
 			common.Log.Debugf("terrafmt blocks %s", filename)
 
-			return findBlocksInFile(filename, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			fs := afero.NewOsFs()
+			return findBlocksInFile(fs, filename, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 
@@ -211,12 +218,12 @@ func Make() *cobra.Command {
 	return root
 }
 
-func allFiles(path string, pattern string) ([]string, error) {
+func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 	if path == "" {
 		return []string{""}, nil
 	}
 
-	info, err := os.Stat(path)
+	info, err := fs.Stat(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("error reading path (%s): %s", path, err)
@@ -228,8 +235,7 @@ func allFiles(path string, pattern string) ([]string, error) {
 
 	var filenames []string
 
-	err = filepath.Walk(
-		path,
+	err = afero.Walk(fs, path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -260,7 +266,7 @@ func allFiles(path string, pattern string) ([]string, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("error walking path (%s): %s", path, err)
+		return nil, fmt.Errorf("error walking path (%s): %w", path, err)
 	}
 
 	return filenames, nil
@@ -284,7 +290,7 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
-func findBlocksInFile(filename string, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, filename string, stdin io.Reader, stdout, stderr io.Writer) error {
 	br := blocks.Reader{
 		ReadOnly: true,
 		LineRead: blocks.ReaderIgnore,
@@ -296,7 +302,7 @@ func findBlocksInFile(filename string, stdin io.Reader, stdout, stderr io.Writer
 		},
 	}
 
-	err := br.DoTheThing(filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return err
 	}
@@ -308,7 +314,7 @@ func findBlocksInFile(filename string, stdin io.Reader, stdout, stderr io.Writer
 	return nil
 }
 
-func diffFile(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+func diffFile(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
 	blocksWithDiff := 0
 	br := blocks.Reader{
 		ReadOnly: true,
@@ -353,7 +359,7 @@ func diffFile(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io
 		},
 	}
 
-	err := br.DoTheThing(filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return nil, false, err
 	}
@@ -372,7 +378,7 @@ func diffFile(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io
 	return &br, hasDiff, nil
 }
 
-func formatFile(filename string, fmtverbs, fixFinishLines bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 
 	br := blocks.Reader{
@@ -399,7 +405,7 @@ func formatFile(filename string, fmtverbs, fixFinishLines bool, stdin io.Reader,
 		},
 		FixFinishLines: fixFinishLines,
 	}
-	err := br.DoTheThing(filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 
 	fc := "magenta"
 	if blocksFormatted > 0 {
@@ -413,7 +419,7 @@ func formatFile(filename string, fmtverbs, fixFinishLines bool, stdin io.Reader,
 	return &br, err
 }
 
-func upgrade012File(filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func upgrade012File(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 	br := blocks.Reader{
 		LineRead: blocks.ReaderPassthrough,
@@ -437,7 +443,7 @@ func upgrade012File(filename string, fmtverbs bool, stdin io.Reader, stdout, std
 			return nil
 		},
 	}
-	err := br.DoTheThing(filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}

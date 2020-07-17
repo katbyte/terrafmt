@@ -7,6 +7,7 @@ import (
 
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
+	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
 
@@ -66,6 +67,8 @@ func TestBlockDetection(t *testing.T) {
 		},
 	}
 
+	fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 	errB := bytes.NewBufferString("")
 	common.Log = common.CreateLogger(errB)
 
@@ -89,7 +92,7 @@ func TestBlockDetection(t *testing.T) {
 				return nil
 			},
 		}
-		err = br.DoTheThing(testcase.sourcefile, nil, nil)
+		err = br.DoTheThing(fs, testcase.sourcefile, nil, nil)
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue

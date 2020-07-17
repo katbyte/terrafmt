@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"regexp"
 	"strings"
 
 	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/spf13/afero"
 )
 
 var (
@@ -75,18 +75,18 @@ func IsFinishLine(line string) bool {
 	return false
 }
 
-func (br *Reader) DoTheThing(filename string, stdin io.Reader, stdout io.Writer) error {
+func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	var buf *bytes.Buffer
 
 	if filename != "" {
 		br.FileName = filename
 		common.Log.Debugf("opening src file %s", filename)
-		fs, err := os.Open(filename) // For read access.
+		file, err := fs.Open(filename) // For read access.
 		if err != nil {
 			return err
 		}
-		defer fs.Close()
-		br.Reader = fs
+		defer file.Close()
+		br.Reader = file
 
 		// for now write to buffer
 		if !br.ReadOnly {
@@ -185,7 +185,7 @@ func (br *Reader) DoTheThing(filename string, stdin io.Reader, stdout io.Writer)
 
 	// If not read-only, need to write back to file.
 	if !br.ReadOnly && filename != "" {
-		destination, err := os.Create(filename)
+		destination, err := fs.Create(filename)
 		if err != nil {
 			return err
 		}

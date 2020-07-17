@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"io/ioutil"
 	"strings"
 	"testing"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
+	"github.com/spf13/afero"
 )
 
 func TestCmdBlocks(t *testing.T) {
@@ -43,8 +43,10 @@ func TestCmdBlocks(t *testing.T) {
 		},
 	}
 
+	fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 	for _, testcase := range testcases {
-		data, err := ioutil.ReadFile(testcase.resultfile)
+		data, err := afero.ReadFile(fs, testcase.resultfile)
 		if err != nil {
 			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
 		}
@@ -53,7 +55,7 @@ func TestCmdBlocks(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		err = findBlocksInFile(testcase.sourcefile, nil, &outB, &errB)
+		err = findBlocksInFile(fs, testcase.sourcefile, nil, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 

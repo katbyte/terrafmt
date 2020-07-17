@@ -1,14 +1,13 @@
 package cli
 
 import (
-	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
+	"github.com/spf13/afero"
 )
 
 func TestCmdUpgrade012(t *testing.T) {
@@ -58,8 +57,10 @@ func TestCmdUpgrade012(t *testing.T) {
 		},
 	}
 
+	fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 	for _, testcase := range testcases {
-		inR, err := os.Open(testcase.sourcefile)
+		inR, err := fs.Open(testcase.sourcefile)
 		if err != nil {
 			t.Fatalf("Error reading test input file %q: %s", testcase.resultfile, err)
 		}
@@ -68,7 +69,7 @@ func TestCmdUpgrade012(t *testing.T) {
 		if testcase.noDiff {
 			resultfile = testcase.sourcefile
 		}
-		data, err := ioutil.ReadFile(resultfile)
+		data, err := afero.ReadFile(fs, resultfile)
 		if err != nil {
 			t.Fatalf("Error reading test result file %q: %s", resultfile, err)
 		}
@@ -77,7 +78,7 @@ func TestCmdUpgrade012(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		_, err = upgrade012File("", testcase.fmtcompat, inR, &outB, &errB)
+		_, err = upgrade012File(fs, "", testcase.fmtcompat, inR, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 

@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"io/ioutil"
 	"strings"
 	"testing"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
+	"github.com/spf13/afero"
 )
 
 func TestCmdDiff(t *testing.T) {
@@ -57,10 +57,12 @@ func TestCmdDiff(t *testing.T) {
 		},
 	}
 
+	fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 	for _, testcase := range testcases {
 		expected := ""
 		if !testcase.noDiff {
-			data, err := ioutil.ReadFile(testcase.resultfile)
+			data, err := afero.ReadFile(fs, testcase.resultfile)
 			if err != nil {
 				t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
 			}
@@ -70,7 +72,7 @@ func TestCmdDiff(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		_, _, err := diffFile(testcase.sourcefile, testcase.fmtcompat, nil, &outB, &errB)
+		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, nil, &outB, &errB)
 		actualOut := outB.String()
 		actualErr := errB.String()
 
