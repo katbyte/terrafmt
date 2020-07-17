@@ -375,7 +375,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		},
 	}
 
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return nil, false, err
 	}
