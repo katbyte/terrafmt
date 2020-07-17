@@ -17,7 +17,7 @@ func TestCmdFmt(t *testing.T) {
 		sourcefile     string
 		resultfile     string
 		noDiff         bool
-		expectErrMsg   bool
+		errMsg         []string
 		fmtcompat      bool
 		fixFinishLines bool
 	}{
@@ -38,11 +38,14 @@ func TestCmdFmt(t *testing.T) {
 			fixFinishLines: true,
 		},
 		{
-			name:         "Go fmt verbs",
-			sourcefile:   "testdata/fmt_compat.go",
-			noDiff:       true,
-			fmtcompat:    false,
-			expectErrMsg: true,
+			name:       "Go fmt verbs",
+			sourcefile: "testdata/fmt_compat.go",
+			noDiff:     true,
+			fmtcompat:  false,
+			errMsg: []string{
+				"block 1 @ stdin:8 failed to process with: failed to parse hcl: :4,3-4:",
+				"block 3 @ stdin:26 failed to process with: failed to parse hcl: :4,3-4:",
+			},
 		},
 		{
 			name:       "Go fmt verbs --fmtcompat",
@@ -100,14 +103,6 @@ func TestCmdFmt(t *testing.T) {
 			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualOut, expected))
 		}
 
-		if testcase.expectErrMsg {
-			if strings.TrimSpace(actualErr) == "" {
-				t.Errorf("Case %q: Expected error output but got none", testcase.name)
-			}
-		} else {
-			if actualErr != "" {
-				t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualErr)
-			}
-		}
+		checkExpectedErrors(t, testcase.name, actualErr, testcase.errMsg)
 	}
 }

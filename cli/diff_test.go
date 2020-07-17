@@ -12,12 +12,12 @@ import (
 
 func TestCmdDiff(t *testing.T) {
 	testcases := []struct {
-		name         string
-		sourcefile   string
-		resultfile   string
-		noDiff       bool
-		expectErrMsg bool
-		fmtcompat    bool
+		name       string
+		sourcefile string
+		resultfile string
+		noDiff     bool
+		errMsg     []string
+		fmtcompat  bool
 	}{
 		{
 			name:       "Go no change",
@@ -30,11 +30,14 @@ func TestCmdDiff(t *testing.T) {
 			resultfile: "testdata/has_diffs_diff.go.txt",
 		},
 		{
-			name:         "Go fmt verbs",
-			sourcefile:   "testdata/fmt_compat.go",
-			resultfile:   "testdata/fmt_compat_diff_nofmtcompat.go.txt",
-			fmtcompat:    false,
-			expectErrMsg: true,
+			name:       "Go fmt verbs",
+			sourcefile: "testdata/fmt_compat.go",
+			resultfile: "testdata/fmt_compat_diff_nofmtcompat.go.txt",
+			fmtcompat:  false,
+			errMsg: []string{
+				"block 1 @ testdata/fmt_compat.go:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
+				"block 3 @ testdata/fmt_compat.go:26 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
+			},
 		},
 		{
 			name:       "Go fmt verbs --fmtcompat",
@@ -80,14 +83,6 @@ func TestCmdDiff(t *testing.T) {
 			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualOut, expected))
 		}
 
-		if testcase.expectErrMsg {
-			if strings.TrimSpace(actualErr) == "" {
-				t.Errorf("Case %q: Expected error output but got none", testcase.name)
-			}
-		} else {
-			if actualErr != "" {
-				t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualErr)
-			}
-		}
+		checkExpectedErrors(t, testcase.name, actualErr, testcase.errMsg)
 	}
 }
