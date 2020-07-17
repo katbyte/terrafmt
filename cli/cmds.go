@@ -311,12 +311,13 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose 
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
 			outW := stdout
 			fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-			fmt.Fprint(outW, b)
+			fmt.Fprint(outW, strings.TrimRight(b, "\n"))
+			fmt.Fprint(outW, "\n")
 			return nil
 		},
 	}
 
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return err
 	}

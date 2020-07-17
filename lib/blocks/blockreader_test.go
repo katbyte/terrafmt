@@ -3,6 +3,7 @@ package blocks
 import (
 	"bytes"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/katbyte/terrafmt/lib/common"
@@ -93,7 +94,7 @@ func TestBlockDetection(t *testing.T) {
 				return nil
 			},
 		}
-		err = br.DoTheThing(fs, testcase.sourcefile, nil, nil)
+		err = br.DoTheThingNew(fs, testcase.sourcefile, nil, nil)
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue
@@ -105,7 +106,8 @@ func TestBlockDetection(t *testing.T) {
 		}
 
 		for i, actual := range actualBlocks {
-			expected := expectedResults.ExpectedResults[i]
+			expected := strings.TrimSpace(expectedResults.ExpectedResults[i])
+			actual = strings.TrimSpace(actual)
 			if actual != expected {
 				t.Errorf("Case %q, block %d:\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
 				continue

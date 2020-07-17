@@ -84,8 +84,9 @@ func IsFinishLine(line string) bool {
 }
 
 type blockVisitor struct {
-	br *Reader
-	f  blockReadFunc
+	br   *Reader
+	fset *token.FileSet
+	f    blockReadFunc
 }
 
 func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
@@ -93,15 +94,26 @@ func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 		if value, err := strconv.Unquote(v.Value); err == nil {
 			value = strings.TrimSpace(value)
 			if strings.Contains(value, "\n") {
-				fmt.Printf("got: %q\n", value)
-				bv.f(bv.br, 0, value)
+				bv.br.BlockCount++
+				bv.br.LineCount = bv.fset.Position(node.End()).Line
+				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine
+				bv.br.BlockCurrentLine = bv.fset.Position(node.End()).Line - bv.fset.Position(node.Pos()).Line
+				err := bv.f(bv.br, 0, value)
+				if err != nil {
+					bv.br.ErrorBlocks++
+					common.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
+				}
 			}
 		}
 	}
 	return bv
 }
 
-func (br *Reader) DoTheThing2(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
+func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
+	if !strings.HasSuffix(filename, ".go") {
+		return br.DoTheThing(fs, filename, stdin, stdout)
+	}
+
 	var buf *bytes.Buffer
 
 	if filename != "" {
@@ -137,8 +149,9 @@ func (br *Reader) DoTheThing2(fs afero.Fs, filename string, stdin io.Reader, std
 		return err
 	}
 	visitor := blockVisitor{
-		br: br,
-		f:  br.BlockRead,
+		br:   br,
+		fset: fset,
+		f:    br.BlockRead,
 	}
 	ast.Walk(visitor, f)
 
