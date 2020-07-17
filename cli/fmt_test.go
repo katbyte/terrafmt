@@ -189,7 +189,7 @@ func TestCmdFmtFile(t *testing.T) {
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
 		_, err = formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, nil, &outB, &errB)
-		actualOut := outB.String() // TODO: bad name
+		actualOut := outB.String()
 		actualErr := errB.String()
 
 		if err != nil {
