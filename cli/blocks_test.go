@@ -61,56 +61,56 @@ func TestCmdBlocksDefault(t *testing.T) {
 		actualStdErr := errB.String()
 
 		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			continue
 		}
 
 		if actualStdOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.sourcefile, diff.Diff(actualStdOut, expected))
+			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 		}
 
 		if actualStdErr != "" {
-			t.Errorf("Case %q: Got error output:\n%s", testcase.sourcefile, actualStdErr)
+			t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualStdErr)
 		}
 	}
 }
 
 func TestCmdBlocksVerbose(t *testing.T) {
 	testcases := []struct {
-		name       string
-		sourcefile string
-		lineCount  int
-		blockCount int
+		name            string
+		sourcefile      string
+		lineCount       int
+		totalBlockCount int
 	}{
 		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			lineCount:  29,
-			blockCount: 3,
+			name:            "Go no change",
+			sourcefile:      "testdata/no_diffs.go",
+			lineCount:       29,
+			totalBlockCount: 3,
 		},
 		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			lineCount:  39,
-			blockCount: 4,
+			name:            "Go formatting",
+			sourcefile:      "testdata/has_diffs.go",
+			lineCount:       39,
+			totalBlockCount: 4,
 		},
 		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			lineCount:  33,
-			blockCount: 3,
+			name:            "Go fmt verbs",
+			sourcefile:      "testdata/fmt_compat.go",
+			lineCount:       33,
+			totalBlockCount: 3,
 		},
 		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			lineCount:  25,
-			blockCount: 2,
+			name:            "Markdown no change",
+			sourcefile:      "testdata/no_diffs.md",
+			lineCount:       25,
+			totalBlockCount: 2,
 		},
 		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			lineCount:  27,
-			blockCount: 4,
+			name:            "Markdown formatting",
+			sourcefile:      "testdata/has_diffs.md",
+			lineCount:       27,
+			totalBlockCount: 4,
 		},
 	}
 
@@ -123,11 +123,11 @@ func TestCmdBlocksVerbose(t *testing.T) {
 		findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
 
-		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.blockCount))
+		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.totalBlockCount))
 
 		summaryLine := strings.TrimSpace(actualStdErr)
 		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %q\ngot      %q", testcase.sourcefile, expectedSummaryLine, summaryLine)
+			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
 		}
 	}
 }

@@ -172,7 +172,7 @@ func TestCmdDiffVerbose(t *testing.T) {
 		lines := strings.Split(trimmedStdErr, "\n")
 		summaryLine := lines[len(lines)-1]
 		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %q\ngot      %q", testcase.sourcefile, expectedSummaryLine, summaryLine)
+			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
 		}
 	}
 }

@@ -56,12 +56,13 @@ func Make() *cobra.Command {
 			}
 			fmtCompat := viper.GetBool("fmtcompat")
 			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
+			verbose := viper.GetBool("verbose")
 
 			var errs *multierror.Error
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, err := formatFile(fs, filename, fmtCompat, fixFinishLines, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, err := formatFile(fs, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
 				if err != nil {
 					errs = multierror.Append(errs, err)
@@ -378,7 +379,7 @@ func diffFile(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Rea
 	return &br, hasDiff, nil
 }
 
-func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 
 	br := blocks.Reader{
@@ -412,7 +413,7 @@ func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines bool, std
 		fc = "lightMagenta"
 	}
 
-	if viper.GetBool("verbose") {
+	if verbose {
 		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 	}
 
