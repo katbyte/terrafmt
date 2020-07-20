@@ -1,4 +1,5 @@
 GIT_COMMIT=$(shell git describe --always --long --dirty)
+GOLANGCI_LINT_VERSION=v1.29.0
 
 default: fmt build
 
@@ -6,7 +7,8 @@ all: fmt imports build
 
 tools:
 	@echo "==> installing required tooling..."
-	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+		sh -s -- -b $(shell go env GOPATH)/bin ${GOLANGCI_LINT_VERSION}
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
