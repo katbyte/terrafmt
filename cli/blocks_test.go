@@ -123,10 +123,11 @@ func TestCmdBlocksVerbose(t *testing.T) {
 		findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
 
-		trimmedStdErr := strings.TrimSpace(actualStdErr)
-		expectedStdErr := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.blockCount))
-		if trimmedStdErr != expectedStdErr {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %q\ngot      %q", testcase.sourcefile, expectedStdErr, trimmedStdErr)
+		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.blockCount))
+
+		summaryLine := strings.TrimSpace(actualStdErr)
+		if summaryLine != expectedSummaryLine {
+			t.Errorf("Case %q: Unexpected summary:\nexpected %q\ngot      %q", testcase.sourcefile, expectedSummaryLine, summaryLine)
 		}
 	}
 }

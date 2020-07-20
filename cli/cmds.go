@@ -139,7 +139,7 @@ func Make() *cobra.Command {
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, fileDiff, err := diffFile(fs, filename, viper.GetBool("fmtcompat"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, fileDiff, err := diffFile(fs, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
@@ -314,7 +314,7 @@ func findBlocksInFile(fs afero.Fs, filename string, verbose bool, stdin io.Reade
 	return nil
 }
 
-func diffFile(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+func diffFile(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
 	blocksWithDiff := 0
 	br := blocks.Reader{
 		ReadOnly: true,
@@ -371,7 +371,7 @@ func diffFile(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader, stdo
 		fc = "lightMagenta"
 	}
 
-	if viper.GetBool("verbose") {
+	if verbose {
 		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
 	}
 

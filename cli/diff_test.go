@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestCmdDiff(t *testing.T) {
+func TestCmdDiffDefault(t *testing.T) {
 	testcases := []struct {
 		name       string
 		sourcefile string
@@ -72,7 +73,7 @@ func TestCmdDiff(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, nil, &outB, &errB)
+		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
 		actualStdOut := outB.String()
 		actualStdErr := errB.String()
 
@@ -86,5 +87,92 @@ func TestCmdDiff(t *testing.T) {
 		}
 
 		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
+	}
+}
+
+func TestCmdDiffVerbose(t *testing.T) {
+	testcases := []struct {
+		name                  string
+		sourcefile            string
+		noDiff                bool
+		lineCount             int
+		unformattedBlockCount int
+		totalBlockCount       int
+		fmtcompat             bool
+	}{
+		{
+			name:            "Go no change",
+			sourcefile:      "testdata/no_diffs.go",
+			noDiff:          true,
+			lineCount:       29,
+			totalBlockCount: 3,
+		},
+		{
+			name:                  "Go formatting",
+			sourcefile:            "testdata/has_diffs.go",
+			lineCount:             39,
+			unformattedBlockCount: 2,
+			totalBlockCount:       4,
+		},
+		{
+			name:            "Go fmt verbs",
+			sourcefile:      "testdata/fmt_compat.go",
+			noDiff:          true, // The only diff is in the block with the parsing error
+			lineCount:       33,
+			totalBlockCount: 3,
+			fmtcompat:       false,
+		},
+		{
+			name:                  "Go fmt verbs --fmtcompat",
+			sourcefile:            "testdata/fmt_compat.go",
+			lineCount:             33,
+			unformattedBlockCount: 1,
+			totalBlockCount:       3,
+			fmtcompat:             true,
+		},
+		{
+			name:            "Markdown no change",
+			sourcefile:      "testdata/no_diffs.md",
+			noDiff:          true,
+			lineCount:       25,
+			totalBlockCount: 2,
+		},
+		{
+			name:                  "Markdown formatting",
+			sourcefile:            "testdata/has_diffs.md",
+			lineCount:             27,
+			unformattedBlockCount: 3,
+			totalBlockCount:       4,
+		},
+	}
+
+	fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
+	for _, testcase := range testcases {
+		var outB strings.Builder
+		var errB strings.Builder
+		common.Log = common.CreateLogger(&errB)
+		diffFile(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
+		actualStdErr := errB.String()
+
+		filenameColor := "lightMagenta"
+		if testcase.noDiff {
+			filenameColor = "magenta"
+		}
+		expectedSummaryLine := c.String(fmt.Sprintf(
+			"<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.",
+			filenameColor,
+			testcase.sourcefile,
+			testcase.lineCount,
+			testcase.unformattedBlockCount,
+			testcase.totalBlockCount,
+		))
+
+		trimmedStdErr := strings.TrimSpace(actualStdErr)
+		lines := strings.Split(trimmedStdErr, "\n")
+		summaryLine := lines[len(lines)-1]
+		if summaryLine != expectedSummaryLine {
+			t.Errorf("Case %q: Unexpected summary:\nexpected %q\ngot      %q", testcase.sourcefile, expectedSummaryLine, summaryLine)
+		}
 	}
 }
