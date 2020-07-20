@@ -73,18 +73,18 @@ func TestCmdDiff(t *testing.T) {
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
 		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, nil, &outB, &errB)
-		actualOut := outB.String()
-		actualErr := errB.String()
+		actualStdOut := outB.String()
+		actualStdErr := errB.String()
 
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			continue
 		}
 
-		if actualOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualOut, expected))
+		if actualStdOut != expected {
+			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 		}
 
-		checkExpectedErrors(t, testcase.name, actualErr, testcase.errMsg)
+		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
 	}
 }

@@ -93,19 +93,19 @@ func TestCmdFmt(t *testing.T) {
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
 		_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, inR, &outB, &errB)
-		actualOut := outB.String()
-		actualErr := errB.String()
+		actualStdOut := outB.String()
+		actualStdErr := errB.String()
 
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			continue
 		}
 
-		if actualOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualOut, expected))
+		if actualStdOut != expected {
+			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 		}
 
-		checkExpectedErrors(t, testcase.name, actualErr, testcase.errMsg)
+		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
 	}
 }
 
@@ -189,16 +189,16 @@ func TestCmdFmtFile(t *testing.T) {
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
 		_, err = formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, nil, &outB, &errB)
-		actualOut := outB.String()
-		actualErr := errB.String()
+		actualStdOut := outB.String()
+		actualStdErr := errB.String()
 
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			continue
 		}
 
-		if actualOut != "" {
-			t.Errorf("Case %q: Stdout should not have output, got:\n%s", testcase.name, actualOut)
+		if actualStdOut != "" {
+			t.Errorf("Case %q: Stdout should not have output, got:\n%s", testcase.name, actualStdOut)
 		}
 
 		data, err = afero.ReadFile(fs, testcase.sourcefile)
@@ -210,6 +210,6 @@ func TestCmdFmtFile(t *testing.T) {
 			t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
 		}
 
-		checkExpectedErrors(t, testcase.name, actualErr, testcase.errMsg)
+		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
 	}
 }

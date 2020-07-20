@@ -56,20 +56,20 @@ func TestCmdBlocks(t *testing.T) {
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
 		err = findBlocksInFile(fs, testcase.sourcefile, nil, &outB, &errB)
-		actualOut := outB.String()
-		actualErr := errB.String()
+		actualStdOut := outB.String()
+		actualStdErr := errB.String()
 
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue
 		}
 
-		if actualOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.sourcefile, diff.Diff(actualOut, expected))
+		if actualStdOut != expected {
+			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.sourcefile, diff.Diff(actualStdOut, expected))
 		}
 
-		if actualErr != "" {
-			t.Errorf("Case %q: Got error output:\n%s", testcase.sourcefile, actualErr)
+		if actualStdErr != "" {
+			t.Errorf("Case %q: Got error output:\n%s", testcase.sourcefile, actualStdErr)
 		}
 	}
 }
