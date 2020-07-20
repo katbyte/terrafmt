@@ -183,7 +183,7 @@ func Make() *cobra.Command {
 			common.Log.Debugf("terrafmt blocks %s", filename)
 
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, filename, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, filename, viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 
@@ -290,7 +290,7 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
-func findBlocksInFile(fs afero.Fs, filename string, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, filename string, verbose bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	br := blocks.Reader{
 		ReadOnly: true,
 		LineRead: blocks.ReaderIgnore,
@@ -307,7 +307,7 @@ func findBlocksInFile(fs afero.Fs, filename string, stdin io.Reader, stdout, std
 		return err
 	}
 
-	if viper.GetBool("verbose") {
+	if verbose {
 		fmt.Fprint(stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
 	}
 
