@@ -198,6 +198,11 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 		_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, true, inR, &outB, &errB)
 		actualStdErr := errB.String()
 
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			continue
+		}
+
 		filenameColor := "lightMagenta"
 		if testcase.noDiff {
 			filenameColor = "magenta"
@@ -413,8 +418,13 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
+		_, err := formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
+
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			continue
+		}
 
 		filenameColor := "lightMagenta"
 		if testcase.noDiff {

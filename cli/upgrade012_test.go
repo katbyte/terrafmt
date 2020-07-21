@@ -163,8 +163,13 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		upgrade012File(fs, "", testcase.fmtcompat, true, inR, &outB, &errB)
+		_, err = upgrade012File(fs, "", testcase.fmtcompat, true, inR, &outB, &errB)
 		actualStdErr := errB.String()
+
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			continue
+		}
 
 		filenameColor := "lightMagenta"
 		if testcase.noDiff {
@@ -345,8 +350,13 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		upgrade012File(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
+		_, err := upgrade012File(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
+
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			continue
+		}
 
 		filenameColor := "lightMagenta"
 		if testcase.noDiff {

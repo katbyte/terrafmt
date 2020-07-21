@@ -120,8 +120,12 @@ func TestCmdBlocksVerbose(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
+		err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
+		if err != nil {
+			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			continue
+		}
 
 		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.totalBlockCount))
 

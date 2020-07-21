@@ -1,5 +1,6 @@
 GIT_COMMIT=$(shell git describe --always --long --dirty)
-GOLANGCI_LINT_VERSION=v1.29.0
+GOLANGCI_LINT_VERSION?=v1.29.0
+TEST_TIMEOUT?=15m
 
 default: fmt build
 
@@ -19,7 +20,7 @@ imports:
 	goimports -w .
 
 test: build
-	go test ./...
+	go test ./... -timeout ${TEST_TIMEOUT}
 
 build:
 	@echo "==> building..."
