@@ -71,9 +71,9 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		inR, err := fs.Open(testcase.sourcefile)
 		if err != nil {
 			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
@@ -183,9 +183,9 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		inR, err := fs.Open(testcase.sourcefile)
 		if err != nil {
 			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
@@ -285,12 +285,12 @@ func TestCmdFmtFileDefault(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewCopyOnWriteFs(
-		afero.NewReadOnlyFs(afero.NewOsFs()),
-		afero.NewMemMapFs(),
-	)
-
 	for _, testcase := range testcases {
+		fs := afero.NewCopyOnWriteFs(
+			afero.NewReadOnlyFs(afero.NewOsFs()),
+			afero.NewMemMapFs(),
+		)
+
 		resultfile := testcase.resultfile
 		if testcase.noDiff {
 			resultfile = testcase.sourcefile
@@ -356,15 +356,12 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 			totalBlockCount:   4,
 		},
 		{
-			name:       "Go formatting, fix finish line",
-			sourcefile: "testdata/has_diffs.go",
-			noDiff:     true, // This is the actual value
-			// noDiff:          false, // This is the expected value
+			name:              "Go formatting, fix finish line",
+			sourcefile:        "testdata/has_diffs.go",
 			lineCount:         39,
-			updatedBlockCount: 0, // This is the actual value
-			// updatedBlockCount: 2, // This is the expected value
-			totalBlockCount: 4,
-			fixFinishLines:  true,
+			updatedBlockCount: 2, // This should technically be 3, but it's not counting the finish-line-only case
+			totalBlockCount:   4,
+			fixFinishLines:    true,
 		},
 		{
 			name:            "Go fmt verbs",
@@ -397,24 +394,21 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 			totalBlockCount:   4,
 		},
 		{
-			name:       "Markdown formatting, fix finish line",
-			sourcefile: "testdata/has_diffs.md",
-			noDiff:     true, // This is the actual value
-			// noDiff:          false, // This is the expected value
+			name:              "Markdown formatting, fix finish line",
+			sourcefile:        "testdata/has_diffs.md",
 			lineCount:         27,
-			updatedBlockCount: 0, // This is the actual value
-			// updatedBlockCount: 3, // This is the expected value
-			totalBlockCount: 4,
-			fixFinishLines:  true,
+			updatedBlockCount: 3,
+			totalBlockCount:   4,
+			fixFinishLines:    true,
 		},
 	}
 
-	fs := afero.NewCopyOnWriteFs(
-		afero.NewReadOnlyFs(afero.NewOsFs()),
-		afero.NewMemMapFs(),
-	)
-
 	for _, testcase := range testcases {
+		fs := afero.NewCopyOnWriteFs(
+			afero.NewReadOnlyFs(afero.NewOsFs()),
+			afero.NewMemMapFs(),
+		)
+
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)

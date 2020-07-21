@@ -44,9 +44,9 @@ func TestCmdBlocksDefault(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		data, err := afero.ReadFile(fs, testcase.resultfile)
 		if err != nil {
 			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
@@ -114,9 +114,9 @@ func TestCmdBlocksVerbose(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)

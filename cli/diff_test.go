@@ -58,9 +58,9 @@ func TestCmdDiffDefault(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		expected := ""
 		if !testcase.noDiff {
 			data, err := afero.ReadFile(fs, testcase.resultfile)
@@ -146,9 +146,9 @@ func TestCmdDiffVerbose(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)

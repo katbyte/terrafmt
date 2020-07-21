@@ -58,9 +58,9 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		inR, err := fs.Open(testcase.sourcefile)
 		if err != nil {
 			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
@@ -152,9 +152,9 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewReadOnlyFs(afero.NewOsFs())
-
 	for _, testcase := range testcases {
+		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
 		inR, err := fs.Open(testcase.sourcefile)
 		if err != nil {
 			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
@@ -240,12 +240,12 @@ func TestCmdUpgrade012File(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewCopyOnWriteFs(
-		afero.NewReadOnlyFs(afero.NewOsFs()),
-		afero.NewMemMapFs(),
-	)
-
 	for _, testcase := range testcases {
+		fs := afero.NewCopyOnWriteFs(
+			afero.NewReadOnlyFs(afero.NewOsFs()),
+			afero.NewMemMapFs(),
+		)
+
 		resultfile := testcase.resultfile
 		if testcase.noDiff {
 			resultfile = testcase.sourcefile
@@ -341,12 +341,12 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 		},
 	}
 
-	fs := afero.NewCopyOnWriteFs(
-		afero.NewReadOnlyFs(afero.NewOsFs()),
-		afero.NewMemMapFs(),
-	)
-
 	for _, testcase := range testcases {
+		fs := afero.NewCopyOnWriteFs(
+			afero.NewReadOnlyFs(afero.NewOsFs()),
+			afero.NewMemMapFs(),
+		)
+
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
