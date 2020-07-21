@@ -100,9 +100,10 @@ func Make() *cobra.Command {
 			common.Log.Debugf("terrafmt upgrade012 %s", filename)
 
 			fmtverbs := viper.GetBool("fmtcompat")
+			verbose := viper.GetBool("verbose")
 
 			fs := afero.NewOsFs()
-			br, err := upgrade012File(fs, filename, fmtverbs, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			br, err := upgrade012File(fs, filename, fmtverbs, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 			if err != nil {
 				return err
 			}
@@ -420,7 +421,7 @@ func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines, verbose 
 	return &br, err
 }
 
-func upgrade012File(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func upgrade012File(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 	br := blocks.Reader{
 		LineRead: blocks.ReaderPassthrough,
@@ -454,8 +455,8 @@ func upgrade012File(fs afero.Fs, filename string, fmtverbs bool, stdin io.Reader
 		fc = "lightMagenta"
 	}
 
-	if viper.GetBool("verbose") {
-		fmt.Fprint(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 	}
 
 	return &br, err
