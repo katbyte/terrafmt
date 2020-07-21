@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/parser"
 	"go/token"
 	"io"
@@ -38,6 +39,10 @@ type Reader struct {
 	LinesBlock       int // total block lines processed
 	BlockCount       int // total blocks found
 	BlockCurrentLine int // current block line count
+
+	CurrentNode          *ast.BasicLit
+	CurrentNodeQuoteChar string
+	CurrentNodePadding   string
 
 	ErrorBlocks int
 
@@ -91,9 +96,12 @@ type blockVisitor struct {
 
 func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 	if v, ok := node.(*ast.BasicLit); ok && v.Kind == token.STRING {
-		if value, err := strconv.Unquote(v.Value); err == nil {
-			value = strings.TrimSpace(value)
+		if unquoted, err := strconv.Unquote(v.Value); err == nil {
+			value := strings.TrimSpace(unquoted)
 			if strings.Contains(value, "\n") {
+				bv.br.CurrentNode = v
+				bv.br.CurrentNodeQuoteChar = v.Value[0:1]
+				bv.br.CurrentNodePadding = strings.Replace(unquoted, value, "%s", 1)
 				bv.br.BlockCount++
 				bv.br.LineCount = bv.fset.Position(node.End()).Line
 				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine
@@ -110,11 +118,22 @@ func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 }
 
 func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
-	if !strings.HasSuffix(filename, ".go") {
-		return br.DoTheThing(fs, filename, stdin, stdout)
+	inStream := &bytes.Buffer{}
+	if filename != "" {
+		if !strings.HasSuffix(filename, ".go") {
+			return br.DoTheThing(fs, filename, stdin, stdout)
+		}
+	} else {
+		tee := io.TeeReader(stdin, inStream)
+		teee := bufio.NewReader(tee)
+		if matched, err := regexp.MatchReader(`package [a-zA-Z0-9_]+\n`, teee); err != nil {
+			return err
+		} else if !matched {
+			return br.DoTheThing(fs, filename, inStream, stdout)
+		}
 	}
 
-	var buf *bytes.Buffer
+	buf := &strings.Builder{}
 
 	if filename != "" {
 		br.FileName = filename
@@ -128,14 +147,13 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 
 		// for now write to buffer
 		if !br.ReadOnly {
-			buf = bytes.NewBuffer([]byte{})
 			br.Writer = buf
 		} else {
 			br.Writer = ioutil.Discard
 		}
 	} else {
 		br.FileName = "stdin"
-		br.Reader = stdin
+		br.Reader = inStream
 		br.Writer = stdout
 
 		if br.ReadOnly {
@@ -144,7 +162,7 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 	}
 
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, filename, br.Reader, 0)
+	f, err := parser.ParseFile(fset, filename, br.Reader, parser.ParseComments)
 	if err != nil {
 		return err
 	}
@@ -154,6 +172,30 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 		f:    br.BlockRead,
 	}
 	ast.Walk(visitor, f)
+
+	br.LineCount = fset.Position(f.End()).Line // For summary line
+
+	if err := format.Node(buf, fset, f); err != nil {
+		return err
+	}
+
+	// If not read-only, need to write back to file.
+	var destination io.Writer
+	if !br.ReadOnly {
+		if filename != "" {
+			outfile, err := fs.Create(filename)
+			if err != nil {
+				return err
+			}
+			defer outfile.Close()
+			destination = outfile
+		} else {
+			destination = stdout
+		}
+		common.Log.Debugf("copying..")
+		_, err = io.WriteString(destination, buf.String())
+		return err
+	}
 
 	// todo should this be at the end of a command?
 	//fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))

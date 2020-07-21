@@ -412,17 +412,28 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 				return err
 			}
 
-			_, err = br.Writer.Write([]byte(fb))
+			if br.CurrentNode != nil {
+				if fixFinishLines {
+					br.CurrentNodePadding = strings.TrimRight(br.CurrentNodePadding, " \t")
+				}
 
-			if err == nil && fb != b {
-				blocksFormatted++
+				br.CurrentNode.Value = fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb))
+				if fb != b {
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && fb != b {
+					blocksFormatted++
+				}
 			}
 
 			return err
 		},
 		FixFinishLines: fixFinishLines,
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 
 	fc := "magenta"
 	if blocksFormatted > 0 {
