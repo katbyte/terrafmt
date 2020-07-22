@@ -460,19 +460,28 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			} else {
 				fb, err = upgrade012.Block(log, b)
 			}
-
 			if err != nil {
 				return err
 			}
 
-			if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-				blocksFormatted++
+			if br.CurrentNode != nil {
+				fb = strings.TrimSuffix(fb, "\n") // This needs an additional Trim on top of the Trim in upgrade012.Block()
+				br.CurrentNode.Value = fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb))
+				if fb != b {
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && fb != b {
+					blocksFormatted++
+				}
 			}
 
 			return nil
 		},
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err := br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}
