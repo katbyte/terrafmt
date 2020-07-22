@@ -57,6 +57,8 @@ func IsStartLine(line string) bool {
 		return true
 	} else if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
+	} else if strings.HasPrefix(line, "```terraform") { // documentation
+		return true
 	} else if strings.HasPrefix(line, "```tf") { // documentation
 		return true
 	}
