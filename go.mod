@@ -10,7 +10,7 @@ require (
 	github.com/gookit/color v1.2.6
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/hcl/v2 v2.6.0
-	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
+	github.com/kylelemons/godebug v1.1.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
