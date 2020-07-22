@@ -11,3 +11,11 @@ expected_results:
     resource "aws_s3_bucket" "with-parameters-and-append" {
       bucket = "tf-test-bucket-parameters-and-append-%d"
     }
+  - |
+    resource "aws_s3_bucket" "const" {
+      bucket = "tf-test-bucket-const"
+    }
+  - |
+    resource "aws_s3_bucket" "composed" {
+      bucket = "tf-test-bucket-composed-%d"
+    }

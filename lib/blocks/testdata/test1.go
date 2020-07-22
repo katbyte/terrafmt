@@ -27,3 +27,17 @@ resource "aws_s3_bucket" "with-parameters-and-append" {
 }
 `, randInt) + testReturnSprintfSimple()
 }
+
+const testConst = `
+resource "aws_s3_bucket" "const" {
+  bucket = "tf-test-bucket-const"
+}
+`
+
+func testComposed(randInt int) string {
+	return testReturnSprintfWithParameters(randInt) + fmt.Sprintf(`
+resource "aws_s3_bucket" "composed" {
+  bucket = "tf-test-bucket-composed-%d"
+}
+`, randInt)
+}
