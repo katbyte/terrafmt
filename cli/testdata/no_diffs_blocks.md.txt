@@ -1,10 +1,15 @@
 
-<white>#######</> <cyan>B1</><darkGray> @ #13</>
+<white>#######</> <cyan>B1</><darkGray> @ #7</>
+resource "aws_s3_bucket" "one" {
+  bucket = "tf-test-bucket-one"
+}
+
+<white>#######</> <cyan>B2</><darkGray> @ #13</>
 resource "aws_s3_bucket" "two" {
   bucket = "tf-test-bucket-two"
 }
 
-<white>#######</> <cyan>B2</><darkGray> @ #19</>
+<white>#######</> <cyan>B3</><darkGray> @ #19</>
 resource "aws_s3_bucket" "three" {
   bucket = "tf-test-bucket-three"
 }

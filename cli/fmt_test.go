@@ -164,7 +164,7 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 			sourcefile:      "testdata/no_diffs.md",
 			noDiff:          true,
 			lineCount:       25,
-			totalBlockCount: 2,
+			totalBlockCount: 3,
 		},
 		{
 			name:              "Markdown formatting",
@@ -384,7 +384,7 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 			sourcefile:      "testdata/no_diffs.md",
 			noDiff:          true,
 			lineCount:       25,
-			totalBlockCount: 2,
+			totalBlockCount: 3,
 		},
 		{
 			name:              "Markdown formatting",

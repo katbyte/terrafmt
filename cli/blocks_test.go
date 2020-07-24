@@ -104,7 +104,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			name:            "Markdown no change",
 			sourcefile:      "testdata/no_diffs.md",
 			lineCount:       25,
-			totalBlockCount: 2,
+			totalBlockCount: 3,
 		},
 		{
 			name:            "Markdown formatting",
