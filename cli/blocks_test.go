@@ -11,52 +11,178 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestCmdBlocksDefault(t *testing.T) {
-	testcases := []struct {
-		name       string
-		sourcefile string
-		resultfile string
-	}{
-		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			resultfile: "testdata/no_diffs_blocks.go.txt",
-		},
-		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_blocks.go.txt",
-		},
-		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_blocks.go.txt",
-		},
-		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			resultfile: "testdata/no_diffs_blocks.md.txt",
-		},
-		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_blocks.md.txt",
-		},
-	}
+type block struct {
+	endLine int
+	text    string
+}
 
+var testcases = []struct {
+	name           string
+	sourcefile     string
+	lineCount      int
+	expectedBlocks []block
+}{
+	{
+		name:       "Go no change",
+		sourcefile: "testdata/no_diffs.go",
+		lineCount:  29,
+		expectedBlocks: []block{
+			block{
+				endLine: 12,
+				text: `resource "aws_s3_bucket" "simple" {
+  bucket = "tf-test-bucket-simple"
+}`,
+			},
+			block{
+				endLine: 20,
+				text: `resource "aws_s3_bucket" "with-parameters" {
+  bucket = "tf-test-bucket-with-parameters-%d"
+}`,
+			},
+			block{
+				endLine: 28,
+				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
+  bucket = "tf-test-bucket-parameters-and-append-%d"
+}`,
+			},
+		},
+	},
+	{
+		name:       "Go formatting",
+		sourcefile: "testdata/has_diffs.go",
+		lineCount:  39,
+		expectedBlocks: []block{
+			block{
+				endLine: 13,
+				text: `resource "aws_s3_bucket" "extra-lines" {
+  
+  bucket = "tf-test-bucket-extra-lines"
+}`,
+			},
+			block{
+				endLine: 22,
+				text: `resource "aws_s3_bucket" "no-errors" {
+  bucket = "tf-test-bucket-no-errors-%d"
+}`,
+			},
+			block{
+				endLine: 30,
+				text: `resource "aws_s3_bucket" "extra-space" {
+  bucket    = "tf-test-bucket-extra-space-%d"
+}`,
+			},
+			block{
+				endLine: 38,
+				text: `resource "aws_s3_bucket" "end-line" {
+  bucket = "tf-test-bucket-end-line-%d"
+}`,
+			},
+		},
+	},
+	{
+		name:       "Go fmt verbs",
+		sourcefile: "testdata/fmt_compat.go",
+		lineCount:  33,
+		expectedBlocks: []block{
+			block{
+				endLine: 14,
+				text: `resource "aws_s3_bucket" "no-errors" {
+  bucket = "tf-test-bucket-no-errors-%d"
+
+  %s
+}`,
+			},
+			block{
+				endLine: 22,
+				text: `resource "aws_s3_bucket" "absolutely-nothing" {
+  bucket = "tf-test-bucket-absolutely-nothing"
+}`,
+			},
+			block{
+				endLine: 32,
+				text: `resource "aws_s3_bucket" "extra-space" {
+  bucket    = "tf-test-bucket-extra-space-%d"
+
+  %s
+}`,
+			},
+		},
+	},
+	{
+		name:       "Markdown no change",
+		sourcefile: "testdata/no_diffs.md",
+		lineCount:  25,
+		expectedBlocks: []block{
+			block{
+				endLine: 7,
+				text: `resource "aws_s3_bucket" "one" {
+  bucket = "tf-test-bucket-one"
+}`,
+			},
+			block{
+				endLine: 13,
+				text: `resource "aws_s3_bucket" "two" {
+  bucket = "tf-test-bucket-two"
+}`,
+			},
+			block{
+				endLine: 19,
+				text: `resource "aws_s3_bucket" "three" {
+  bucket = "tf-test-bucket-three"
+}`,
+			},
+		},
+	},
+	{
+		name:       "Markdown formatting",
+		sourcefile: "testdata/has_diffs.md",
+		lineCount:  27,
+		expectedBlocks: []block{
+			block{
+				endLine: 8,
+				text: `resource "aws_s3_bucket" "extra-lines" {
+  
+  bucket = "tf-test-bucket-extra-lines"
+}`,
+			},
+			block{
+				endLine: 14,
+				text: `resource "aws_s3_bucket" "no-errors" {
+  bucket = "tf-test-bucket-no-errors"
+}`,
+			},
+			block{
+				endLine: 20,
+				text: `resource "aws_s3_bucket" "extra-space" {
+  bucket    = "tf-test-bucket-extra-space"
+}`,
+			},
+			block{
+				endLine: 27,
+				text: `resource "aws_s3_bucket" "end-line" {
+  bucket = "tf-test-bucket-end-line"
+}
+  `,
+			},
+		},
+	},
+}
+
+func TestCmdBlocksDefault(t *testing.T) {
 	for _, testcase := range testcases {
 		fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		data, err := afero.ReadFile(fs, testcase.resultfile)
-		if err != nil {
-			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+		expectedBuilder := strings.Builder{}
+		for i, block := range testcase.expectedBlocks {
+			fmt.Fprint(&expectedBuilder, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", i+1, block.endLine))
+			fmt.Fprint(&expectedBuilder, block.text, "\n")
 		}
-		expected := c.String(string(data))
+		expected := expectedBuilder.String()
 
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		err = findBlocksInFile(fs, testcase.sourcefile, false, nil, &outB, &errB)
+		err := findBlocksInFile(fs, testcase.sourcefile, false, false, nil, &outB, &errB)
 		actualStdOut := outB.String()
 		actualStdErr := errB.String()
 
@@ -76,58 +202,20 @@ func TestCmdBlocksDefault(t *testing.T) {
 }
 
 func TestCmdBlocksVerbose(t *testing.T) {
-	testcases := []struct {
-		name            string
-		sourcefile      string
-		lineCount       int
-		totalBlockCount int
-	}{
-		{
-			name:            "Go no change",
-			sourcefile:      "testdata/no_diffs.go",
-			lineCount:       29,
-			totalBlockCount: 3,
-		},
-		{
-			name:            "Go formatting",
-			sourcefile:      "testdata/has_diffs.go",
-			lineCount:       39,
-			totalBlockCount: 4,
-		},
-		{
-			name:            "Go fmt verbs",
-			sourcefile:      "testdata/fmt_compat.go",
-			lineCount:       33,
-			totalBlockCount: 3,
-		},
-		{
-			name:            "Markdown no change",
-			sourcefile:      "testdata/no_diffs.md",
-			lineCount:       25,
-			totalBlockCount: 3,
-		},
-		{
-			name:            "Markdown formatting",
-			sourcefile:      "testdata/has_diffs.md",
-			lineCount:       27,
-			totalBlockCount: 4,
-		},
-	}
-
 	for _, testcase := range testcases {
 		fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
+		err := findBlocksInFile(fs, testcase.sourcefile, true, false, nil, &outB, &errB)
 		actualStdErr := errB.String()
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			continue
 		}
 
-		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, testcase.totalBlockCount))
+		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, len(testcase.expectedBlocks)))
 
 		summaryLine := strings.TrimSpace(actualStdErr)
 		if summaryLine != expectedSummaryLine {
