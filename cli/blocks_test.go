@@ -27,19 +27,19 @@ var testcases = []struct {
 		sourcefile: "testdata/no_diffs.go",
 		lineCount:  29,
 		expectedBlocks: []block{
-			block{
+			{
 				endLine: 12,
 				text: `resource "aws_s3_bucket" "simple" {
   bucket = "tf-test-bucket-simple"
 }`,
 			},
-			block{
+			{
 				endLine: 20,
 				text: `resource "aws_s3_bucket" "with-parameters" {
   bucket = "tf-test-bucket-with-parameters-%d"
 }`,
 			},
-			block{
+			{
 				endLine: 28,
 				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
   bucket = "tf-test-bucket-parameters-and-append-%d"
@@ -52,26 +52,26 @@ var testcases = []struct {
 		sourcefile: "testdata/has_diffs.go",
 		lineCount:  39,
 		expectedBlocks: []block{
-			block{
+			{
 				endLine: 13,
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
 }`,
 			},
-			block{
+			{
 				endLine: 22,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 }`,
 			},
-			block{
+			{
 				endLine: 30,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 }`,
 			},
-			block{
+			{
 				endLine: 38,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line-%d"
@@ -84,7 +84,7 @@ var testcases = []struct {
 		sourcefile: "testdata/fmt_compat.go",
 		lineCount:  33,
 		expectedBlocks: []block{
-			block{
+			{
 				endLine: 14,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
@@ -92,13 +92,13 @@ var testcases = []struct {
   %s
 }`,
 			},
-			block{
+			{
 				endLine: 22,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
 }`,
 			},
-			block{
+			{
 				endLine: 32,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
@@ -113,19 +113,19 @@ var testcases = []struct {
 		sourcefile: "testdata/no_diffs.md",
 		lineCount:  25,
 		expectedBlocks: []block{
-			block{
+			{
 				endLine: 7,
 				text: `resource "aws_s3_bucket" "one" {
   bucket = "tf-test-bucket-one"
 }`,
 			},
-			block{
+			{
 				endLine: 13,
 				text: `resource "aws_s3_bucket" "two" {
   bucket = "tf-test-bucket-two"
 }`,
 			},
-			block{
+			{
 				endLine: 19,
 				text: `resource "aws_s3_bucket" "three" {
   bucket = "tf-test-bucket-three"
@@ -138,26 +138,26 @@ var testcases = []struct {
 		sourcefile: "testdata/has_diffs.md",
 		lineCount:  27,
 		expectedBlocks: []block{
-			block{
+			{
 				endLine: 8,
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
 }`,
 			},
-			block{
+			{
 				endLine: 14,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors"
 }`,
 			},
-			block{
+			{
 				endLine: 20,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space"
 }`,
 			},
-			block{
+			{
 				endLine: 27,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line"
@@ -182,7 +182,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		err := findBlocksInFile(fs, testcase.sourcefile, false, false, nil, &outB, &errB)
+		err := findBlocksInFile(fs, testcase.sourcefile, false, nil, &outB, &errB)
 		actualStdOut := outB.String()
 		actualStdErr := errB.String()
 
@@ -208,7 +208,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 		var outB strings.Builder
 		var errB strings.Builder
 		common.Log = common.CreateLogger(&errB)
-		err := findBlocksInFile(fs, testcase.sourcefile, true, false, nil, &outB, &errB)
+		err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
 		actualStdErr := errB.String()
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
