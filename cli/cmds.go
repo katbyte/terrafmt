@@ -179,7 +179,7 @@ func Make() *cobra.Command {
 	diffCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	// options
-	root.AddCommand(&cobra.Command{
+	blocksCmd := &cobra.Command{
 		Use:   "blocks [file]",
 		Short: "extracts terraform blocks from a file ",
 		//options: no header (######), format (json? xml? etc), only should block x?
@@ -193,10 +193,14 @@ func Make() *cobra.Command {
 			}
 			log.Debugf("terrafmt blocks %s", filename)
 
+			verbose := viper.GetBool("verbose")
+			zeroTerminated, _ := cmd.Flags().GetBool("zero-terminated")
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, log, filename, viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
-	})
+	}
+	root.AddCommand(blocksCmd)
+	blocksCmd.Flags().BoolP("zero-terminated", "0", false, "outputs blocks separated by null separator")
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -303,15 +307,20 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
-func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	br := blocks.Reader{
 		Log:      log,
 		ReadOnly: true,
 		LineRead: blocks.ReaderIgnore,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
 			outW := stdout
-			fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
+			if !zeroTerminated {
+				fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
+			}
 			fmt.Fprint(outW, b)
+			if zeroTerminated {
+				fmt.Fprint(outW, "\x00")
+			}
 			return nil
 		},
 	}
