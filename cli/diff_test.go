@@ -59,34 +59,35 @@ func TestCmdDiffDefault(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		expected := ""
-		if !testcase.noDiff {
-			data, err := afero.ReadFile(fs, testcase.resultfile)
-			if err != nil {
-				t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+			expected := ""
+			if !testcase.noDiff {
+				data, err := afero.ReadFile(fs, testcase.resultfile)
+				if err != nil {
+					t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
+				}
+				expected = c.String(string(data))
 			}
-			expected = c.String(string(data))
-		}
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
-		actualStdOut := outB.String()
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Got an error when none was expected: %v", err)
+			}
 
-		if actualStdOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
-		}
+			if actualStdOut != expected {
+				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+			}
 
-		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
+			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+		})
 	}
 }
 
@@ -147,37 +148,38 @@ func TestCmdDiffVerbose(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, _, err := diffFile(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Got an error when none was expected: %v", err)
+			}
 
-		filenameColor := "lightMagenta"
-		if testcase.noDiff {
-			filenameColor = "magenta"
-		}
-		expectedSummaryLine := c.String(fmt.Sprintf(
-			"<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.",
-			filenameColor,
-			testcase.sourcefile,
-			testcase.lineCount,
-			testcase.unformattedBlockCount,
-			testcase.totalBlockCount,
-		))
+			filenameColor := "lightMagenta"
+			if testcase.noDiff {
+				filenameColor = "magenta"
+			}
+			expectedSummaryLine := c.String(fmt.Sprintf(
+				"<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.",
+				filenameColor,
+				testcase.sourcefile,
+				testcase.lineCount,
+				testcase.unformattedBlockCount,
+				testcase.totalBlockCount,
+			))
 
-		trimmedStdErr := strings.TrimSpace(actualStdErr)
-		lines := strings.Split(trimmedStdErr, "\n")
-		summaryLine := lines[len(lines)-1]
-		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
-		}
+			trimmedStdErr := strings.TrimSpace(actualStdErr)
+			lines := strings.Split(trimmedStdErr, "\n")
+			summaryLine := lines[len(lines)-1]
+			if summaryLine != expectedSummaryLine {
+				t.Errorf("Unexpected summary:\nexpected %s\ngot      %s", expectedSummaryLine, summaryLine)
+			}
+		})
 	}
 }

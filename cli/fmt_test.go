@@ -72,41 +72,42 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		inR, err := fs.Open(testcase.sourcefile)
-		if err != nil {
-			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
-		}
-		defer inR.Close()
+			inR, err := fs.Open(testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
+			}
+			defer inR.Close()
 
-		resultfile := testcase.resultfile
-		if testcase.noDiff {
-			resultfile = testcase.sourcefile
-		}
-		data, err := afero.ReadFile(fs, resultfile)
-		if err != nil {
-			t.Fatalf("Error reading test result file %q: %s", resultfile, err)
-		}
-		expected := c.String(string(data))
+			resultfile := testcase.resultfile
+			if testcase.noDiff {
+				resultfile = testcase.sourcefile
+			}
+			data, err := afero.ReadFile(fs, resultfile)
+			if err != nil {
+				t.Fatalf("Error reading test result file %q: %s", resultfile, err)
+			}
+			expected := c.String(string(data))
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
-		actualStdOut := outB.String()
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
 
-		if actualStdOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
-		}
+			if actualStdOut != expected {
+				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+			}
 
-		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
+			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+		})
 	}
 }
 
@@ -184,44 +185,45 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		inR, err := fs.Open(testcase.sourcefile)
-		if err != nil {
-			t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
-		}
-		defer inR.Close()
+			inR, err := fs.Open(testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
+			}
+			defer inR.Close()
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, true, inR, &outB, &errB)
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, true, inR, &outB, &errB)
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
 
-		filenameColor := "lightMagenta"
-		if testcase.noDiff {
-			filenameColor = "magenta"
-		}
-		expectedSummaryLine := c.String(fmt.Sprintf(
-			"<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!",
-			filenameColor,
-			"stdin",
-			testcase.lineCount,
-			testcase.updatedBlockCount,
-			testcase.totalBlockCount,
-		))
+			filenameColor := "lightMagenta"
+			if testcase.noDiff {
+				filenameColor = "magenta"
+			}
+			expectedSummaryLine := c.String(fmt.Sprintf(
+				"<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!",
+				filenameColor,
+				"stdin",
+				testcase.lineCount,
+				testcase.updatedBlockCount,
+				testcase.totalBlockCount,
+			))
 
-		trimmedStdErr := strings.TrimSpace(actualStdErr)
-		lines := strings.Split(trimmedStdErr, "\n")
-		summaryLine := lines[len(lines)-1]
-		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
-		}
+			trimmedStdErr := strings.TrimSpace(actualStdErr)
+			lines := strings.Split(trimmedStdErr, "\n")
+			summaryLine := lines[len(lines)-1]
+			if summaryLine != expectedSummaryLine {
+				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
 	}
 }
 
@@ -286,47 +288,48 @@ func TestCmdFmtFileDefault(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewCopyOnWriteFs(
-			afero.NewReadOnlyFs(afero.NewOsFs()),
-			afero.NewMemMapFs(),
-		)
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewCopyOnWriteFs(
+				afero.NewReadOnlyFs(afero.NewOsFs()),
+				afero.NewMemMapFs(),
+			)
 
-		resultfile := testcase.resultfile
-		if testcase.noDiff {
-			resultfile = testcase.sourcefile
-		}
-		data, err := afero.ReadFile(fs, resultfile)
-		if err != nil {
-			t.Fatalf("Error reading test result file %q: %s", resultfile, err)
-		}
-		expected := c.String(string(data))
+			resultfile := testcase.resultfile
+			if testcase.noDiff {
+				resultfile = testcase.sourcefile
+			}
+			data, err := afero.ReadFile(fs, resultfile)
+			if err != nil {
+				t.Fatalf("Error reading test result file %q: %s", resultfile, err)
+			}
+			expected := c.String(string(data))
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, err = formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
-		actualStdOut := outB.String()
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, err = formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
 
-		if actualStdOut != "" {
-			t.Errorf("Case %q: Stdout should not have output, got:\n%s", testcase.name, actualStdOut)
-		}
+			if actualStdOut != "" {
+				t.Errorf("Case %q: Stdout should not have output, got:\n%s", testcase.name, actualStdOut)
+			}
 
-		data, err = afero.ReadFile(fs, testcase.sourcefile)
-		if err != nil {
-			t.Fatalf("Error reading results from file %q: %s", resultfile, err)
-		}
-		actualContent := c.String(string(data))
-		if actualContent != expected {
-			t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
-		}
+			data, err = afero.ReadFile(fs, testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error reading results from file %q: %s", resultfile, err)
+			}
+			actualContent := c.String(string(data))
+			if actualContent != expected {
+				t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
+			}
 
-		checkExpectedErrors(t, testcase.name, actualStdErr, testcase.errMsg)
+			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+		})
 	}
 }
 
@@ -404,40 +407,41 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		fs := afero.NewCopyOnWriteFs(
-			afero.NewReadOnlyFs(afero.NewOsFs()),
-			afero.NewMemMapFs(),
-		)
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewCopyOnWriteFs(
+				afero.NewReadOnlyFs(afero.NewOsFs()),
+				afero.NewMemMapFs(),
+			)
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		_, err := formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			_, err := formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
 
-		filenameColor := "lightMagenta"
-		if testcase.noDiff {
-			filenameColor = "magenta"
-		}
-		expectedSummaryLine := c.String(fmt.Sprintf(
-			"<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!",
-			filenameColor,
-			testcase.sourcefile,
-			testcase.lineCount,
-			testcase.updatedBlockCount,
-			testcase.totalBlockCount,
-		))
+			filenameColor := "lightMagenta"
+			if testcase.noDiff {
+				filenameColor = "magenta"
+			}
+			expectedSummaryLine := c.String(fmt.Sprintf(
+				"<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!",
+				filenameColor,
+				testcase.sourcefile,
+				testcase.lineCount,
+				testcase.updatedBlockCount,
+				testcase.totalBlockCount,
+			))
 
-		trimmedStdErr := strings.TrimSpace(actualStdErr)
-		lines := strings.Split(trimmedStdErr, "\n")
-		summaryLine := lines[len(lines)-1]
-		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
-		}
+			trimmedStdErr := strings.TrimSpace(actualStdErr)
+			lines := strings.Split(trimmedStdErr, "\n")
+			summaryLine := lines[len(lines)-1]
+			if summaryLine != expectedSummaryLine {
+				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
 	}
 }

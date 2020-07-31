@@ -170,56 +170,58 @@ var testcases = []struct {
 
 func TestCmdBlocksDefault(t *testing.T) {
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		expectedBuilder := strings.Builder{}
-		for i, block := range testcase.expectedBlocks {
-			fmt.Fprint(&expectedBuilder, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", i+1, block.endLine))
-			fmt.Fprint(&expectedBuilder, block.text, "\n")
-		}
-		expected := expectedBuilder.String()
+			expectedBuilder := strings.Builder{}
+			for i, block := range testcase.expectedBlocks {
+				fmt.Fprint(&expectedBuilder, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", i+1, block.endLine))
+				fmt.Fprint(&expectedBuilder, block.text, "\n")
+			}
+			expected := expectedBuilder.String()
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		err := findBlocksInFile(fs, testcase.sourcefile, false, nil, &outB, &errB)
-		actualStdOut := outB.String()
-		actualStdErr := errB.String()
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			err := findBlocksInFile(fs, testcase.sourcefile, false, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
 
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			if err != nil {
+				t.Fatalf("Got an error when none was expected: %v", err)
+			}
 
-		if actualStdOut != expected {
-			t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
-		}
+			if actualStdOut != expected {
+				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+			}
 
-		if actualStdErr != "" {
-			t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualStdErr)
-		}
+			if actualStdErr != "" {
+				t.Errorf("Got error output:\n%s", actualStdErr)
+			}
+		})
 	}
 }
 
 func TestCmdBlocksVerbose(t *testing.T) {
 	for _, testcase := range testcases {
-		fs := afero.NewReadOnlyFs(afero.NewOsFs())
+		t.Run(testcase.name, func(t *testing.T) {
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
-		var outB strings.Builder
-		var errB strings.Builder
-		common.Log = common.CreateLogger(&errB)
-		err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
-		actualStdErr := errB.String()
-		if err != nil {
-			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.name, err)
-			continue
-		}
+			var outB strings.Builder
+			var errB strings.Builder
+			common.Log = common.CreateLogger(&errB)
+			err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
+			actualStdErr := errB.String()
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
 
-		expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, len(testcase.expectedBlocks)))
+			expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, len(testcase.expectedBlocks)))
 
-		summaryLine := strings.TrimSpace(actualStdErr)
-		if summaryLine != expectedSummaryLine {
-			t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
-		}
+			summaryLine := strings.TrimSpace(actualStdErr)
+			if summaryLine != expectedSummaryLine {
+				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
 	}
 }
