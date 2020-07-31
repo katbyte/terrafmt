@@ -169,8 +169,12 @@ var testcases = []struct {
 }
 
 func TestCmdBlocksDefault(t *testing.T) {
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			expectedBuilder := strings.Builder{}
@@ -203,8 +207,12 @@ func TestCmdBlocksDefault(t *testing.T) {
 }
 
 func TestCmdBlocksVerbose(t *testing.T) {
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			var outB strings.Builder

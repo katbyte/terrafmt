@@ -71,8 +71,12 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			inR, err := fs.Open(testcase.sourcefile)
@@ -184,8 +188,12 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			inR, err := fs.Open(testcase.sourcefile)
@@ -287,8 +295,12 @@ func TestCmdFmtFileDefault(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewCopyOnWriteFs(
 				afero.NewReadOnlyFs(afero.NewOsFs()),
 				afero.NewMemMapFs(),
@@ -406,8 +418,12 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewCopyOnWriteFs(
 				afero.NewReadOnlyFs(afero.NewOsFs()),
 				afero.NewMemMapFs(),

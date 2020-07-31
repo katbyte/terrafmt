@@ -16,20 +16,18 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	stderr := new(bytes.Buffer)
 
 	// Make temp directory
-	dir, err := ioutil.TempDir(".", "tmp-module")
+	tempDir, err := ioutil.TempDir(".", "tmp-module")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer os.RemoveAll(dir) // clean up
+	defer os.RemoveAll(tempDir) // clean up
 
 	// Create temp file
-	tmpFile, err := ioutil.TempFile(dir, "*.tf")
+	tmpFile, err := ioutil.TempFile(tempDir, "*.tf")
 	if err != nil {
 		return "", err
 	}
-
-	defer os.Remove(tmpFile.Name()) // clean up
 
 	// Write from Reader to File
 	if _, err := tmpFile.Write(bytes.NewBufferString(b).Bytes()); err != nil {
@@ -41,17 +39,23 @@ func Block(log *logrus.Logger, b string) (string, error) {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("terraform", "init", dir)
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = tempDir
+	cmd.Env = append(os.Environ(),
+		"TF_IN_AUTOMATION=1",
+	)
 	cmd.Stderr = stderr
 	err = cmd.Run()
 	if err != nil {
 		return "", fmt.Errorf("cmd.Run() failed in terraform init with %s: %s", err, stderr)
 	}
 
-	defer os.RemoveAll(".terraform") // clean up
-
 	log.Debugf("running terraform... ")
-	cmd = exec.Command("terraform", "0.12upgrade", "-yes", dir)
+	cmd = exec.Command("terraform", "0.12upgrade", "-yes")
+	cmd.Dir = tempDir
+	cmd.Env = append(os.Environ(),
+		"TF_IN_AUTOMATION=1",
+	)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	err = cmd.Run()

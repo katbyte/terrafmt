@@ -58,8 +58,12 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			inR, err := fs.Open(testcase.sourcefile)
@@ -153,8 +157,12 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			inR, err := fs.Open(testcase.sourcefile)
@@ -242,8 +250,12 @@ func TestCmdUpgrade012File(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewCopyOnWriteFs(
 				afero.NewReadOnlyFs(afero.NewOsFs()),
 				afero.NewMemMapFs(),
@@ -344,8 +356,12 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewCopyOnWriteFs(
 				afero.NewReadOnlyFs(afero.NewOsFs()),
 				afero.NewMemMapFs(),

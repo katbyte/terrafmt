@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if err := cli.Make().Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, c.Sprintf("<red>terrafmt:</> %v", err))
+		fmt.Fprint(os.Stderr, c.Sprintf("<red>terrafmt:</> %v\n", err))
 		os.Exit(1)
 	}
 

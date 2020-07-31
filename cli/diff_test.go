@@ -58,8 +58,12 @@ func TestCmdDiffDefault(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			expected := ""
@@ -147,8 +151,12 @@ func TestCmdDiffVerbose(t *testing.T) {
 		},
 	}
 
+	t.Parallel()
+
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 			var outB strings.Builder
