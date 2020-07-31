@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/sirupsen/logrus"
 )
 
-func Block(b string) (string, error) {
+func Block(log *logrus.Logger, b string) (string, error) {
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
@@ -51,7 +50,7 @@ func Block(b string) (string, error) {
 
 	defer os.RemoveAll(".terraform") // clean up
 
-	common.Log.Debugf("running terraform... ")
+	log.Debugf("running terraform... ")
 	cmd = exec.Command("terraform", "0.12upgrade", "-yes", dir)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
@@ -67,7 +66,7 @@ func Block(b string) (string, error) {
 	}
 
 	ec := cmd.ProcessState.ExitCode()
-	common.Log.Debugf("terraform exited with %d", ec)
+	log.Debugf("terraform exited with %d", ec)
 	if ec != 0 {
 		return "", fmt.Errorf("terraform failed with %d: %s", ec, stderr)
 	}

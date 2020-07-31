@@ -1,16 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/cli"
-	"github.com/katbyte/terrafmt/lib/common"
 )
 
 func main() {
 	if err := cli.Make().Execute(); err != nil {
-		common.Log.Errorf(c.Sprintf("<red>terrafmt:</> %v", err))
+		fmt.Fprintf(os.Stderr, c.Sprintf("<red>terrafmt:</> %v", err))
 		os.Exit(1)
 	}
 

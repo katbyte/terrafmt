@@ -18,6 +18,7 @@ import (
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,11 +42,13 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a directory, file, or stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			path := ""
 			if len(args) == 1 {
 				path = args[0]
 			}
-			common.Log.Debugf("terrafmt  %s", path)
+			log.Debugf("terrafmt  %s", path)
 
 			fs := afero.NewOsFs()
 
@@ -62,7 +65,7 @@ func Make() *cobra.Command {
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, err := formatFile(fs, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
 				if err != nil {
 					errs = multierror.Append(errs, err)
@@ -93,17 +96,19 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
 			}
-			common.Log.Debugf("terrafmt upgrade012 %s", filename)
+			log.Debugf("terrafmt upgrade012 %s", filename)
 
 			fmtverbs := viper.GetBool("fmtcompat")
 			verbose := viper.GetBool("verbose")
 
 			fs := afero.NewOsFs()
-			br, err := upgrade012File(fs, filename, fmtverbs, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			br, err := upgrade012File(fs, log, filename, fmtverbs, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 			if err != nil {
 				return err
 			}
@@ -122,11 +127,13 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a directory, file, or stdin and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			path := ""
 			if len(args) == 1 {
 				path = args[0]
 			}
-			common.Log.Debugf("terrafmt fmt %s", path)
+			log.Debugf("terrafmt fmt %s", path)
 
 			fs := afero.NewOsFs()
 
@@ -141,7 +148,7 @@ func Make() *cobra.Command {
 			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				br, fileDiff, err := diffFile(fs, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
@@ -178,14 +185,16 @@ func Make() *cobra.Command {
 		//options: no header (######), format (json? xml? etc), only should block x?
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
 			}
-			common.Log.Debugf("terrafmt blocks %s", filename)
+			log.Debugf("terrafmt blocks %s", filename)
 
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, filename, viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 
@@ -275,6 +284,8 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
+	log := common.CreateLogger(cmd.ErrOrStderr())
+
 	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 
@@ -284,7 +295,7 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	tfCmd.Stdout = stdout
 	tfCmd.Stderr = stderr
 	if err := tfCmd.Run(); err != nil {
-		common.Log.Warnf("Error running terraform: %s", err)
+		log.Warnf("Error running terraform: %s", err)
 		return
 	}
 	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
@@ -292,8 +303,9 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
-func findBlocksInFile(fs afero.Fs, filename string, verbose bool, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	br := blocks.Reader{
+		Log:      log,
 		ReadOnly: true,
 		LineRead: blocks.ReaderIgnore,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
@@ -316,18 +328,19 @@ func findBlocksInFile(fs afero.Fs, filename string, verbose bool, stdin io.Reade
 	return nil
 }
 
-func diffFile(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
 	blocksWithDiff := 0
 	br := blocks.Reader{
+		Log:      log,
 		ReadOnly: true,
 		LineRead: blocks.ReaderPassthrough,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = format.FmtVerbBlock(b, filename)
+				fb, err = format.FmtVerbBlock(log, b, filename)
 			} else {
-				fb, err = format.Block(b, filename)
+				fb, err = format.Block(log, b, filename)
 			}
 			if err != nil {
 				return err
@@ -380,18 +393,19 @@ func diffFile(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Rea
 	return &br, hasDiff, nil
 }
 
-func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixFinishLines, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 
 	br := blocks.Reader{
+		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = format.FmtVerbBlock(b, filename)
+				fb, err = format.FmtVerbBlock(log, b, filename)
 			} else {
-				fb, err = format.Block(b, filename)
+				fb, err = format.Block(log, b, filename)
 			}
 			if err != nil {
 				return err
@@ -421,17 +435,18 @@ func formatFile(fs afero.Fs, filename string, fmtverbs, fixFinishLines, verbose 
 	return &br, err
 }
 
-func upgrade012File(fs afero.Fs, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	blocksFormatted := 0
 	br := blocks.Reader{
+		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = upgrade012.Upgrade12VerbBlock(b)
+				fb, err = upgrade012.Upgrade12VerbBlock(log, b)
 			} else {
-				fb, err = upgrade012.Block(b)
+				fb, err = upgrade012.Block(log, b)
 			}
 
 			if err != nil {

@@ -1,6 +1,11 @@
 package format
 
-import "testing"
+import (
+	"strings"
+	"testing"
+
+	"github.com/katbyte/terrafmt/lib/common"
+)
 
 func TestBlock(t *testing.T) {
 	tests := []struct {
@@ -84,7 +89,9 @@ resource "resource" "test" {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Block(test.block, "test")
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			result, err := Block(log, test.block, "test")
 			if err != nil && !test.error {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}

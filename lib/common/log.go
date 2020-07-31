@@ -7,8 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var Log = CreateLogger(os.Stderr)
-
 func CreateLogger(w io.Writer) *logrus.Logger {
 	l := logrus.New()
 

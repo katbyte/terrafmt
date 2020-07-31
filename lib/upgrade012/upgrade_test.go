@@ -1,6 +1,11 @@
 package upgrade012
 
-import "testing"
+import (
+	"strings"
+	"testing"
+
+	"github.com/katbyte/terrafmt/lib/common"
+)
 
 func TestBlock(t *testing.T) {
 	tests := []struct {
@@ -145,7 +150,9 @@ Hi there i am going to fail... =C
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Block(test.block)
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			result, err := Block(log, test.block)
 			if err != nil && !test.error {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}

@@ -93,8 +93,8 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = formatFile(fs, log, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -196,8 +196,8 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = formatFile(fs, "", testcase.fmtcompat, testcase.fixFinishLines, true, inR, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = formatFile(fs, log, "", testcase.fmtcompat, testcase.fixFinishLines, true, inR, &outB, &errB)
 			actualStdErr := errB.String()
 
 			if err != nil {
@@ -306,8 +306,8 @@ func TestCmdFmtFileDefault(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -415,8 +415,8 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err := formatFile(fs, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err := formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, true, nil, &outB, &errB)
 			actualStdErr := errB.String()
 
 			if err != nil {

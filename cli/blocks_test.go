@@ -182,8 +182,8 @@ func TestCmdBlocksDefault(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, testcase.sourcefile, false, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -209,8 +209,8 @@ func TestCmdBlocksVerbose(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, testcase.sourcefile, true, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, true, nil, &outB, &errB)
 			actualStdErr := errB.String()
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)

@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
 
@@ -20,6 +20,8 @@ var (
 
 type Reader struct {
 	FileName string
+
+	Log *logrus.Logger
 
 	//io
 	Reader io.Reader
@@ -80,7 +82,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 
 	if filename != "" {
 		br.FileName = filename
-		common.Log.Debugf("opening src file %s", filename)
+		br.Log.Debugf("opening src file %s", filename)
 		file, err := fs.Open(filename) // For read access.
 		if err != nil {
 			return err
@@ -130,7 +132,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 				// make sure we don't run into another block
 				if IsStartLine(l2) {
 					// the end of current block must be malformed, so lets pass it through and log an error
-					common.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+					br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 					if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 						return err
 					}
@@ -155,7 +157,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
 						br.ErrorBlocks += 1
-						common.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
+						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err
 						}
@@ -175,7 +177,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 			// ensure last block in the file was property handled
 			if block != "" {
 				//for each line { Lineread()?
-				common.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+				br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
@@ -191,7 +193,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		}
 		defer destination.Close()
 
-		common.Log.Debugf("copying..")
+		br.Log.Debugf("copying..")
 		_, err = io.Copy(destination, buf)
 		return err
 	}

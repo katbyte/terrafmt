@@ -70,7 +70,7 @@ func TestBlockDetection(t *testing.T) {
 	fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
 	errB := bytes.NewBufferString("")
-	common.Log = common.CreateLogger(errB)
+	log := common.CreateLogger(errB)
 
 	for _, testcase := range testcases {
 		data, err := ioutil.ReadFile(testcase.resultfile)
@@ -85,6 +85,7 @@ func TestBlockDetection(t *testing.T) {
 
 		var actualBlocks []string
 		br := Reader{
+			Log:      log,
 			ReadOnly: true,
 			LineRead: ReaderIgnore,
 			BlockRead: func(br *Reader, i int, b string) error {

@@ -79,8 +79,8 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = upgrade012File(fs, "", testcase.fmtcompat, false, inR, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = upgrade012File(fs, log, "", testcase.fmtcompat, false, inR, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -164,8 +164,8 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = upgrade012File(fs, "", testcase.fmtcompat, true, inR, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = upgrade012File(fs, log, "", testcase.fmtcompat, true, inR, &outB, &errB)
 			actualStdErr := errB.String()
 
 			if err != nil {
@@ -261,8 +261,8 @@ func TestCmdUpgrade012File(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err = upgrade012File(fs, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err = upgrade012File(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -353,8 +353,8 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 
 			var outB strings.Builder
 			var errB strings.Builder
-			common.Log = common.CreateLogger(&errB)
-			_, err := upgrade012File(fs, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
+			log := common.CreateLogger(&errB)
+			_, err := upgrade012File(fs, log, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
 			actualStdErr := errB.String()
 
 			if err != nil {
