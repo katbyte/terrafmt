@@ -109,7 +109,7 @@ func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 				err := bv.f(bv.br, 0, value)
 				if err != nil {
 					bv.br.ErrorBlocks++
-					common.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
+					bv.br.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
 				}
 			}
 		}
@@ -137,7 +137,7 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 
 	if filename != "" {
 		br.FileName = filename
-		common.Log.Debugf("opening src file %s", filename)
+		br.Log.Debugf("opening src file %s", filename)
 		file, err := fs.Open(filename) // For read access.
 		if err != nil {
 			return err
@@ -192,7 +192,7 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 		} else {
 			destination = stdout
 		}
-		common.Log.Debugf("copying..")
+		br.Log.Debugf("copying..")
 		_, err = io.WriteString(destination, buf.String())
 		return err
 	}
