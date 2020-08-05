@@ -307,20 +307,42 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
+type textBlockWriter struct {
+	writer io.Writer
+}
+
+func (w textBlockWriter) Write(index, startLine, endLine int, text string) {
+	fmt.Fprint(w.writer, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", index, endLine))
+	fmt.Fprint(w.writer, text)
+}
+
+type zeroTerminatedBlockWriter struct {
+	writer io.Writer
+}
+
+func (w zeroTerminatedBlockWriter) Write(index, startLine, endLine int, text string) {
+	fmt.Fprint(w.writer, text)
+	fmt.Fprint(w.writer, "\x00")
+}
+
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated bool, stdin io.Reader, stdout, stderr io.Writer) error {
+	var blockWriter blocks.BlockWriter
+	if !zeroTerminated {
+		blockWriter = textBlockWriter{
+			writer: stdout,
+		}
+	} else {
+		blockWriter = zeroTerminatedBlockWriter{
+			writer: stdout,
+		}
+	}
 	br := blocks.Reader{
-		Log:      log,
-		ReadOnly: true,
-		LineRead: blocks.ReaderIgnore,
+		Log:         log,
+		ReadOnly:    true,
+		LineRead:    blocks.ReaderIgnore,
+		BlockWriter: blockWriter,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
-			outW := stdout
-			if !zeroTerminated {
-				fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-			}
-			fmt.Fprint(outW, b)
-			if zeroTerminated {
-				fmt.Fprint(outW, "\x00")
-			}
+			br.BlockWriter.Write(br.BlockCount, 0, br.LineCount, b)
 			return nil
 		},
 	}
