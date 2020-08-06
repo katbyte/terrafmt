@@ -200,7 +200,7 @@ func Make() *cobra.Command {
 		},
 	}
 	root.AddCommand(blocksCmd)
-	blocksCmd.Flags().BoolP("zero-terminated", "0", false, "outputs blocks separated by null separator")
+	blocksCmd.Flags().BoolP("zero-terminated", "z", false, "outputs blocks separated by null separator")
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
