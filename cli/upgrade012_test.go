@@ -61,6 +61,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -160,6 +161,7 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -253,6 +255,7 @@ func TestCmdUpgrade012File(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -359,6 +362,7 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
