@@ -20,6 +20,7 @@ var (
 
 type BlockWriter interface {
 	Write(index, startLine, endLine int, text string)
+	Close() error
 }
 
 type Reader struct {
