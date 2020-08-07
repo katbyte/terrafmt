@@ -45,6 +45,9 @@ github.com/hashicorp/hcl/v2/hclwrite
 github.com/inconshreveable/mousetrap
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/kylelemons/godebug v1.1.0
+## explicit
+github.com/kylelemons/godebug/diff
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
 # github.com/mitchellh/go-wordwrap v1.0.0
@@ -104,4 +107,5 @@ golang.org/x/text/unicode/norm
 ## explicit
 gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.3.0
+## explicit
 gopkg.in/yaml.v2

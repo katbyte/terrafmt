@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"regexp"
 	"strings"
 
-	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 )
 
 var (
@@ -21,6 +20,8 @@ var (
 
 type Reader struct {
 	FileName string
+
+	Log *logrus.Logger
 
 	//io
 	Reader io.Reader
@@ -76,18 +77,18 @@ func IsFinishLine(line string) bool {
 	return false
 }
 
-func (br *Reader) DoTheThing(filename string) error {
+func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	var buf *bytes.Buffer
 
 	if filename != "" {
 		br.FileName = filename
-		common.Log.Debugf("opening src file %s", filename)
-		fs, err := os.Open(filename) // For read access.
+		br.Log.Debugf("opening src file %s", filename)
+		file, err := fs.Open(filename) // For read access.
 		if err != nil {
 			return err
 		}
-		defer fs.Close()
-		br.Reader = fs
+		defer file.Close()
+		br.Reader = file
 
 		// for now write to buffer
 		if !br.ReadOnly {
@@ -98,8 +99,8 @@ func (br *Reader) DoTheThing(filename string) error {
 		}
 	} else {
 		br.FileName = "stdin"
-		br.Reader = os.Stdin
-		br.Writer = os.Stdout
+		br.Reader = stdin
+		br.Writer = stdout
 
 		if br.ReadOnly {
 			br.Writer = ioutil.Discard
@@ -131,7 +132,7 @@ func (br *Reader) DoTheThing(filename string) error {
 				// make sure we don't run into another block
 				if IsStartLine(l2) {
 					// the end of current block must be malformed, so lets pass it through and log an error
-					logrus.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+					br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 					if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 						return err
 					}
@@ -156,7 +157,7 @@ func (br *Reader) DoTheThing(filename string) error {
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						//for now ignore block errors and output unformatted
 						br.ErrorBlocks += 1
-						logrus.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
+						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err
 						}
@@ -176,7 +177,7 @@ func (br *Reader) DoTheThing(filename string) error {
 			// ensure last block in the file was property handled
 			if block != "" {
 				//for each line { Lineread()?
-				logrus.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
+				br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
@@ -185,14 +186,14 @@ func (br *Reader) DoTheThing(filename string) error {
 	}
 
 	// If not read-only, need to write back to file.
-	if !br.ReadOnly {
-		destination, err := os.Create(filename)
+	if !br.ReadOnly && filename != "" {
+		destination, err := fs.Create(filename)
 		if err != nil {
 			return err
 		}
 		defer destination.Close()
 
-		common.Log.Debugf("copying..")
+		br.Log.Debugf("copying..")
 		_, err = io.Copy(destination, buf)
 		return err
 	}

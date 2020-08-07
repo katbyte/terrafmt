@@ -1,6 +1,11 @@
 package upgrade012
 
-import "testing"
+import (
+	"strings"
+	"testing"
+
+	"github.com/katbyte/terrafmt/lib/common"
+)
 
 func TestFmtVerbBlock(t *testing.T) {
 	tests := []struct {
@@ -182,7 +187,9 @@ data "google_dns_managed_zone" "qa" {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Upgrade12VerbBlock(test.block)
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			result, err := Upgrade12VerbBlock(log, test.block)
 			if err != nil && !test.error {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}

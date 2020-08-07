@@ -1,0 +1,17 @@
+<lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>3</>
+ resource "aws_s3_bucket" "extra-lines" {
+<red>-  </>
+<green>+</>
+   bucket = "tf-test-bucket-extra-lines"
+ }
+<lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>16</>
+ resource "aws_s3_bucket" "extra-space" {
+<red>-  bucket    = "tf-test-bucket-extra-space"</>
+<green>+  bucket = "tf-test-bucket-extra-space"</>
+ }
+<lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>22</>
+ resource "aws_s3_bucket" "end-line" {
+   bucket = "tf-test-bucket-end-line"
+ }
+<red>-  </>
+<green>+</>

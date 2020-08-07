@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,8 @@ import (
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -39,78 +42,44 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a directory, file, or stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			path := ""
 			if len(args) == 1 {
 				path = args[0]
 			}
-			common.Log.Debugf("terrafmt  %s", path)
+			log.Debugf("terrafmt  %s", path)
+
+			fs := afero.NewOsFs()
 
 			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(path, pattern)
-			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
-
+			filenames, err := allFiles(fs, path, pattern)
 			if err != nil {
 				return err
 			}
+			fmtCompat := viper.GetBool("fmtcompat")
+			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
+			verbose := viper.GetBool("verbose")
 
 			var errs *multierror.Error
-			var exitStatus int
+			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				blocksFormatted := 0
-
-				br := blocks.Reader{
-					LineRead: blocks.ReaderPassthrough,
-					BlockRead: func(br *blocks.Reader, i int, b string) error {
-						var fb string
-						var err error
-						if viper.GetBool("fmtcompat") {
-							fb, err = format.FmtVerbBlock(b, filename)
-						} else {
-							fb, err = format.Block(b, filename)
-						}
-
-						if err != nil {
-							return err
-						}
-
-						_, err = br.Writer.Write([]byte(fb))
-
-						if err == nil && fb != b {
-							blocksFormatted++
-						}
-
-						return err
-					},
-					FixFinishLines: fixFinishLines,
-				}
-				err := br.DoTheThing(filename)
-
-				fc := "magenta"
-				if blocksFormatted > 0 {
-					fc = "lightMagenta"
-				}
-
-				if viper.GetBool("verbose") {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
-				}
+				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
 				if err != nil {
 					errs = multierror.Append(errs, err)
 				}
 
 				if br.ErrorBlocks > 0 {
-					exitStatus = 1
+					hasProcessingErrors = true
 				}
 			}
-
 			if errs != nil {
 				return errs
 			}
-
-			if exitStatus != 0 {
-				os.Exit(exitStatus)
+			if hasProcessingErrors {
+				os.Exit(1)
 			}
 
 			return nil
@@ -127,48 +96,21 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
 			}
-			common.Log.Debugf("terrafmt upgrade012 %s", filename)
+			log.Debugf("terrafmt upgrade012 %s", filename)
 
-			blocksFormatted := 0
-			br := blocks.Reader{
-				LineRead: blocks.ReaderPassthrough,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					var fb string
-					var err error
-					if viper.GetBool("fmtcompat") {
-						fb, err = upgrade012.Upgrade12VerbBlock(b)
-					} else {
-						fb, err = upgrade012.Block(b)
-					}
+			fmtverbs := viper.GetBool("fmtcompat")
+			verbose := viper.GetBool("verbose")
 
-					if err != nil {
-						return err
-					}
-
-					if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-						blocksFormatted++
-					}
-
-					return nil
-				},
-			}
-			err := br.DoTheThing(filename)
+			fs := afero.NewOsFs()
+			br, err := upgrade012File(fs, log, filename, fmtverbs, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 			if err != nil {
 				return err
-			}
-
-			fc := "magenta"
-			if blocksFormatted > 0 {
-				fc = "lightMagenta"
-			}
-
-			if viper.GetBool("verbose") {
-				// nolint staticcheck
-				fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
 			}
 
 			if br.ErrorBlocks > 0 {
@@ -185,102 +127,48 @@ func Make() *cobra.Command {
 		Short: "formats terraform blocks in a directory, file, or stdin and shows the difference",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			path := ""
 			if len(args) == 1 {
 				path = args[0]
 			}
-			common.Log.Debugf("terrafmt fmt %s", path)
+			log.Debugf("terrafmt fmt %s", path)
+
+			fs := afero.NewOsFs()
 
 			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(path, pattern)
-
+			filenames, err := allFiles(fs, path, pattern)
 			if err != nil {
 				return err
 			}
 
 			var errs *multierror.Error
-			var exitStatus int
 			var hasDiff bool
+			var hasProcessingErrors bool
 
 			for _, filename := range filenames {
-				blocksWithDiff := 0
-				br := blocks.Reader{
-					ReadOnly: true,
-					LineRead: blocks.ReaderPassthrough,
-					BlockRead: func(br *blocks.Reader, i int, b string) error {
-						var fb string
-						var err error
-						if viper.GetBool("fmtcompat") {
-							fb, err = format.FmtVerbBlock(b, filename)
-						} else {
-							fb, err = format.Block(b, filename)
-						}
-						if err != nil {
-							return err
-						}
-
-						if fb == b {
-							return nil
-						}
-						blocksWithDiff++
-
-						// nolint staticcheck
-						fmt.Fprintf(os.Stdout, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
-
-						if !viper.GetBool("quiet") {
-							d := diff.LineDiff(b, fb)
-							scanner := bufio.NewScanner(strings.NewReader(d))
-							for scanner.Scan() {
-								l := scanner.Text()
-								if strings.HasPrefix(l, "+") {
-									fmt.Fprint(os.Stdout, c.Sprintf("<green>%s</>\n", l))
-								} else if strings.HasPrefix(l, "-") {
-									fmt.Fprint(os.Stdout, c.Sprintf("<red>%s</>\n", l))
-								} else {
-									fmt.Fprint(os.Stdout, l+"\n")
-								}
-							}
-						}
-
-						return nil
-					},
-				}
-
-				err := br.DoTheThing(filename)
+				br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
 				}
-
-				if blocksWithDiff > 0 {
+				if br.ErrorBlocks > 0 {
+					hasProcessingErrors = true
+				}
+				if fileDiff {
 					hasDiff = true
 				}
-
-				fc := "magenta"
-				if hasDiff {
-					fc = "lightMagenta"
-				}
-
-				if viper.GetBool("verbose") {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
-				}
-
-				if br.ErrorBlocks > 0 {
-					exitStatus = 1
-				}
 			}
-
 			if errs != nil {
 				return errs
 			}
 
 			if viper.GetBool("check") && hasDiff {
-				exitStatus = 1
+				os.Exit(1)
 			}
-
-			if exitStatus != 0 {
-				os.Exit(exitStatus)
+			if hasProcessingErrors {
+				os.Exit(1)
 			}
 
 			return nil
@@ -297,34 +185,16 @@ func Make() *cobra.Command {
 		//options: no header (######), format (json? xml? etc), only should block x?
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
 			filename := ""
 			if len(args) == 1 {
 				filename = args[0]
 			}
-			common.Log.Debugf("terrafmt blocks %s", filename)
+			log.Debugf("terrafmt blocks %s", filename)
 
-			br := blocks.Reader{
-				ReadOnly: true,
-				LineRead: blocks.ReaderIgnore,
-				BlockRead: func(br *blocks.Reader, i int, b string) error {
-					// nolint staticcheck
-					fmt.Fprintf(os.Stdout, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-					fmt.Fprint(os.Stdout, b)
-					return nil
-				},
-			}
-
-			err := br.DoTheThing(filename)
-
-			if err != nil {
-				return err
-			}
-
-			//blocks
-			// nolint staticcheck
-			fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
-
-			return nil
+			fs := afero.NewOsFs()
+			return findBlocksInFile(fs, log, filename, viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	})
 
@@ -359,12 +229,12 @@ func Make() *cobra.Command {
 	return root
 }
 
-func allFiles(path string, pattern string) ([]string, error) {
+func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 	if path == "" {
 		return []string{""}, nil
 	}
 
-	info, err := os.Stat(path)
+	info, err := fs.Stat(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("error reading path (%s): %s", path, err)
@@ -376,8 +246,7 @@ func allFiles(path string, pattern string) ([]string, error) {
 
 	var filenames []string
 
-	err = filepath.Walk(
-		path,
+	err = afero.Walk(fs, path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -408,13 +277,15 @@ func allFiles(path string, pattern string) ([]string, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("error walking path (%s): %s", path, err)
+		return nil, fmt.Errorf("error walking path (%s): %w", path, err)
 	}
 
 	return filenames, nil
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
+	log := common.CreateLogger(cmd.ErrOrStderr())
+
 	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 
@@ -424,10 +295,184 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	tfCmd.Stdout = stdout
 	tfCmd.Stderr = stderr
 	if err := tfCmd.Run(); err != nil {
-		common.Log.Warnf("Error running terraform: %s", err)
+		log.Warnf("Error running terraform: %s", err)
 		return
 	}
 	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
 	// nolint errcheck
 	fmt.Println("  + " + terraformVersion)
+}
+
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, stdin io.Reader, stdout, stderr io.Writer) error {
+	br := blocks.Reader{
+		Log:      log,
+		ReadOnly: true,
+		LineRead: blocks.ReaderIgnore,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			outW := stdout
+			fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
+			fmt.Fprint(outW, b)
+			return nil
+		},
+	}
+
+	err := br.DoTheThing(fs, filename, stdin, stdout)
+	if err != nil {
+		return err
+	}
+
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	}
+
+	return nil
+}
+
+func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+	blocksWithDiff := 0
+	br := blocks.Reader{
+		Log:      log,
+		ReadOnly: true,
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = format.FmtVerbBlock(log, b, filename)
+			} else {
+				fb, err = format.Block(log, b, filename)
+			}
+			if err != nil {
+				return err
+			}
+
+			if fb == b {
+				return nil
+			}
+			blocksWithDiff++
+
+			outW := stdout
+
+			fmt.Fprint(outW, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
+
+			if !viper.GetBool("quiet") {
+				d := diff.LineDiff(b, fb)
+				scanner := bufio.NewScanner(strings.NewReader(d))
+				for scanner.Scan() {
+					l := scanner.Text()
+					if strings.HasPrefix(l, "+") {
+						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
+					} else if strings.HasPrefix(l, "-") {
+						fmt.Fprint(outW, c.Sprintf("<red>%s</>\n", l))
+					} else {
+						fmt.Fprint(outW, l+"\n")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+
+	err := br.DoTheThing(fs, filename, stdin, stdout)
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasDiff := (blocksWithDiff > 0)
+
+	fc := "magenta"
+	if hasDiff {
+		fc = "lightMagenta"
+	}
+
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & <yellow>%d</>/<yellow>%d</> blocks need formatting.\n", fc, br.FileName, br.LineCount, blocksWithDiff, br.BlockCount))
+	}
+
+	return &br, hasDiff, nil
+}
+
+func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixFinishLines, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	blocksFormatted := 0
+
+	br := blocks.Reader{
+		Log:      log,
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = format.FmtVerbBlock(log, b, filename)
+			} else {
+				fb, err = format.Block(log, b, filename)
+			}
+			if err != nil {
+				return err
+			}
+
+			_, err = br.Writer.Write([]byte(fb))
+
+			if err == nil && fb != b {
+				blocksFormatted++
+			}
+
+			return err
+		},
+		FixFinishLines: fixFinishLines,
+	}
+	err := br.DoTheThing(fs, filename, stdin, stdout)
+
+	fc := "magenta"
+	if blocksFormatted > 0 {
+		fc = "lightMagenta"
+	}
+
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+	}
+
+	return &br, err
+}
+
+func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	blocksFormatted := 0
+	br := blocks.Reader{
+		Log:      log,
+		LineRead: blocks.ReaderPassthrough,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			var fb string
+			var err error
+			if fmtverbs {
+				fb, err = upgrade012.Upgrade12VerbBlock(log, b)
+			} else {
+				fb, err = upgrade012.Block(log, b)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
+				blocksFormatted++
+			}
+
+			return nil
+		},
+	}
+	err := br.DoTheThing(fs, filename, stdin, stdout)
+	if err != nil {
+		return &br, err
+	}
+
+	fc := "magenta"
+	if blocksFormatted > 0 {
+		fc = "lightMagenta"
+	}
+
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
+	}
+
+	return &br, err
 }
