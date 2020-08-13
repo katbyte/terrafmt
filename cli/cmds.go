@@ -347,6 +347,17 @@ type Output struct {
 	Blocks     []Block `json:"blocks"`
 }
 
+// MarshalJSON creates an empty slice if it is nil then marshals to JSON
+func (o Output) MarshalJSON() ([]byte, error) {
+	type Alias Output // Prevent an infinite loop
+	a := struct{ Alias }{Alias: (Alias)(o)}
+	if a.Blocks == nil {
+		a.Blocks = make([]Block, 0)
+	}
+
+	return json.Marshal(a)
+}
+
 type jsonBlockWriter struct {
 	writer io.Writer
 	data   Output

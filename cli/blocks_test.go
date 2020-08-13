@@ -186,6 +186,12 @@ var testcases = []struct {
 			},
 		},
 	},
+	{
+		name:           "Markdown no blocks",
+		sourcefile:     "testdata/no_blocks.md",
+		lineCount:      3,
+		expectedBlocks: []block{},
+	},
 }
 
 func TestCmdBlocksDefault(t *testing.T) {
@@ -352,4 +358,17 @@ func equivalentJSON(b1, b2 []byte) bool {
 	}
 
 	return reflect.DeepEqual(o1, o2)
+}
+
+func TestBlocksOutputJsonSerializesEmptyArray(t *testing.T) {
+	expected := `{"block_count":0,"blocks":[]}`
+
+	actual, err := json.Marshal(&Output{})
+	if err != nil {
+		t.Fatalf("Error marshalling JSON output: %v", err)
+	}
+
+	if string(actual) != expected {
+		t.Errorf("Unexpected JSON output:\nexpected %s\ngot      %s", expected, string(actual))
+	}
 }
