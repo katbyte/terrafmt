@@ -205,7 +205,7 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 	}
 }
 
-func TestCmdUpgrade012File(t *testing.T) {
+func TestCmdUpgrade012FileDefault(t *testing.T) {
 	testcases := []struct {
 		name       string
 		sourcefile string
