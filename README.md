@@ -42,6 +42,8 @@ Use the `blocks` command to extract blocks from a file:
 
 ![blocks](_docs/blocks.png)
 
+To output only the block content, separated by the null character, use the flags ``--zero-terminated` or `z`.
+
 ### Show What Format Would Do
 
 Use the `diff` command to see what would be formatted (files can also be piped in on stdin) :

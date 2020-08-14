@@ -1,3 +1,7 @@
+## 0.3.0 (Unreleased)
+
+- the `blocks` command can now return them null-seperated ([#25](https://github.com/katbyte/terrafmt/issues/25))
+
 ## 0.2.0 (2020-02-29)
 
 - Replace `filename#linenumber` output with `filename:linenumber` ([#16](https://github.com/katbyte/terrafmt/issues/16))

@@ -172,6 +172,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -187,7 +188,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -210,6 +211,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -218,7 +220,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, true, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, nil, &outB, &errB)
 			actualStdErr := errB.String()
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
@@ -229,6 +231,43 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			summaryLine := strings.TrimSpace(actualStdErr)
 			if summaryLine != expectedSummaryLine {
 				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
+	}
+}
+
+func TestCmdBlocksZeroTerminated(t *testing.T) {
+	t.Parallel()
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
+			expectedBuilder := strings.Builder{}
+			for _, block := range testcase.expectedBlocks {
+				fmt.Fprint(&expectedBuilder, block.text, "\n\x00")
+			}
+			expected := expectedBuilder.String()
+
+			var outB strings.Builder
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, true, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
+
+			if err != nil {
+				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+			}
+
+			if actualStdOut != expected {
+				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+			}
+
+			if actualStdErr != "" {
+				t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualStdErr)
 			}
 		})
 	}

@@ -9,7 +9,8 @@ func testExtraLines() string {
 resource "aws_s3_bucket" "extra-lines" {
   bucket = "tf-test-bucket-extra-lines"
 }
-`)
+`,
+	)
 }
 
 // This is included to verify blocks with diffs and no diffs in the same file

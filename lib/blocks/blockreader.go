@@ -99,6 +99,7 @@ func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 		if unquoted, err := strconv.Unquote(v.Value); err == nil {
 			value := strings.TrimSpace(unquoted)
 			if strings.Contains(value, "\n") {
+				value += "\n"
 				bv.br.CurrentNode = v
 				bv.br.CurrentNodeQuoteChar = v.Value[0:1]
 				bv.br.CurrentNodePadding = strings.Replace(unquoted, value, "%s", 1)
