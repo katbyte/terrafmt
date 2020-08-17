@@ -10,8 +10,7 @@ resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
   %s
 }
-`,
-		randInt)
+`, randInt)
 }
 
 func testNoErrorsOrFmtVerbs(randInt int) string {
@@ -28,6 +27,5 @@ resource "aws_s3_bucket" "extra-space" {
   bucket = "tf-test-bucket-extra-space-%d"
   %s
 }
-`,
-		randInt) + testReturnSprintfSimple()
+`, randInt) + testReturnSprintfSimple()
 }

@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"go/ast"
+	"go/token"
 	"io"
 	"os"
 	"os/exec"
@@ -420,19 +422,28 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 				return err
 			}
 
-			if br.CurrentNode != nil {
-				if fixFinishLines {
-					br.CurrentNodePadding = strings.TrimRight(br.CurrentNodePadding, " \t")
+			hasChange := fb != b
+
+			if br.CurrentNodeCursor != nil {
+				if br.FixFinishLines {
+					trimmed := strings.TrimRight(br.CurrentNodePadding, " \t")
+					if trimmed != br.CurrentNodePadding {
+						br.CurrentNodePadding = strings.TrimRight(br.CurrentNodePadding, " \t")
+						hasChange = true
+					}
 				}
 
-				br.CurrentNode.Value = fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb))
-				if fb != b {
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb)),
+					})
 					blocksFormatted++
 				}
 			} else {
 				_, err = br.Writer.Write([]byte(fb))
 
-				if err == nil && fb != b {
+				if err == nil && hasChange {
 					blocksFormatted++
 				}
 			}
@@ -471,17 +482,24 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			if err != nil {
 				return err
 			}
-
-			if br.CurrentNode != nil {
+			if br.CurrentNodeCursor != nil {
 				fb = strings.TrimSuffix(fb, "\n\n") // This needs an additional Trim on top of the Trim in upgrade012.Block()
-				br.CurrentNode.Value = fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb))
-				if fb != b {
+			}
+
+			hasChange := fb != b
+
+			if br.CurrentNodeCursor != nil {
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb)),
+					})
 					blocksFormatted++
 				}
 			} else {
 				_, err = br.Writer.Write([]byte(fb))
 
-				if err == nil && fb != b {
+				if err == nil && hasChange {
 					blocksFormatted++
 				}
 			}

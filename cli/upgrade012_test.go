@@ -28,6 +28,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 		{
 			name:       "Go formatting",
 			sourcefile: "testdata/has_diffs.go",
+			// This case is still adding an extra comma. Leave it for now.
 			resultfile: "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
 		},
 		{

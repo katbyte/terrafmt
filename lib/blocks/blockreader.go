@@ -16,6 +16,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 var (
@@ -40,7 +41,7 @@ type Reader struct {
 	BlockCount       int // total blocks found
 	BlockCurrentLine int // current block line count
 
-	CurrentNode          *ast.BasicLit
+	CurrentNodeCursor    *astutil.Cursor
 	CurrentNodeQuoteChar string
 	CurrentNodePadding   string
 
@@ -94,14 +95,14 @@ type blockVisitor struct {
 	f    blockReadFunc
 }
 
-func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
-	if v, ok := node.(*ast.BasicLit); ok && v.Kind == token.STRING {
-		if unquoted, err := strconv.Unquote(v.Value); err == nil {
+func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
+	if node, ok := cursor.Node().(*ast.BasicLit); ok && node.Kind == token.STRING {
+		if unquoted, err := strconv.Unquote(node.Value); err == nil {
 			value := strings.TrimSpace(unquoted)
 			if strings.Contains(value, "\n") {
 				value += "\n"
-				bv.br.CurrentNode = v
-				bv.br.CurrentNodeQuoteChar = v.Value[0:1]
+				bv.br.CurrentNodeCursor = cursor
+				bv.br.CurrentNodeQuoteChar = node.Value[0:1]
 				bv.br.CurrentNodePadding = strings.Replace(unquoted, value, "%s", 1)
 				bv.br.BlockCount++
 				bv.br.LineCount = bv.fset.Position(node.End()).Line
@@ -112,10 +113,11 @@ func (bv blockVisitor) Visit(node ast.Node) ast.Visitor {
 					bv.br.ErrorBlocks++
 					bv.br.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
 				}
+				return false
 			}
 		}
 	}
-	return bv
+	return true
 }
 
 func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
@@ -172,11 +174,13 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 		fset: fset,
 		f:    br.BlockRead,
 	}
-	ast.Walk(visitor, f)
+	result := astutil.Apply(f, func(cursor *astutil.Cursor) bool {
+		return visitor.Visit(cursor)
+	}, nil)
 
 	br.LineCount = fset.Position(f.End()).Line // For summary line
 
-	if err := format.Node(buf, fset, f); err != nil {
+	if err := format.Node(buf, fset, result); err != nil {
 		return err
 	}
 

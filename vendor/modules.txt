@@ -103,6 +103,9 @@ golang.org/x/sys/unix
 ## explicit
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
+# golang.org/x/tools v0.0.0-20200817023811-d00afeaade8f
+## explicit
+golang.org/x/tools/go/ast/astutil
 # gopkg.in/ini.v1 v1.57.0
 ## explicit
 gopkg.in/ini.v1
