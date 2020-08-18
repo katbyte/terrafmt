@@ -29,20 +29,20 @@ func Escape(b string) string {
 	// = [%[n]s(, %[n]s)]
 	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?\[[\d]+\][sdfgtq](,\s*)?)+\]$)`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
-	// = %s
-	b = regexp.MustCompile(`(?m:%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
-
-	// = %[n]s
-	b = regexp.MustCompile(`(?m:%(\.[0-9])?\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
-
-	// base64encode(%s) or md5(%s)
-	b = regexp.MustCompile(`\(%`).ReplaceAllString(b, `(TFFMTKTBRACKETPERCENT`)
-
 	//  .12 - something.%s.prop
 	b = regexp.MustCompile(`\.%([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT$1`)
 
 	//  .12 - something.%[n]s.prop
-	b = regexp.MustCompile(`\.%\[([\d]+)\]([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT_$1$2`)
+	b = regexp.MustCompile(`\.%\[(\d+)\]([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT_$1$2`)
+
+	// = %s
+	b = regexp.MustCompile(`(?m:%(\.[0-9])?[sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
+
+	// = %[n]s
+	b = regexp.MustCompile(`(?m:%(\.[0-9])?\[[\d]+\][sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
+
+	// base64encode(%s) or md5(%s)
+	b = regexp.MustCompile(`\(%`).ReplaceAllString(b, `(TFFMTKTBRACKETPERCENT`)
 
 	return b
 }
@@ -63,7 +63,7 @@ func Unscape(fb string) string {
 	fb = strings.ReplaceAll(fb, ":TFMT @@_@@\"", "")
 
 	// .12 - something.%[n]s.prop
-	fb = regexp.MustCompile(`\.TFMTKTKTTFMT_([\d]+)([sdfgtq])`).ReplaceAllString(fb, `.%[$1]$2`)
+	fb = regexp.MustCompile(`\.TFMTKTKTTFMT_(\d+)([sdfgtq])`).ReplaceAllString(fb, `.%[$1]$2`)
 
 	// .12 - something.%s.prop
 	fb = strings.ReplaceAll(fb, ".TFMTKTKTTFMT", ".%")

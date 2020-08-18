@@ -172,6 +172,21 @@ resource "resource" "test" {
 `,
 		},
 		{
+			name: "assigned-verb-not-standalone",
+			block: `
+resource "resource" "test" {
+  kat  = %s.id
+  byte = %d.id
+}
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = "@@_@@ TFMT:%s.id:TFMT @@_@@"
+  byte = "@@_@@ TFMT:%d.id:TFMT @@_@@"
+}
+`,
+		},
+		{
 			name: "assigned-positional",
 			block: `
 resource "resource" "test" {
@@ -187,6 +202,21 @@ resource "resource" "test" {
   mega = "@@_@@ TFMT:%[22]d:TFMT @@_@@"
   byte = "@@_@@ TFMT:%[333]d:TFMT @@_@@"
   size = "%[42]s"
+}
+`,
+		},
+		{
+			name: "assigned-positional-not-standalone",
+			block: `
+resource "resource" "test" {
+  kat  = %[1]s.id
+  byte = %[1]d.id
+}
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = "@@_@@ TFMT:%[1]s.id:TFMT @@_@@"
+  byte = "@@_@@ TFMT:%[1]d.id:TFMT @@_@@"
 }
 `,
 		},
