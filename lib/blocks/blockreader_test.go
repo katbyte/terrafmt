@@ -120,3 +120,72 @@ func TestBlockDetection(t *testing.T) {
 		}
 	}
 }
+
+func TestLooksLikeTerraform(t *testing.T) {
+	testcases := []struct {
+		text     string
+		expected bool
+	}{
+		{
+			text: `
+resource "aws_s3_bucket" "simple-resource" {
+  bucket = "tf-test-bucket-simple"
+}`,
+			expected: true,
+		},
+		{
+			text: `
+data "aws_s3_bucket" "simple-data" {
+  bucket = "tf-test-bucket-simple"
+}`,
+			expected: true,
+		},
+		{
+			text: `
+variable "name" {
+  type = string
+}`,
+			expected: true,
+		},
+		{
+			text: `
+output "arn" {
+  value = aws_s3_bucket.simple-resource.arn
+}`,
+			expected: true,
+		},
+		{
+			text:     "%d: bad create: \n%#v\n%#v",
+			expected: false,
+		},
+		{
+			text: `<DescribeAccountAttributesResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+  <requestId>7a62c49f-347e-4fc4-9331-6e8eEXAMPLE</requestId>
+  <accountAttributeSet>
+	  <item>
+	    <attributeName>supported-platforms</attributeName>
+	    <attributeValueSet>
+	      <item>
+	        <attributeValue>VPC</attributeValue>
+	      </item>
+	      <item>
+	        <attributeValue>EC2</attributeValue>
+	      </item>
+	    </attributeValueSet>
+	  </item>
+  </accountAttributeSet>
+</DescribeAccountAttributesResponse>`,
+			expected: false,
+		},
+	}
+
+	for _, testcase := range testcases {
+		actual := looksLikeTerraform(testcase.text)
+
+		if testcase.expected && !actual {
+			t.Errorf("Expected match, but not identified as Terraform:\n%s", testcase.text)
+		} else if !testcase.expected && actual {
+			t.Errorf("Expected no match, but was identified as Terraform:\n%s", testcase.text)
+		}
+	}
+}

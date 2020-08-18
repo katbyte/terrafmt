@@ -97,7 +97,7 @@ type blockVisitor struct {
 
 func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 	if node, ok := cursor.Node().(*ast.BasicLit); ok && node.Kind == token.STRING {
-		if unquoted, err := strconv.Unquote(node.Value); err == nil {
+		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
 			value := strings.TrimSpace(unquoted)
 			if strings.Contains(value, "\n") {
 				value += "\n"
@@ -118,6 +118,14 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 		}
 	}
 	return true
+}
+
+var terraformMatcher = regexp.MustCompile(`(((resource|data)\s+"[-a-z0-9_]+")|(variable|output))\s+"[-a-z0-9_]+"\s+\{`)
+
+// A simple check to see if the content looks like a Terraform configuration.
+// Looks for a line with either a resource, data source, variable, or output declaration
+func looksLikeTerraform(s string) bool {
+	return terraformMatcher.MatchString(s)
 }
 
 func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {

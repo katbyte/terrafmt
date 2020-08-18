@@ -19,3 +19,7 @@ expected_results:
     resource "aws_s3_bucket" "composed" {
       bucket = "tf-test-bucket-composed-%d"
     }
+  - |
+    data "aws_s3_bucket" "simple" {
+      bucket = "tf-test-bucket-simple"
+    }
