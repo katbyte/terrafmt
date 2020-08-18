@@ -82,28 +82,36 @@ var testcases = []struct {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  33,
+		lineCount:  41,
 		expectedBlocks: []block{
 			{
-				endLine: 14,
+				endLine: 18,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
   %s
+
+  tags = {
+    %[1]q = %[2]q
+  }
 }`,
 			},
 			{
-				endLine: 22,
+				endLine: 26,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
 }`,
 			},
 			{
-				endLine: 32,
+				endLine: 40,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 
   %s
+
+  tags = {
+    %[1]q    = %[2]q
+  }
 }`,
 			},
 		},
@@ -197,7 +205,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -263,7 +271,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+				t.Errorf("Case %q: Output does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {

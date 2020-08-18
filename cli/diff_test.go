@@ -37,7 +37,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			fmtcompat:  false,
 			errMsg: []string{
 				"block 1 @ testdata/fmt_compat.go:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
-				"block 3 @ testdata/fmt_compat.go:26 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
+				"block 3 @ testdata/fmt_compat.go:30 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
 			},
 		},
 		{
@@ -88,7 +88,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
@@ -124,14 +124,14 @@ func TestCmdDiffVerbose(t *testing.T) {
 			name:            "Go fmt verbs",
 			sourcefile:      "testdata/fmt_compat.go",
 			noDiff:          true, // The only diff is in the block with the parsing error
-			lineCount:       33,
+			lineCount:       41,
 			totalBlockCount: 3,
 			fmtcompat:       false,
 		},
 		{
 			name:                  "Go fmt verbs --fmtcompat",
 			sourcefile:            "testdata/fmt_compat.go",
-			lineCount:             33,
+			lineCount:             41,
 			unformattedBlockCount: 1,
 			totalBlockCount:       3,
 			fmtcompat:             true,

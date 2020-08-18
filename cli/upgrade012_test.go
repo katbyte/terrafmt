@@ -37,7 +37,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 			fmtcompat:  false,
 			errMsg: []string{
 				"block 1 @ stdin:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-				"block 3 @ stdin:26 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+				"block 3 @ stdin:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 			},
 		},
 		{
@@ -94,7 +94,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
@@ -130,15 +130,15 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 			name:            "Go fmt verbs",
 			sourcefile:      "testdata/fmt_compat.go",
 			noDiff:          true,
-			lineCount:       33,
+			lineCount:       41,
 			totalBlockCount: 3,
 			fmtcompat:       false,
 		},
 		{
 			name:              "Go fmt verbs --fmtcompat",
 			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         33,
-			updatedBlockCount: 2,
+			lineCount:         41,
+			updatedBlockCount: 1,
 			totalBlockCount:   3,
 			fmtcompat:         true,
 		},
@@ -231,7 +231,7 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			fmtcompat:  false,
 			errMsg: []string{
 				"block 1 @ testdata/fmt_compat.go:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-				"block 3 @ testdata/fmt_compat.go:26 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+				"block 3 @ testdata/fmt_compat.go:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 			},
 		},
 		{
@@ -295,7 +295,7 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			}
 			actualContent := c.String(string(data))
 			if actualContent != expected {
-				t.Errorf("File does not match expected:\n%s", diff.Diff(actualContent, expected))
+				t.Errorf("File does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualContent, expected))
 			}
 
 			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
@@ -331,15 +331,15 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 			name:            "Go fmt verbs",
 			sourcefile:      "testdata/fmt_compat.go",
 			noDiff:          true,
-			lineCount:       33,
+			lineCount:       41,
 			totalBlockCount: 3,
 			fmtcompat:       false,
 		},
 		{
 			name:              "Go fmt verbs --fmtcompat",
 			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         33,
-			updatedBlockCount: 2,
+			lineCount:         41,
+			updatedBlockCount: 1,
 			totalBlockCount:   3,
 			fmtcompat:         true,
 		},
