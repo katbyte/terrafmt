@@ -23,6 +23,9 @@ func Escape(b string) string {
 	// %[n]s =
 	b = regexp.MustCompile(`(?m)^([ \t]*)(%(\.[0-9])?\[[\d]+\][sdfgtq])`).ReplaceAllString(b, `$1"@@_@@ TFMT:$2:TFMT @@_@@"$3`)
 
+	// = "${...[%([n])d]}"
+	b = regexp.MustCompile(`(?m)("\${.*\[)(%(?:\.[0-9])?(?:\[[\d]+\])?d)(\]}")$`).ReplaceAllString(b, `${1}0/*@@_@@ TFMT:$2:TFMT @@_@@*/$3`)
+
 	// = [%s(, %s)]
 	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?[sdfgtq](,\s*)?)+\]$)`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
@@ -57,6 +60,9 @@ func Unscape(fb string) string {
 
 	fb = strings.ReplaceAll(fb, "[\"@@_@@ TFMT:", "")
 	fb = strings.ReplaceAll(fb, ":TFMT @@_@@\"]", "")
+
+	fb = strings.ReplaceAll(fb, "0/*@@_@@ TFMT:", "")
+	fb = strings.ReplaceAll(fb, ":TFMT @@_@@*/", "")
 
 	// order here matters, replace the ones with [], then do the ones without
 	fb = strings.ReplaceAll(fb, "\"@@_@@ TFMT:", "")

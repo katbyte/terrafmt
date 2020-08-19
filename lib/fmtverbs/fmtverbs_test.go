@@ -349,6 +349,47 @@ resource "resource" "test" {
 }
 `,
 		},
+		{
+			// No change expected
+			name: "looks like 012",
+			block: `
+resource "resource" "test" {
+  kat  = "%s.example.com"
+  byte = "%[1]s.example.com"
+}
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = "%s.example.com"
+  byte = "%[1]s.example.com"
+}
+`,
+		},
+		{
+			name: "old-style",
+			block: `
+resource "resource" "test" {
+  kat  = "${%s.name}"
+  byte = "${%[5]s.name}"
+}
+
+resource "resource" "test" {
+  kat  = "${aws_acm_certificate.test.*.arn[%d]}"
+  byte = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+}
+`,
+			expected: `
+resource "resource" "test" {
+  kat  = "${%s.name}"
+  byte = "${%[5]s.name}"
+}
+
+resource "resource" "test" {
+  kat  = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+  byte = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+}
+`,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
