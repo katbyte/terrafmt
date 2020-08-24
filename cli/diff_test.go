@@ -35,6 +35,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			sourcefile: "testdata/fmt_compat.go",
 			resultfile: "testdata/fmt_compat_diff_nofmtcompat.go.txt",
 			fmtcompat:  false,
+			noDiff:     true,
 			errMsg: []string{
 				"block 1 @ testdata/fmt_compat.go:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
 				"block 3 @ testdata/fmt_compat.go:26 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
@@ -79,12 +80,19 @@ func TestCmdDiffDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, _, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
+			_, hasDiff, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
 			if err != nil {
 				t.Fatalf("Got an error when none was expected: %v", err)
+			}
+
+			actualNoDiff := !hasDiff
+			if testcase.noDiff && !actualNoDiff {
+				t.Errorf("Expected no diff, but got one")
+			} else if !testcase.noDiff && actualNoDiff {
+				t.Errorf(("Expected diff, but did not get one"))
 			}
 
 			if actualStdOut != expected {
