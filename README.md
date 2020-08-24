@@ -81,6 +81,14 @@ Use the `upgrade012` command to upgrade the blocks to 0.12:
 
 ![fmt](_docs/upgrade.png)
 
+### Exit codes
+
+To help usage of `terrafmt` in workflows, some commands will return actionable exit codes.
+
+If a Terraform parsing error is encountered in a block, the exit code is `2`.
+
+If the command `diff` with the `--check` flag enabled encounters a formatting difference, it will return `4`. If a file contains both blocks with parsing errors and a formatting difference, it will combine the exit codes to return `6`. These codes can be tested using bitwise checks.
+
 ## Development and Testing
 
 This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency management.

@@ -24,6 +24,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	ExitCodeNoError             = 0
+	ExitCodeMiscError           = 1
+	ExitCodeBlockParsingError   = 1 << 1
+	ExitCodeFormattingDiffError = 1 << 2
+)
+
 func Make() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "terrafmt [fmt|diff|blocks|upgrade012]",
@@ -62,7 +69,7 @@ func Make() *cobra.Command {
 			verbose := viper.GetBool("verbose")
 
 			var errs *multierror.Error
-			var hasProcessingErrors bool
+			exitCode := ExitCodeNoError
 
 			for _, filename := range filenames {
 				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
@@ -72,14 +79,14 @@ func Make() *cobra.Command {
 				}
 
 				if br.ErrorBlocks > 0 {
-					hasProcessingErrors = true
+					exitCode |= ExitCodeBlockParsingError
 				}
 			}
 			if errs != nil {
 				return errs
 			}
-			if hasProcessingErrors {
-				os.Exit(1)
+			if exitCode != ExitCodeNoError {
+				os.Exit(exitCode)
 			}
 
 			return nil
@@ -112,9 +119,8 @@ func Make() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			if br.ErrorBlocks > 0 {
-				os.Exit(-1)
+				os.Exit(ExitCodeBlockParsingError)
 			}
 
 			return nil
@@ -144,8 +150,8 @@ func Make() *cobra.Command {
 			}
 
 			var errs *multierror.Error
-			var hasDiff bool
-			var hasProcessingErrors bool
+			check := viper.GetBool("check")
+			exitCode := ExitCodeNoError
 
 			for _, filename := range filenames {
 				br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
@@ -154,21 +160,17 @@ func Make() *cobra.Command {
 					continue
 				}
 				if br.ErrorBlocks > 0 {
-					hasProcessingErrors = true
+					exitCode |= ExitCodeBlockParsingError
 				}
-				if fileDiff {
-					hasDiff = true
+				if check && fileDiff {
+					exitCode |= ExitCodeFormattingDiffError
 				}
 			}
 			if errs != nil {
 				return errs
 			}
-
-			if viper.GetBool("check") && hasDiff {
-				os.Exit(1)
-			}
-			if hasProcessingErrors {
-				os.Exit(1)
+			if exitCode != ExitCodeNoError {
+				os.Exit(exitCode)
 			}
 
 			return nil
