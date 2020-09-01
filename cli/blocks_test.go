@@ -16,7 +16,7 @@ type block struct {
 	text    string
 }
 
-var testcases = []struct {
+var blocksTestcases = []struct {
 	name           string
 	sourcefile     string
 	lineCount      int
@@ -171,7 +171,7 @@ var testcases = []struct {
 func TestCmdBlocksDefault(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -210,7 +210,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 func TestCmdBlocksVerbose(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -239,7 +239,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 func TestCmdBlocksZeroTerminated(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
