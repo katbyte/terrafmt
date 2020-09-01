@@ -425,18 +425,24 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 			hasChange := fb != b
 
 			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
 				if br.FixFinishLines {
-					trimmed := strings.TrimRight(br.CurrentNodePadding, " \t")
-					if trimmed != br.CurrentNodePadding {
-						br.CurrentNodePadding = strings.TrimRight(br.CurrentNodePadding, " \t")
+					trimmed := strings.TrimRight(br.CurrentNodeTrailingPadding, " \t")
+					if trimmed != br.CurrentNodeTrailingPadding {
+						br.CurrentNodeTrailingPadding = trimmed
 						hasChange = true
 					}
 				}
 
 				if hasChange {
 					br.CurrentNodeCursor.Replace(&ast.BasicLit{
-						Kind:  token.STRING,
-						Value: fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb)),
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
 					})
 					blocksFormatted++
 				}
@@ -482,17 +488,20 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			if err != nil {
 				return err
 			}
-			if br.CurrentNodeCursor != nil {
-				fb = strings.TrimSuffix(fb, "\n\n") // This needs an additional Trim on top of the Trim in upgrade012.Block()
-			}
 
 			hasChange := fb != b
 
 			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
 				if hasChange {
 					br.CurrentNodeCursor.Replace(&ast.BasicLit{
-						Kind:  token.STRING,
-						Value: fmt.Sprintf("%[1]s%[2]s%[1]s", br.CurrentNodeQuoteChar, fmt.Sprintf(br.CurrentNodePadding, fb)),
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
 					})
 					blocksFormatted++
 				}

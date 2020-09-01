@@ -34,9 +34,9 @@ var upgradeTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
-		lineCount:         39,
-		updatedBlockCount: 2,
-		totalBlockCount:   4,
+		lineCount:         78,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
 	},
 	{
 		name:       "Go fmt verbs",

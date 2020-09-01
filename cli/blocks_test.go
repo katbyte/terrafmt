@@ -50,7 +50,7 @@ var blocksTestcases = []struct {
 	{
 		name:       "Go formatting",
 		sourcefile: "testdata/has_diffs.go",
-		lineCount:  39,
+		lineCount:  78,
 		expectedBlocks: []block{
 			{
 				endLine: 13,
@@ -75,6 +75,45 @@ var blocksTestcases = []struct {
 				endLine: 38,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line-%d"
+}`,
+			},
+			{
+				endLine: 77,
+				text: `resource "aws_alb_target_group" "test" {
+  name = "%s"
+  port = 443
+  protocol = "HTTPS"
+  vpc_id = "${aws_vpc.test.id}"
+
+  deregistration_delay = 200
+
+  stickiness {
+    type = "lb_cookie"
+    cookie_duration = 10000
+  }
+
+  health_check {
+    path = "/health"
+    interval = 60
+    port = 8081
+    protocol = "HTTP"
+    timeout = 3
+    healthy_threshold = 3
+    unhealthy_threshold = 3
+    matcher = "200-299"
+  }
+
+  tags = {
+    TestName = "TestAccAWSALBTargetGroup_basic"
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-alb-target-group-basic"
+  }
 }`,
 			},
 		},

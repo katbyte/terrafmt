@@ -41,9 +41,10 @@ type Reader struct {
 	BlockCount       int // total blocks found
 	BlockCurrentLine int // current block line count
 
-	CurrentNodeCursor    *astutil.Cursor
-	CurrentNodeQuoteChar string
-	CurrentNodePadding   string
+	CurrentNodeCursor          *astutil.Cursor
+	CurrentNodeQuoteChar       string
+	CurrentNodeLeadingPadding  string
+	CurrentNodeTrailingPadding string
 
 	ErrorBlocks int
 
@@ -95,6 +96,9 @@ type blockVisitor struct {
 	f    blockReadFunc
 }
 
+var leadingPaddingMatcher = regexp.MustCompile(`^\s*`)
+var trailingPaddingMatcher = regexp.MustCompile(`\s*$`)
+
 func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 	if node, ok := cursor.Node().(*ast.BasicLit); ok && node.Kind == token.STRING {
 		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
@@ -103,7 +107,8 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 				value += "\n"
 				bv.br.CurrentNodeCursor = cursor
 				bv.br.CurrentNodeQuoteChar = node.Value[0:1]
-				bv.br.CurrentNodePadding = strings.Replace(unquoted, value, "%s", 1)
+				bv.br.CurrentNodeLeadingPadding = leadingPaddingMatcher.FindString(unquoted)
+				bv.br.CurrentNodeTrailingPadding = trailingPaddingMatcher.FindString(unquoted)
 				bv.br.BlockCount++
 				bv.br.LineCount = bv.fset.Position(node.End()).Line
 				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine

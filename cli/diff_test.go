@@ -34,9 +34,9 @@ var diffTestcases = []struct {
 		name:                  "Go formatting",
 		sourcefile:            "testdata/has_diffs.go",
 		resultfile:            "testdata/has_diffs_diff.go.txt",
-		lineCount:             39,
-		unformattedBlockCount: 2,
-		totalBlockCount:       4,
+		lineCount:             78,
+		unformattedBlockCount: 3,
+		totalBlockCount:       5,
 	},
 	{
 		name:       "Go fmt verbs",
