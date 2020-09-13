@@ -1,6 +1,7 @@
 ## 0.3.0 (Unreleased)
 
-- the `blocks` command can now return them null-seperated ([#25](https://github.com/katbyte/terrafmt/issues/25))
+- the `blocks` command can now return blocks null-seperated ([#25](https://github.com/katbyte/terrafmt/issues/25))
+- returns actionable error codes ([#33](https://github.com/katbyte/terrafmt/issues/33))
 
 ## 0.2.0 (2020-02-29)
 
