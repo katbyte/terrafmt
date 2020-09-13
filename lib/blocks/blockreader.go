@@ -18,6 +18,11 @@ var (
 	lineWithLeadingSpacesMatcher              = regexp.MustCompile("^[[:space:]]*(.*\n)$")
 )
 
+type BlockWriter interface {
+	Write(index, startLine, endLine int, text string)
+	Close() error
+}
+
 type Reader struct {
 	FileName string
 
@@ -42,6 +47,9 @@ type Reader struct {
 	//callbacks
 	LineRead  func(*Reader, int, string) error
 	BlockRead func(*Reader, int, string) error
+
+	// Only used by the "blocks" command
+	BlockWriter BlockWriter
 }
 
 func ReaderPassthrough(br *Reader, number int, line string) error {

@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -197,12 +198,18 @@ func Make() *cobra.Command {
 
 			verbose := viper.GetBool("verbose")
 			zeroTerminated, _ := cmd.Flags().GetBool("zero-terminated")
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+			if zeroTerminated && jsonOutput {
+				return fmt.Errorf("only one of zero-terminated or json can be specified")
+			}
+
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	root.AddCommand(blocksCmd)
 	blocksCmd.Flags().BoolP("zero-terminated", "z", false, "outputs blocks separated by null separator")
+	blocksCmd.Flags().BoolP("json", "j", false, "outputs blocks in JSON format")
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -309,20 +316,91 @@ func versionCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("  + " + terraformVersion)
 }
 
-func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated bool, stdin io.Reader, stdout, stderr io.Writer) error {
+type textBlockWriter struct {
+	writer io.Writer
+}
+
+func (w textBlockWriter) Write(index, startLine, endLine int, text string) {
+	fmt.Fprint(w.writer, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", index, endLine))
+	fmt.Fprint(w.writer, text)
+}
+
+func (w textBlockWriter) Close() error { return nil }
+
+type zeroTerminatedBlockWriter struct {
+	writer io.Writer
+}
+
+func (w zeroTerminatedBlockWriter) Write(index, startLine, endLine int, text string) {
+	fmt.Fprint(w.writer, text)
+	fmt.Fprint(w.writer, "\x00")
+}
+
+func (w zeroTerminatedBlockWriter) Close() error { return nil }
+
+type Block struct {
+	StartLine int    `json:"start_line"`
+	EndLine   int    `json:"end_line"`
+	Text      string `json:"text"`
+}
+
+type Output struct {
+	BlockCount int     `json:"block_count"`
+	Blocks     []Block `json:"blocks"`
+}
+
+// MarshalJSON creates an empty slice if it is nil then marshals to JSON
+func (o Output) MarshalJSON() ([]byte, error) {
+	type Alias Output // Prevent an infinite loop
+	a := struct{ Alias }{Alias: (Alias)(o)}
+	if a.Blocks == nil {
+		a.Blocks = make([]Block, 0)
+	}
+
+	return json.Marshal(a)
+}
+
+type jsonBlockWriter struct {
+	writer io.Writer
+	data   Output
+}
+
+func (w *jsonBlockWriter) Write(index, startLine, endLine int, text string) {
+	w.data.BlockCount++
+	w.data.Blocks = append(w.data.Blocks, Block{
+		StartLine: startLine,
+		EndLine:   endLine,
+		Text:      text,
+	})
+}
+
+func (w jsonBlockWriter) Close() error {
+	encoder := json.NewEncoder(w.writer)
+	return encoder.Encode(w.data)
+}
+
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput bool, stdin io.Reader, stdout, stderr io.Writer) error {
+	var blockWriter blocks.BlockWriter
+	if zeroTerminated {
+		blockWriter = zeroTerminatedBlockWriter{
+			writer: stdout,
+		}
+	} else if jsonOutput {
+		blockWriter = &jsonBlockWriter{
+			writer: stdout,
+		}
+	} else {
+		blockWriter = textBlockWriter{
+			writer: stdout,
+		}
+	}
 	br := blocks.Reader{
-		Log:      log,
-		ReadOnly: true,
-		LineRead: blocks.ReaderIgnore,
+		Log:         log,
+		ReadOnly:    true,
+		LineRead:    blocks.ReaderIgnore,
+		BlockWriter: blockWriter,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
-			outW := stdout
-			if !zeroTerminated {
-				fmt.Fprint(outW, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", br.BlockCount, br.LineCount))
-			}
-			fmt.Fprint(outW, b)
-			if zeroTerminated {
-				fmt.Fprint(outW, "\x00")
-			}
+			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, b)
 			return nil
 		},
 	}
@@ -330,6 +408,10 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return err
+	}
+
+	if err = blockWriter.Close(); err != nil {
+		return fmt.Errorf("error writing blocks output: %w", err)
 	}
 
 	if verbose {

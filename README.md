@@ -44,6 +44,21 @@ Use the `blocks` command to extract blocks from a file:
 
 To output only the block content, separated by the null character, use the flags ``--zero-terminated` or `z`.
 
+To output the blocks using a JSON structure, use the flags `--json` or `-j`. The format is
+
+```json
+{
+    "block_count": 1,
+    "blocks": [
+        {
+            "start_line": 4,
+            "end_line": 9,
+            "text": "..."
+        }
+    ]
+}
+```
+
 ### Show What Format Would Do
 
 Use the `diff` command to see what would be formatted (files can also be piped in on stdin) :
