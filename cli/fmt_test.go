@@ -11,69 +11,130 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestCmdFmtStdinDefault(t *testing.T) {
-	testcases := []struct {
-		name           string
-		sourcefile     string
-		resultfile     string
-		noDiff         bool
-		errMsg         []string
-		fmtcompat      bool
-		fixFinishLines bool
-	}{
-		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			noDiff:     true,
+var fmtTestcases = []struct {
+	name              string
+	sourcefile        string
+	resultfile        string
+	noDiff            bool
+	errMsg            []string
+	fmtcompat         bool
+	fixFinishLines    bool
+	lineCount         int
+	errorBlockCount   int
+	updatedBlockCount int
+	totalBlockCount   int
+}{
+	{
+		name:            "Go no change",
+		sourcefile:      "testdata/no_diffs.go",
+		noDiff:          true,
+		lineCount:       29,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Go formatting",
+		sourcefile:        "testdata/has_diffs.go",
+		resultfile:        "testdata/has_diffs_fmt.go",
+		lineCount:         39,
+		updatedBlockCount: 2,
+		totalBlockCount:   4,
+	},
+	{
+		name:              "Go formatting, fix finish line",
+		sourcefile:        "testdata/has_diffs.go",
+		resultfile:        "testdata/has_diffs_fmt_fix_finish.go",
+		fixFinishLines:    true,
+		lineCount:         39,
+		updatedBlockCount: 2,
+		totalBlockCount:   4,
+	},
+	{
+		name:       "Go fmt verbs",
+		sourcefile: "testdata/fmt_compat.go",
+		noDiff:     true,
+		fmtcompat:  false,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:4,3-4:",
+			"block 3 @ %s:26 failed to process with: failed to parse hcl: %s:4,3-4:",
 		},
-		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_fmt.go",
+		errorBlockCount: 2,
+		lineCount:       33,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Go fmt verbs --fmtcompat",
+		sourcefile:        "testdata/fmt_compat.go",
+		resultfile:        "testdata/fmt_compat_fmtcompat.go",
+		fmtcompat:         true,
+		lineCount:         33,
+		updatedBlockCount: 1,
+		totalBlockCount:   3,
+	},
+	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		resultfile: "testdata/bad_terraform_fmt.go",
+		errMsg: []string{
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:3,1-1:",
 		},
-		{
-			name:           "Go formatting, fix finish line",
-			sourcefile:     "testdata/has_diffs.go",
-			resultfile:     "testdata/has_diffs_fmt_fix_finish.go",
-			fixFinishLines: true,
+		errorBlockCount:   1,
+		lineCount:         20,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
 		},
-		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			noDiff:     true,
-			fmtcompat:  false,
-			errMsg: []string{
-				"block 1 @ stdin:8 failed to process with: failed to parse hcl: :4,3-4:",
-				"block 3 @ stdin:26 failed to process with: failed to parse hcl: :4,3-4:",
-			},
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:       "Go unsupported format verbs --fmtcompat",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		fmtcompat:  true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
 		},
-		{
-			name:       "Go fmt verbs --fmtcompat",
-			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_fmtcompat.go",
-			fmtcompat:  true,
-		},
-		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			noDiff:     true,
-		},
-		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_fmt.md",
-		},
-		{
-			name:           "Markdown formatting, fix finish line",
-			sourcefile:     "testdata/has_diffs.md",
-			resultfile:     "testdata/has_diffs_fmt.md",
-			fixFinishLines: true,
-		},
-	}
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:            "Markdown no change",
+		sourcefile:      "testdata/no_diffs.md",
+		noDiff:          true,
+		lineCount:       25,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Markdown formatting",
+		sourcefile:        "testdata/has_diffs.md",
+		resultfile:        "testdata/has_diffs_fmt.md",
+		lineCount:         27,
+		updatedBlockCount: 3,
+		totalBlockCount:   4,
+	},
+	{
+		name:              "Markdown formatting, fix finish line",
+		sourcefile:        "testdata/has_diffs.md",
+		resultfile:        "testdata/has_diffs_fmt.md",
+		fixFinishLines:    true,
+		lineCount:         27,
+		updatedBlockCount: 3,
+		totalBlockCount:   4,
+	},
+}
 
+func TestCmdFmtStdinDefault(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range fmtTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -99,7 +160,7 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, err = formatFile(fs, log, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
+			br, err := formatFile(fs, log, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -107,91 +168,27 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			}
 
+			if testcase.errorBlockCount != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
+			}
+
 			if actualStdOut != expected {
 				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 			}
 
-			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+			errMsg := []string{}
+			for _, msg := range testcase.errMsg {
+				errMsg = append(errMsg, fmt.Sprintf(msg, "stdin", ""))
+			}
+			checkExpectedErrors(t, actualStdErr, errMsg)
 		})
 	}
 }
 
 func TestCmdFmtStdinVerbose(t *testing.T) {
-	testcases := []struct {
-		name              string
-		sourcefile        string
-		noDiff            bool
-		lineCount         int
-		updatedBlockCount int
-		totalBlockCount   int
-		fmtcompat         bool
-		fixFinishLines    bool
-	}{
-		{
-			name:            "Go no change",
-			sourcefile:      "testdata/no_diffs.go",
-			noDiff:          true,
-			lineCount:       29,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Go formatting",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
-		},
-		{
-			name:              "Go formatting, fix finish line",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
-			fixFinishLines:    true,
-		},
-		{
-			name:            "Go fmt verbs",
-			sourcefile:      "testdata/fmt_compat.go",
-			noDiff:          true,
-			lineCount:       33,
-			totalBlockCount: 3,
-			fmtcompat:       false,
-		},
-		{
-			name:              "Go fmt verbs --fmtcompat",
-			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         33,
-			updatedBlockCount: 1,
-			totalBlockCount:   3,
-			fmtcompat:         true,
-		},
-		{
-			name:            "Markdown no change",
-			sourcefile:      "testdata/no_diffs.md",
-			noDiff:          true,
-			lineCount:       25,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Markdown formatting",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-		},
-		{
-			name:              "Markdown formatting, fix finish line",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-			fixFinishLines:    true,
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range fmtTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -238,68 +235,9 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 }
 
 func TestCmdFmtFileDefault(t *testing.T) {
-	testcases := []struct {
-		name           string
-		sourcefile     string
-		resultfile     string
-		noDiff         bool
-		errMsg         []string
-		fmtcompat      bool
-		fixFinishLines bool
-	}{
-		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			noDiff:     true,
-		},
-		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_fmt.go",
-		},
-		{
-			name:           "Go formatting, fix finish line",
-			sourcefile:     "testdata/has_diffs.go",
-			resultfile:     "testdata/has_diffs_fmt_fix_finish.go",
-			fixFinishLines: true,
-		},
-		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			noDiff:     true,
-			fmtcompat:  false,
-			errMsg: []string{
-				"block 1 @ testdata/fmt_compat.go:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
-				"block 3 @ testdata/fmt_compat.go:26 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
-			},
-		},
-		{
-			name:       "Go fmt verbs --fmtcompat",
-			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_fmtcompat.go",
-			fmtcompat:  true,
-		},
-		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			noDiff:     true,
-		},
-		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_fmt.md",
-		},
-		{
-			name:           "Markdown formatting, fix finish line",
-			sourcefile:     "testdata/has_diffs.md",
-			resultfile:     "testdata/has_diffs_fmt.md",
-			fixFinishLines: true,
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range fmtTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -322,7 +260,7 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, err = formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
+			br, err := formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -343,87 +281,23 @@ func TestCmdFmtFileDefault(t *testing.T) {
 				t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
 			}
 
-			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+			if testcase.errorBlockCount != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
+			}
+
+			errMsg := []string{}
+			for _, msg := range testcase.errMsg {
+				errMsg = append(errMsg, fmt.Sprintf(msg, testcase.sourcefile, testcase.sourcefile))
+			}
+			checkExpectedErrors(t, actualStdErr, errMsg)
 		})
 	}
 }
 
 func TestCmdFmtFileVerbose(t *testing.T) {
-	testcases := []struct {
-		name              string
-		sourcefile        string
-		noDiff            bool
-		lineCount         int
-		updatedBlockCount int
-		totalBlockCount   int
-		fmtcompat         bool
-		fixFinishLines    bool
-	}{
-		{
-			name:            "Go no change",
-			sourcefile:      "testdata/no_diffs.go",
-			noDiff:          true,
-			lineCount:       29,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Go formatting",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
-		},
-		{
-			name:              "Go formatting, fix finish line",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2, // This should technically be 3, but it's not counting the finish-line-only case
-			totalBlockCount:   4,
-			fixFinishLines:    true,
-		},
-		{
-			name:            "Go fmt verbs",
-			sourcefile:      "testdata/fmt_compat.go",
-			noDiff:          true,
-			lineCount:       33,
-			totalBlockCount: 3,
-			fmtcompat:       false,
-		},
-		{
-			name:              "Go fmt verbs --fmtcompat",
-			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         33,
-			updatedBlockCount: 1,
-			totalBlockCount:   3,
-			fmtcompat:         true,
-		},
-		{
-			name:            "Markdown no change",
-			sourcefile:      "testdata/no_diffs.md",
-			noDiff:          true,
-			lineCount:       25,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Markdown formatting",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-		},
-		{
-			name:              "Markdown formatting, fix finish line",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-			fixFinishLines:    true,
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range fmtTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()

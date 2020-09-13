@@ -16,7 +16,7 @@ type block struct {
 	text    string
 }
 
-var testcases = []struct {
+var blocksTestcases = []struct {
 	name           string
 	sourcefile     string
 	lineCount      int
@@ -109,6 +109,45 @@ var testcases = []struct {
 		},
 	},
 	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		lineCount:  20,
+		expectedBlocks: []block{
+			{
+				endLine: 12,
+				text: `rrrrrresource "aws_s3_bucket" "rrrrrrr" {
+  bucket =    "tf-test-bucket"
+}`,
+			},
+			{
+				endLine: 19,
+				text: `resource "aws_s3_bucket" "unclosed" {
+  bucket =    "tf-test-bucket"`,
+			},
+		},
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		lineCount:  21,
+		expectedBlocks: []block{
+			{
+				endLine: 20,
+				text: `resource "aws_s3_bucket" "multi-verb" {
+  bucket =    "tf-test-bucket"
+
+  tags = {
+    %[1]q =    %[2]q
+    Test  =  "${%[5]s.name}"
+    Name  =       "${%s.name}"
+    byte       = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+    Data  =    "${data.%s.name}"
+  }
+}`,
+			},
+		},
+	},
+	{
 		name:       "Markdown no change",
 		sourcefile: "testdata/no_diffs.md",
 		lineCount:  25,
@@ -171,7 +210,7 @@ var testcases = []struct {
 func TestCmdBlocksDefault(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -210,7 +249,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 func TestCmdBlocksVerbose(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -239,7 +278,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 func TestCmdBlocksZeroTerminated(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
