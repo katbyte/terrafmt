@@ -2,6 +2,7 @@
 
 - the `blocks` command can now return blocks null-seperated ([#25](https://github.com/katbyte/terrafmt/issues/25))
 - returns actionable error codes ([#33](https://github.com/katbyte/terrafmt/issues/33))
+- JSON output format for `blocks` command ([#23](https://github.com/katbyte/terrafmt/issues/23))
 
 ## 0.2.0 (2020-02-29)
 
