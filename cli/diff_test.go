@@ -116,9 +116,9 @@ func TestCmdDiffVerbose(t *testing.T) {
 		{
 			name:                  "Go formatting",
 			sourcefile:            "testdata/has_diffs.go",
-			lineCount:             39,
-			unformattedBlockCount: 2,
-			totalBlockCount:       4,
+			lineCount:             47,
+			unformattedBlockCount: 3,
+			totalBlockCount:       5,
 		},
 		{
 			name:            "Go fmt verbs",

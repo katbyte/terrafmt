@@ -137,16 +137,16 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 		{
 			name:              "Go formatting",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3,
+			totalBlockCount:   5,
 		},
 		{
 			name:              "Go formatting, fix finish line",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3,
+			totalBlockCount:   5,
 			fixFinishLines:    true,
 		},
 		{
@@ -369,16 +369,16 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 		{
 			name:              "Go formatting",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3,
+			totalBlockCount:   5,
 		},
 		{
 			name:              "Go formatting, fix finish line",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2, // This should technically be 3, but it's not counting the finish-line-only case
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3, // This should technically be 4, but it's not counting the finish-line-only case
+			totalBlockCount:   5,
 			fixFinishLines:    true,
 		},
 		{

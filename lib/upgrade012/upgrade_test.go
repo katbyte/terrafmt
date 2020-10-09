@@ -17,7 +17,8 @@ func TestBlock(t *testing.T) {
 		{
 			name:     "noblocks",
 			block:    "// nothing here",
-			expected: "// nothing here",
+			expected: `// nothing here
+`,
 		},
 		{
 			name: "oneline",

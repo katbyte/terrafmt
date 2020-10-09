@@ -36,3 +36,11 @@ resource "aws_s3_bucket" "end-line" {
 }
   `, randInt)
 }
+
+func testLeadingWhiteSpace(randInt int) string {
+  return fmt.Sprintf(`
+resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
+}
+`, randInt)
+}

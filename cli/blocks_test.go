@@ -50,7 +50,7 @@ var testcases = []struct {
 	{
 		name:       "Go formatting",
 		sourcefile: "testdata/has_diffs.go",
-		lineCount:  39,
+		lineCount:  47,
 		expectedBlocks: []block{
 			{
 				endLine: 13,
@@ -75,6 +75,12 @@ var testcases = []struct {
 				endLine: 38,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line-%d"
+}`,
+			},
+			{
+				endLine: 46,
+				text: `     resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
 }`,
 			},
 		},

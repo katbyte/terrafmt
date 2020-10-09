@@ -84,7 +84,7 @@ func Block(log *logrus.Logger, b string) (string, error) {
 	// 0.12upgrade always adds a trailing newline, even if it's already there
 	// strip it here
 	fb := string(raw)
-	if strings.HasSuffix(fb, "\n") {
+	if strings.HasSuffix(fb, "\n\n") {
 		fb = strings.TrimSuffix(fb, "\n")
 	}
 

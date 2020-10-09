@@ -122,9 +122,9 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 		{
 			name:              "Go formatting",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3,
+			totalBlockCount:   5,
 		},
 		{
 			name:            "Go fmt verbs",
@@ -323,9 +323,9 @@ func TestCmdUpgrade012FileVerbose(t *testing.T) {
 		{
 			name:              "Go formatting",
 			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         39,
-			updatedBlockCount: 2,
-			totalBlockCount:   4,
+			lineCount:         47,
+			updatedBlockCount: 3,
+			totalBlockCount:   5,
 		},
 		{
 			name:            "Go fmt verbs",
