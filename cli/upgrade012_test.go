@@ -11,56 +11,111 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestCmdUpgrade012StdinDefault(t *testing.T) {
-	testcases := []struct {
-		name       string
-		sourcefile string
-		resultfile string
-		noDiff     bool
-		errMsg     []string
-		fmtcompat  bool
-	}{
-		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			noDiff:     true,
+var upgradeTestcases = []struct {
+	name              string
+	sourcefile        string
+	resultfile        string
+	noDiff            bool
+	errMsg            []string
+	fmtcompat         bool
+	lineCount         int
+	errorBlockCount   int
+	updatedBlockCount int
+	totalBlockCount   int
+}{
+	{
+		name:            "Go no change",
+		sourcefile:      "testdata/no_diffs.go",
+		noDiff:          true,
+		lineCount:       29,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Go formatting",
+		sourcefile:        "testdata/has_diffs.go",
+		resultfile:        "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
+		lineCount:         47,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
+	},
+	{
+		name:       "Go fmt verbs",
+		sourcefile: "testdata/fmt_compat.go",
+		noDiff:     true,
+		fmtcompat:  false,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 3 @ %s:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 		},
-		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
+		lineCount:       41,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Go fmt verbs --fmtcompat",
+		sourcefile:        "testdata/fmt_compat.go",
+		resultfile:        "testdata/fmt_compat_upgrade012.go",
+		fmtcompat:         true,
+		lineCount:         41,
+		updatedBlockCount: 1,
+		totalBlockCount:   3,
+	},
+	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		resultfile: "testdata/bad_terraform_upgrade012.go",
+		errMsg: []string{
+			"block 2 @ %s:16 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 		},
-		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			noDiff:     true,
-			fmtcompat:  false,
-			errMsg: []string{
-				"block 1 @ stdin:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-				"block 3 @ stdin:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-			},
+		errorBlockCount:   1,
+		lineCount:         20,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 		},
-		{
-			name:       "Go fmt verbs --fmtcompat",
-			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_upgrade012.go",
-			fmtcompat:  true,
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:       "Go unsupported format verbs --fmtcompat",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		fmtcompat:  true,
+		errMsg: []string{
+			// "block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform 0.12upgrade",
 		},
-		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			noDiff:     true,
-		},
-		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_upgrade012.md", // This has stricter formatting than `fmt`
-		},
-	}
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:            "Markdown no change",
+		sourcefile:      "testdata/no_diffs.md",
+		noDiff:          true,
+		lineCount:       25,
+		totalBlockCount: 3,
+	},
+	{
+		name:              "Markdown formatting",
+		sourcefile:        "testdata/has_diffs.md",
+		resultfile:        "testdata/has_diffs_upgrade012.md", // This has stricter formatting than `fmt`
+		lineCount:         27,
+		updatedBlockCount: 3,
+		totalBlockCount:   4,
+	},
+}
 
+func TestCmdUpgrade012StdinDefault(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range upgradeTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -97,70 +152,19 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
-			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+			errMsg := []string{}
+			for _, msg := range testcase.errMsg {
+				errMsg = append(errMsg, fmt.Sprintf(msg, "stdin"))
+			}
+			checkExpectedErrors(t, actualStdErr, errMsg)
 		})
 	}
 }
 
 func TestCmdUpgrade012StdinVerbose(t *testing.T) {
-	testcases := []struct {
-		name              string
-		sourcefile        string
-		noDiff            bool
-		lineCount         int
-		updatedBlockCount int
-		totalBlockCount   int
-		fmtcompat         bool
-	}{
-		{
-			name:            "Go no change",
-			sourcefile:      "testdata/no_diffs.go",
-			noDiff:          true,
-			lineCount:       29,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Go formatting",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         47,
-			updatedBlockCount: 3,
-			totalBlockCount:   5,
-		},
-		{
-			name:            "Go fmt verbs",
-			sourcefile:      "testdata/fmt_compat.go",
-			noDiff:          true,
-			lineCount:       41,
-			totalBlockCount: 3,
-			fmtcompat:       false,
-		},
-		{
-			name:              "Go fmt verbs --fmtcompat",
-			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         41,
-			updatedBlockCount: 1,
-			totalBlockCount:   3,
-			fmtcompat:         true,
-		},
-		{
-			name:            "Markdown no change",
-			sourcefile:      "testdata/no_diffs.md",
-			noDiff:          true,
-			lineCount:       25,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Markdown formatting",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range upgradeTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -206,55 +210,9 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 }
 
 func TestCmdUpgrade012FileDefault(t *testing.T) {
-	testcases := []struct {
-		name       string
-		sourcefile string
-		resultfile string
-		noDiff     bool
-		errMsg     []string
-		fmtcompat  bool
-	}{
-		{
-			name:       "Go no change",
-			sourcefile: "testdata/no_diffs.go",
-			noDiff:     true,
-		},
-		{
-			name:       "Go formatting",
-			sourcefile: "testdata/has_diffs.go",
-			resultfile: "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
-		},
-		{
-			name:       "Go fmt verbs",
-			sourcefile: "testdata/fmt_compat.go",
-			noDiff:     true,
-			fmtcompat:  false,
-			errMsg: []string{
-				"block 1 @ testdata/fmt_compat.go:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-				"block 3 @ testdata/fmt_compat.go:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-			},
-		},
-		{
-			name:       "Go fmt verbs --fmtcompat",
-			sourcefile: "testdata/fmt_compat.go",
-			resultfile: "testdata/fmt_compat_upgrade012.go",
-			fmtcompat:  true,
-		},
-		{
-			name:       "Markdown no change",
-			sourcefile: "testdata/no_diffs.md",
-			noDiff:     true,
-		},
-		{
-			name:       "Markdown formatting",
-			sourcefile: "testdata/has_diffs.md",
-			resultfile: "testdata/has_diffs_upgrade012.md", // This has stricter formatting than `fmt`
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range upgradeTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -298,70 +256,19 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 				t.Errorf("File does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualContent, expected))
 			}
 
-			checkExpectedErrors(t, actualStdErr, testcase.errMsg)
+			errMsg := []string{}
+			for _, msg := range testcase.errMsg {
+				errMsg = append(errMsg, fmt.Sprintf(msg, testcase.sourcefile))
+			}
+			checkExpectedErrors(t, actualStdErr, errMsg)
 		})
 	}
 }
 
 func TestCmdUpgrade012FileVerbose(t *testing.T) {
-	testcases := []struct {
-		name              string
-		sourcefile        string
-		noDiff            bool
-		lineCount         int
-		updatedBlockCount int
-		totalBlockCount   int
-		fmtcompat         bool
-	}{
-		{
-			name:            "Go no change",
-			sourcefile:      "testdata/no_diffs.go",
-			noDiff:          true,
-			lineCount:       29,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Go formatting",
-			sourcefile:        "testdata/has_diffs.go",
-			lineCount:         47,
-			updatedBlockCount: 3,
-			totalBlockCount:   5,
-		},
-		{
-			name:            "Go fmt verbs",
-			sourcefile:      "testdata/fmt_compat.go",
-			noDiff:          true,
-			lineCount:       41,
-			totalBlockCount: 3,
-			fmtcompat:       false,
-		},
-		{
-			name:              "Go fmt verbs --fmtcompat",
-			sourcefile:        "testdata/fmt_compat.go",
-			lineCount:         41,
-			updatedBlockCount: 1,
-			totalBlockCount:   3,
-			fmtcompat:         true,
-		},
-		{
-			name:            "Markdown no change",
-			sourcefile:      "testdata/no_diffs.md",
-			noDiff:          true,
-			lineCount:       25,
-			totalBlockCount: 3,
-		},
-		{
-			name:              "Markdown formatting",
-			sourcefile:        "testdata/has_diffs.md",
-			lineCount:         27,
-			updatedBlockCount: 3,
-			totalBlockCount:   4,
-		},
-	}
-
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range upgradeTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()

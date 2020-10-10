@@ -44,6 +44,21 @@ Use the `blocks` command to extract blocks from a file:
 
 To output only the block content, separated by the null character, use the flags ``--zero-terminated` or `z`.
 
+To output the blocks using a JSON structure, use the flags `--json` or `-j`. The format is
+
+```json
+{
+    "block_count": 1,
+    "blocks": [
+        {
+            "start_line": 4,
+            "end_line": 9,
+            "text": "..."
+        }
+    ]
+}
+```
+
 ### Show What Format Would Do
 
 Use the `diff` command to see what would be formatted (files can also be piped in on stdin) :
@@ -80,6 +95,16 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 Use the `upgrade012` command to upgrade the blocks to 0.12:
 
 ![fmt](_docs/upgrade.png)
+
+### Exit codes
+
+To help usage of `terrafmt` in workflows, some commands will return actionable exit codes.
+
+If a Terraform parsing error is encountered in a block, the exit code is `2`.
+
+If the command `diff` with the `--check` flag enabled encounters a formatting difference, it will return `4`. If a file contains both blocks with parsing errors and a formatting difference, it will combine the exit codes to return `6`. These codes can be tested using bitwise checks.
+
+Otherwise, `terrafmt` will return `1` on an error.
 
 ## Development and Testing
 

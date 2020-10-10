@@ -15,8 +15,8 @@ func TestBlock(t *testing.T) {
 		error    bool
 	}{
 		{
-			name:     "noblocks",
-			block:    "// nothing here",
+			name:  "noblocks",
+			block: "// nothing here",
 			expected: `// nothing here
 `,
 		},
