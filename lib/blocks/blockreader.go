@@ -26,6 +26,11 @@ var (
 
 type blockReadFunc func(*Reader, int, string) error
 
+type BlockWriter interface {
+	Write(index, startLine, endLine int, text string)
+	Close() error
+}
+
 type Reader struct {
 	FileName string
 
@@ -55,6 +60,9 @@ type Reader struct {
 	//callbacks
 	LineRead  func(*Reader, int, string) error
 	BlockRead blockReadFunc
+
+	// Only used by the "blocks" command
+	BlockWriter BlockWriter
 }
 
 func ReaderPassthrough(br *Reader, number int, line string) error {

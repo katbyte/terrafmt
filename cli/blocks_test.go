@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -12,8 +14,9 @@ import (
 )
 
 type block struct {
-	endLine int
-	text    string
+	startLine int
+	endLine   int
+	text      string
 }
 
 var blocksTestcases = []struct {
@@ -28,19 +31,22 @@ var blocksTestcases = []struct {
 		lineCount:  29,
 		expectedBlocks: []block{
 			{
-				endLine: 12,
+				startLine: 8,
+				endLine:   12,
 				text: `resource "aws_s3_bucket" "simple" {
   bucket = "tf-test-bucket-simple"
 }`,
 			},
 			{
-				endLine: 20,
+				startLine: 16,
+				endLine:   20,
 				text: `resource "aws_s3_bucket" "with-parameters" {
   bucket = "tf-test-bucket-with-parameters-%d"
 }`,
 			},
 			{
-				endLine: 28,
+				startLine: 24,
+				endLine:   28,
 				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
   bucket = "tf-test-bucket-parameters-and-append-%d"
 }`,
@@ -53,32 +59,37 @@ var blocksTestcases = []struct {
 		lineCount:  78,
 		expectedBlocks: []block{
 			{
-				endLine: 13,
+				startLine: 8,
+				endLine:   13,
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
 }`,
 			},
 			{
-				endLine: 22,
+				startLine: 18,
+				endLine:   22,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 }`,
 			},
 			{
-				endLine: 30,
+				startLine: 26,
+				endLine:   30,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 }`,
 			},
 			{
-				endLine: 38,
+				startLine: 34,
+				endLine:   38,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line-%d"
 }`,
 			},
 			{
-				endLine: 77,
+				startLine: 42,
+				endLine:   77,
 				text: `resource "aws_alb_target_group" "test" {
   name = "%s"
   port = 443
@@ -124,7 +135,8 @@ resource "aws_vpc" "test" {
 		lineCount:  33,
 		expectedBlocks: []block{
 			{
-				endLine: 14,
+				startLine: 8,
+				endLine:   14,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
@@ -132,17 +144,61 @@ resource "aws_vpc" "test" {
 }`,
 			},
 			{
-				endLine: 22,
+				startLine: 18,
+				endLine:   22,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
 }`,
 			},
 			{
-				endLine: 32,
+				startLine: 26,
+				endLine:   32,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 
   %s
+}`,
+			},
+		},
+	},
+	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		lineCount:  20,
+		expectedBlocks: []block{
+			{
+				startLine: 8,
+				endLine:   12,
+				text: `rrrrrresource "aws_s3_bucket" "rrrrrrr" {
+  bucket =    "tf-test-bucket"
+}`,
+			},
+			{
+				startLine: 16,
+				endLine:   19,
+				text: `resource "aws_s3_bucket" "unclosed" {
+  bucket =    "tf-test-bucket"`,
+			},
+		},
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		lineCount:  21,
+		expectedBlocks: []block{
+			{
+				startLine: 8,
+				endLine:   20,
+				text: `resource "aws_s3_bucket" "multi-verb" {
+  bucket =    "tf-test-bucket"
+
+  tags = {
+    %[1]q =    %[2]q
+    Test  =  "${%[5]s.name}"
+    Name  =       "${%s.name}"
+    byte       = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+    Data  =    "${data.%s.name}"
+  }
 }`,
 			},
 		},
@@ -153,19 +209,22 @@ resource "aws_vpc" "test" {
 		lineCount:  25,
 		expectedBlocks: []block{
 			{
-				endLine: 7,
+				startLine: 3,
+				endLine:   7,
 				text: `resource "aws_s3_bucket" "one" {
   bucket = "tf-test-bucket-one"
 }`,
 			},
 			{
-				endLine: 13,
+				startLine: 9,
+				endLine:   13,
 				text: `resource "aws_s3_bucket" "two" {
   bucket = "tf-test-bucket-two"
 }`,
 			},
 			{
-				endLine: 19,
+				startLine: 15,
+				endLine:   19,
 				text: `resource "aws_s3_bucket" "three" {
   bucket = "tf-test-bucket-three"
 }`,
@@ -178,32 +237,42 @@ resource "aws_vpc" "test" {
 		lineCount:  27,
 		expectedBlocks: []block{
 			{
-				endLine: 8,
+				startLine: 3,
+				endLine:   8,
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
 }`,
 			},
 			{
-				endLine: 14,
+				startLine: 10,
+				endLine:   14,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors"
 }`,
 			},
 			{
-				endLine: 20,
+				startLine: 16,
+				endLine:   20,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space"
 }`,
 			},
 			{
-				endLine: 27,
+				startLine: 22,
+				endLine:   27,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line"
 }
   `,
 			},
 		},
+	},
+	{
+		name:           "Markdown no blocks",
+		sourcefile:     "testdata/no_blocks.md",
+		lineCount:      3,
+		expectedBlocks: []block{},
 	},
 }
 
@@ -227,7 +296,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, false, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -259,7 +328,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, false, nil, &outB, &errB)
 			actualStdErr := errB.String()
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
@@ -293,21 +362,95 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, false, true, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, true, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
 			if err != nil {
-				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+				t.Fatalf("Got an error when none was expected: %v", err)
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
-				t.Errorf("Case %q: Got error output:\n%s", testcase.name, actualStdErr)
+				t.Errorf("Got error output:\n%s", actualStdErr)
 			}
 		})
+	}
+}
+
+func TestCmdBlocksJson(t *testing.T) {
+	t.Parallel()
+
+	for _, testcase := range blocksTestcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
+			data := Output{}
+			for _, block := range testcase.expectedBlocks {
+				data.BlockCount++
+				blockData := Block{
+					StartLine: block.startLine,
+					EndLine:   block.endLine,
+					Text:      block.text + "\n",
+				}
+				data.Blocks = append(data.Blocks, blockData)
+			}
+			expected, err := json.Marshal(data)
+			if err != nil {
+				t.Fatalf("Error generating expected JSON output: %v", err)
+			}
+
+			var outB strings.Builder
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			err = findBlocksInFile(fs, log, testcase.sourcefile, false, false, true, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
+
+			if err != nil {
+				t.Fatalf("Got an error when none was expected: %v", err)
+			}
+
+			if !equivalentJSON([]byte(actualStdOut), expected) {
+				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, string(expected)))
+			}
+
+			if actualStdErr != "" {
+				t.Errorf("Got error output:\n%s", actualStdErr)
+			}
+		})
+	}
+}
+
+func equivalentJSON(b1, b2 []byte) bool {
+	var o1 interface{}
+	if err := json.Unmarshal(b1, &o1); err != nil {
+		return false
+	}
+
+	var o2 interface{}
+	if err := json.Unmarshal(b2, &o2); err != nil {
+		return false
+	}
+
+	return reflect.DeepEqual(o1, o2)
+}
+
+func TestBlocksOutputJsonSerializesEmptyArray(t *testing.T) {
+	expected := `{"block_count":0,"blocks":[]}`
+
+	actual, err := json.Marshal(&Output{})
+	if err != nil {
+		t.Fatalf("Error marshalling JSON output: %v", err)
+	}
+
+	if string(actual) != expected {
+		t.Errorf("Unexpected JSON output:\nexpected %s\ngot      %s", expected, string(actual))
 	}
 }

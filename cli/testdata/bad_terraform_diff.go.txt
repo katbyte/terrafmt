@@ -1,0 +1,5 @@
+<lightMagenta>testdata/bad_terraform.go</><darkGray>:</><magenta>8</>
+ rrrrrresource "aws_s3_bucket" "rrrrrrr" {
+<red>-  bucket =    "tf-test-bucket"</>
+<green>+  bucket = "tf-test-bucket"</>
+ }

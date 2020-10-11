@@ -71,6 +71,41 @@ var fmtTestcases = []struct {
 		totalBlockCount:   3,
 	},
 	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		resultfile: "testdata/bad_terraform_fmt.go",
+		errMsg: []string{
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:3,1-1:",
+		},
+		errorBlockCount:   1,
+		lineCount:         20,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
+		},
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:       "Go unsupported format verbs --fmtcompat",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		fmtcompat:  true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
+		},
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
 		name:            "Markdown no change",
 		sourcefile:      "testdata/no_diffs.md",
 		noDiff:          true,

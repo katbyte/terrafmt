@@ -60,6 +60,41 @@ var upgradeTestcases = []struct {
 		totalBlockCount:   3,
 	},
 	{
+		name:       "Go bad terraform",
+		sourcefile: "testdata/bad_terraform.go",
+		resultfile: "testdata/bad_terraform_upgrade012.go",
+		errMsg: []string{
+			"block 2 @ %s:16 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+		},
+		errorBlockCount:   1,
+		lineCount:         20,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:       "Go unsupported format verbs",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+		},
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
+		name:       "Go unsupported format verbs --fmtcompat",
+		sourcefile: "testdata/unsupported_fmt.go",
+		noDiff:     true,
+		fmtcompat:  true,
+		errMsg: []string{
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+		},
+		errorBlockCount: 1,
+		lineCount:       21,
+		totalBlockCount: 1,
+	},
+	{
 		name:            "Markdown no change",
 		sourcefile:      "testdata/no_diffs.md",
 		noDiff:          true,
