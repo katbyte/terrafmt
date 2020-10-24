@@ -2,14 +2,11 @@ package blocks
 
 import (
 	"bytes"
-	"io/ioutil"
-	"strings"
 	"testing"
 
 	"github.com/katbyte/terrafmt/lib/common"
 	"github.com/kylelemons/godebug/diff"
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v2"
 )
 
 func TestBlockReaderIsFinishLine(t *testing.T) {
@@ -49,22 +46,70 @@ func TestBlockReaderIsFinishLine(t *testing.T) {
 	}
 }
 
-type results struct {
-	ExpectedResults []string `yaml:"expected_results"`
-}
-
 func TestBlockDetection(t *testing.T) {
 	testcases := []struct {
-		sourcefile string
-		resultfile string
+		sourcefile     string
+		expectedBlocks []string
 	}{
 		{
 			sourcefile: "testdata/test1.go",
-			resultfile: "testdata/test1_results.yaml",
+			expectedBlocks: []string{
+				`resource "aws_s3_bucket" "simple" {
+  bucket = "tf-test-bucket-simple"
+}
+`,
+				`resource "aws_s3_bucket" "with-parameters" {
+  bucket = "tf-test-bucket-with-parameters-%d"
+}
+`,
+				`resource "aws_s3_bucket" "with-parameters-and-append" {
+  bucket = "tf-test-bucket-parameters-and-append-%d"
+}
+`,
+				`resource "aws_s3_bucket" "const" {
+  bucket = "tf-test-bucket-const"
+}
+`,
+				`resource "aws_s3_bucket" "composed" {
+  bucket = "tf-test-bucket-composed-%d"
+}
+`,
+				`data "aws_s3_bucket" "simple" {
+  bucket = "tf-test-bucket-simple"
+}
+`,
+				`    resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
+}
+`,
+				`    
+    resource "aws_s3_bucket" "leading-space-and-line" {
+  bucket = "tf-test-bucket-leading-space-and-line-%d"
+}
+`,
+			},
 		},
 		{
 			sourcefile: "testdata/test2.markdown",
-			resultfile: "testdata/test2_results.yaml",
+			expectedBlocks: []string{
+				`resource "aws_s3_bucket" "hcl" {
+  bucket = "tf-test-bucket-hcl"
+}
+`,
+				`resource "aws_s3_bucket" "tf" {
+  bucket = "tf-test-bucket-tf"
+}
+`,
+				`    resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space"
+}
+`,
+				`    
+    resource "aws_s3_bucket" "leading-space-and-line" {
+  bucket = "tf-test-bucket-leading-space-and-line"
+}
+`,
+			},
 		},
 	}
 
@@ -74,16 +119,6 @@ func TestBlockDetection(t *testing.T) {
 	log := common.CreateLogger(errB)
 
 	for _, testcase := range testcases {
-		data, err := ioutil.ReadFile(testcase.resultfile)
-		if err != nil {
-			t.Fatalf("Error reading test result file %q: %s", testcase.resultfile, err)
-		}
-		var expectedResults results
-		err = yaml.Unmarshal(data, &expectedResults)
-		if err != nil {
-			t.Fatalf("Error parsing test result file %q: %s", testcase.resultfile, err)
-		}
-
 		var actualBlocks []string
 		br := Reader{
 			Log:      log,
@@ -94,22 +129,21 @@ func TestBlockDetection(t *testing.T) {
 				return nil
 			},
 		}
-		err = br.DoTheThingNew(fs, testcase.sourcefile, nil, nil)
+		err := br.DoTheThingNew(fs, testcase.sourcefile, nil, nil)
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue
 		}
 
-		if len(expectedResults.ExpectedResults) != len(actualBlocks) {
-			t.Errorf("Case %q: expected %d blocks, got %d", testcase.sourcefile, len(expectedResults.ExpectedResults), len(actualBlocks))
+		if len(testcase.expectedBlocks) != len(actualBlocks) {
+			t.Errorf("Case %q: expected %d blocks, got %d", testcase.sourcefile, len(testcase.expectedBlocks), len(actualBlocks))
 			continue
 		}
 
 		for i, actual := range actualBlocks {
-			expected := strings.TrimSpace(expectedResults.ExpectedResults[i])
-			actual = strings.TrimSpace(actual)
+			expected := testcase.expectedBlocks[i]
 			if actual != expected {
-				t.Errorf("Case %q, block %d:\n%s", testcase.sourcefile, i+1, diff.Diff(expected, actual))
+				t.Errorf("Case %q, block %d: ('-' actual, '+' expected)\n%s", testcase.sourcefile, i+1, diff.Diff(actual, expected))
 				continue
 			}
 		}

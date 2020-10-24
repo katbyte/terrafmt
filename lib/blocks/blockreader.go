@@ -104,13 +104,15 @@ type blockVisitor struct {
 	f    blockReadFunc
 }
 
-var leadingPaddingMatcher = regexp.MustCompile(`^\s*`)
-var trailingPaddingMatcher = regexp.MustCompile(`\s*$`)
+var leadingPaddingMatcher = regexp.MustCompile(`^\s\n*`)
+var trailingPaddingMatcher = regexp.MustCompile(`\n\s*$`)
 
 func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 	if node, ok := cursor.Node().(*ast.BasicLit); ok && node.Kind == token.STRING {
 		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
-			value := strings.TrimSpace(unquoted)
+			value := strings.Trim(unquoted, " \t")
+			value = strings.TrimPrefix(value, "\n")
+			value = strings.TrimSuffix(value, "\n")
 			if strings.Contains(value, "\n") {
 				value += "\n"
 				bv.br.CurrentNodeCursor = cursor

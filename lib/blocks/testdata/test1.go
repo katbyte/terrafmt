@@ -50,6 +50,23 @@ data "aws_s3_bucket" "simple" {
 `)
 }
 
+func testLeadingWhiteSpace(randInt int) string {
+	return fmt.Sprintf(`
+    resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
+}
+`, randInt)
+}
+
+func testLeadingWhiteSpaceAndLine(randInt int) string {
+	return fmt.Sprintf(`
+    
+    resource "aws_s3_bucket" "leading-space-and-line" {
+  bucket = "tf-test-bucket-leading-space-and-line-%d"
+}
+`, randInt)
+}
+
 func notTerraformSimpleString() string {
 	fmt.Sprintf("%d: bad create: \n%#v\n%#v", i, cm, tc.Create)
 }

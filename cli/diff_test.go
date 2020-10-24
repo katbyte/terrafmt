@@ -34,9 +34,9 @@ var diffTestcases = []struct {
 		name:                  "Go formatting",
 		sourcefile:            "testdata/has_diffs.go",
 		resultfile:            "testdata/has_diffs_diff.go.txt",
-		lineCount:             78,
-		unformattedBlockCount: 3,
-		totalBlockCount:       5,
+		lineCount:             86,
+		unformattedBlockCount: 4,
+		totalBlockCount:       6,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -109,9 +109,9 @@ var diffTestcases = []struct {
 		name:                  "Markdown formatting",
 		sourcefile:            "testdata/has_diffs.md",
 		resultfile:            "testdata/has_diffs_diff.md.txt",
-		lineCount:             27,
-		unformattedBlockCount: 3,
-		totalBlockCount:       4,
+		lineCount:             33,
+		unformattedBlockCount: 4,
+		totalBlockCount:       5,
 	},
 }
 
@@ -157,7 +157,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}

@@ -34,9 +34,9 @@ var upgradeTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
-		lineCount:         78,
-		updatedBlockCount: 3,
-		totalBlockCount:   5,
+		lineCount:         86,
+		updatedBlockCount: 4,
+		totalBlockCount:   6,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -105,9 +105,9 @@ var upgradeTestcases = []struct {
 		name:              "Markdown formatting",
 		sourcefile:        "testdata/has_diffs.md",
 		resultfile:        "testdata/has_diffs_upgrade012.md", // This has stricter formatting than `fmt`
-		lineCount:         27,
-		updatedBlockCount: 3,
-		totalBlockCount:   4,
+		lineCount:         33,
+		updatedBlockCount: 4,
+		totalBlockCount:   5,
 	},
 }
 
@@ -148,7 +148,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
@@ -252,7 +252,7 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			}
 			actualContent := c.String(string(data))
 			if actualContent != expected {
-				t.Errorf("File does not match expected:\n%s", diff.Diff(actualContent, expected))
+				t.Errorf("File does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualContent, expected))
 			}
 
 			errMsg := []string{}

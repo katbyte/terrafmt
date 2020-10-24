@@ -57,3 +57,8 @@
      Name = "terraform-testacc-alb-target-group-basic"
    }
  }
+<lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>81</>
+<red>-    resource "aws_s3_bucket" "leading-space" {</>
+<green>+resource "aws_s3_bucket" "leading-space" {</>
+   bucket = "tf-test-bucket-leading-space-%d"
+ }

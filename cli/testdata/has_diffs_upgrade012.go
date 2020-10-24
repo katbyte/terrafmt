@@ -76,3 +76,11 @@ resource "aws_vpc" "test" {
   }
 }`, targetGroupName)
 }
+
+func testLeadingWhiteSpace(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
+}
+`, randInt)
+}

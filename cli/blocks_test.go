@@ -56,7 +56,7 @@ var blocksTestcases = []struct {
 	{
 		name:       "Go formatting",
 		sourcefile: "testdata/has_diffs.go",
-		lineCount:  78,
+		lineCount:  86,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -125,6 +125,13 @@ resource "aws_vpc" "test" {
   tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
+}`,
+			},
+			{
+				startLine: 81,
+				endLine:   85,
+				text: `    resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
 }`,
 			},
 		},
@@ -234,7 +241,7 @@ resource "aws_vpc" "test" {
 	{
 		name:       "Markdown formatting",
 		sourcefile: "testdata/has_diffs.md",
-		lineCount:  27,
+		lineCount:  33,
 		expectedBlocks: []block{
 			{
 				startLine: 3,
@@ -265,6 +272,13 @@ resource "aws_vpc" "test" {
   bucket = "tf-test-bucket-end-line"
 }
   `,
+			},
+			{
+				startLine: 29,
+				endLine:   33,
+				text: `     resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space"
+}`,
 			},
 		},
 	},
@@ -305,7 +319,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -371,7 +385,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -418,7 +432,7 @@ func TestCmdBlocksJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {

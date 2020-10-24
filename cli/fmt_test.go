@@ -35,18 +35,18 @@ var fmtTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt.go",
-		lineCount:         78,
-		updatedBlockCount: 3,
-		totalBlockCount:   5,
+		lineCount:         86,
+		updatedBlockCount: 4,
+		totalBlockCount:   6,
 	},
 	{
 		name:              "Go formatting, fix finish line",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt_fix_finish.go",
 		fixFinishLines:    true,
-		lineCount:         78,
-		updatedBlockCount: 4,
-		totalBlockCount:   5,
+		lineCount:         86,
+		updatedBlockCount: 5,
+		totalBlockCount:   6,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -116,18 +116,18 @@ var fmtTestcases = []struct {
 		name:              "Markdown formatting",
 		sourcefile:        "testdata/has_diffs.md",
 		resultfile:        "testdata/has_diffs_fmt.md",
-		lineCount:         27,
-		updatedBlockCount: 3,
-		totalBlockCount:   4,
+		lineCount:         33,
+		updatedBlockCount: 4,
+		totalBlockCount:   5,
 	},
 	{
 		name:              "Markdown formatting, fix finish line",
 		sourcefile:        "testdata/has_diffs.md",
 		resultfile:        "testdata/has_diffs_fmt.md",
 		fixFinishLines:    true,
-		lineCount:         27,
-		updatedBlockCount: 3,
-		totalBlockCount:   4,
+		lineCount:         33,
+		updatedBlockCount: 4,
+		totalBlockCount:   5,
 	},
 }
 
@@ -173,7 +173,7 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+				t.Errorf("Case %q: Output does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
@@ -278,7 +278,7 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			}
 			actualContent := c.String(string(data))
 			if actualContent != expected {
-				t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
+				t.Errorf("Case %q: File does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualContent, expected))
 			}
 
 			if testcase.errorBlockCount != br.ErrorBlocks {
