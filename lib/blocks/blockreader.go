@@ -104,7 +104,7 @@ type blockVisitor struct {
 	f    blockReadFunc
 }
 
-var leadingPaddingMatcher = regexp.MustCompile(`^\s\n*`)
+var leadingPaddingMatcher = regexp.MustCompile(`^\s*\n`)
 var trailingPaddingMatcher = regexp.MustCompile(`\n\s*$`)
 
 func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
