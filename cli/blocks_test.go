@@ -35,21 +35,24 @@ var blocksTestcases = []struct {
 				endLine:   12,
 				text: `resource "aws_s3_bucket" "simple" {
   bucket = "tf-test-bucket-simple"
-}`,
+}
+`,
 			},
 			{
 				startLine: 16,
 				endLine:   20,
 				text: `resource "aws_s3_bucket" "with-parameters" {
   bucket = "tf-test-bucket-with-parameters-%d"
-}`,
+}
+`,
 			},
 			{
 				startLine: 24,
 				endLine:   28,
 				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
   bucket = "tf-test-bucket-parameters-and-append-%d"
-}`,
+}
+`,
 			},
 		},
 	},
@@ -64,28 +67,32 @@ var blocksTestcases = []struct {
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
-}`,
+}
+`,
 			},
 			{
 				startLine: 18,
 				endLine:   22,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
-}`,
+}
+`,
 			},
 			{
 				startLine: 26,
 				endLine:   30,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
-}`,
+}
+`,
 			},
 			{
 				startLine: 34,
 				endLine:   38,
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line-%d"
-}`,
+}
+`,
 			},
 			{
 				startLine: 42,
@@ -132,7 +139,8 @@ resource "aws_vpc" "test" {
 				endLine:   85,
 				text: `    resource "aws_s3_bucket" "leading-space" {
   bucket = "tf-test-bucket-leading-space-%d"
-}`,
+}
+`,
 			},
 		},
 	},
@@ -148,14 +156,16 @@ resource "aws_vpc" "test" {
   bucket = "tf-test-bucket-no-errors-%d"
 
   %s
-}`,
+}
+`,
 			},
 			{
 				startLine: 18,
 				endLine:   22,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
-}`,
+}
+`,
 			},
 			{
 				startLine: 26,
@@ -164,7 +174,8 @@ resource "aws_vpc" "test" {
   bucket    = "tf-test-bucket-extra-space-%d"
 
   %s
-}`,
+}
+`,
 			},
 		},
 	},
@@ -178,13 +189,15 @@ resource "aws_vpc" "test" {
 				endLine:   12,
 				text: `rrrrrresource "aws_s3_bucket" "rrrrrrr" {
   bucket =    "tf-test-bucket"
-}`,
+}
+`,
 			},
 			{
 				startLine: 16,
 				endLine:   19,
 				text: `resource "aws_s3_bucket" "unclosed" {
-  bucket =    "tf-test-bucket"`,
+  bucket =    "tf-test-bucket"
+`,
 			},
 		},
 	},
@@ -206,7 +219,8 @@ resource "aws_vpc" "test" {
     byte       = "${aws_acm_certificate.test.*.arn[%[2]d]}"
     Data  =    "${data.%s.name}"
   }
-}`,
+}
+`,
 			},
 		},
 	},
@@ -220,21 +234,24 @@ resource "aws_vpc" "test" {
 				endLine:   7,
 				text: `resource "aws_s3_bucket" "one" {
   bucket = "tf-test-bucket-one"
-}`,
+}
+`,
 			},
 			{
 				startLine: 9,
 				endLine:   13,
 				text: `resource "aws_s3_bucket" "two" {
   bucket = "tf-test-bucket-two"
-}`,
+}
+`,
 			},
 			{
 				startLine: 15,
 				endLine:   19,
 				text: `resource "aws_s3_bucket" "three" {
   bucket = "tf-test-bucket-three"
-}`,
+}
+`,
 			},
 		},
 	},
@@ -249,21 +266,24 @@ resource "aws_vpc" "test" {
 				text: `resource "aws_s3_bucket" "extra-lines" {
   
   bucket = "tf-test-bucket-extra-lines"
-}`,
+}
+`,
 			},
 			{
 				startLine: 10,
 				endLine:   14,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors"
-}`,
+}
+`,
 			},
 			{
 				startLine: 16,
 				endLine:   20,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space"
-}`,
+}
+`,
 			},
 			{
 				startLine: 22,
@@ -271,14 +291,16 @@ resource "aws_vpc" "test" {
 				text: `resource "aws_s3_bucket" "end-line" {
   bucket = "tf-test-bucket-end-line"
 }
-  `,
+  
+`,
 			},
 			{
 				startLine: 29,
 				endLine:   33,
 				text: `     resource "aws_s3_bucket" "leading-space" {
   bucket = "tf-test-bucket-leading-space"
-}`,
+}
+`,
 			},
 		},
 	},
@@ -303,7 +325,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			expectedBuilder := strings.Builder{}
 			for i, block := range testcase.expectedBlocks {
 				fmt.Fprint(&expectedBuilder, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", i+1, block.endLine))
-				fmt.Fprint(&expectedBuilder, block.text, "\n")
+				fmt.Fprint(&expectedBuilder, block.text)
 			}
 			expected := expectedBuilder.String()
 
@@ -411,7 +433,7 @@ func TestCmdBlocksJson(t *testing.T) {
 				blockData := Block{
 					StartLine: block.startLine,
 					EndLine:   block.endLine,
-					Text:      block.text + "\n",
+					Text:      block.text,
 				}
 				data.Blocks = append(data.Blocks, blockData)
 			}

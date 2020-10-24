@@ -112,9 +112,7 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
 			value := strings.Trim(unquoted, " \t")
 			value = strings.TrimPrefix(value, "\n")
-			value = strings.TrimSuffix(value, "\n")
 			if strings.Contains(value, "\n") {
-				value += "\n"
 				bv.br.CurrentNodeCursor = cursor
 				bv.br.CurrentNodeQuoteChar = node.Value[0:1]
 				bv.br.CurrentNodeLeadingPadding = leadingPaddingMatcher.FindString(unquoted)
