@@ -8,6 +8,9 @@ import (
 func Escape(b string) string {
 	// NOTE: the order of these replacements matter
 
+	// conditional expression: = %t ? ...
+	b = regexp.MustCompile(`(=\s*)(%\[[\d+]\]t)(\s\?)`).ReplaceAllString(b, `${1}true/*@@_@@ TFMT:${2}:TFMT @@_@@*/${3}`)
+
 	// %s
 	// figure out why the * doesn't match both later
 	b = regexp.MustCompile(`(?m:^%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
@@ -62,6 +65,7 @@ func Unscape(fb string) string {
 	fb = strings.ReplaceAll(fb, ":TFMT @@_@@\"]", "")
 
 	fb = strings.ReplaceAll(fb, "0/*@@_@@ TFMT:", "")
+	fb = regexp.MustCompile(`true\s*/\*@@_@@ TFMT:`).ReplaceAllString(fb, ``)
 	fb = strings.ReplaceAll(fb, ":TFMT @@_@@*/", "")
 
 	// order here matters, replace the ones with [], then do the ones without

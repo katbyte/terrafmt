@@ -390,6 +390,29 @@ resource "resource" "test" {
 }
 `,
 		},
+		{
+			name: "conditional expression",
+			block: `
+resource "aws_dynamodb_table" "test" {
+  name = %[1]q
+
+  ttl {
+    attribute_name = %[2]t ? "TestTTL" : ""
+    enabled        = %[2]t
+  }
+}
+`,
+			expected: `
+resource "aws_dynamodb_table" "test" {
+  name = "@@_@@ TFMT:%[1]q:TFMT @@_@@"
+
+  ttl {
+    attribute_name = true/*@@_@@ TFMT:%[2]t:TFMT @@_@@*/ ? "TestTTL" : ""
+    enabled        = "@@_@@ TFMT:%[2]t:TFMT @@_@@"
+  }
+}
+`,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
