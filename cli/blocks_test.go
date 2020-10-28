@@ -9,6 +9,7 @@ import (
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/katbyte/terrafmt/lib/fmtverbs"
 	"github.com/kylelemons/godebug/diff"
 	"github.com/spf13/afero"
 )
@@ -127,13 +128,15 @@ var blocksTestcases = []struct {
 		lineCount:  20,
 		expectedBlocks: []block{
 			{
-				endLine: 12,
+				startLine: 8,
+				endLine:   12,
 				text: `rrrrrresource "aws_s3_bucket" "rrrrrrr" {
   bucket =    "tf-test-bucket"
 }`,
 			},
 			{
-				endLine: 19,
+				startLine: 16,
+				endLine:   19,
 				text: `resource "aws_s3_bucket" "unclosed" {
   bucket =    "tf-test-bucket"`,
 			},
@@ -145,7 +148,8 @@ var blocksTestcases = []struct {
 		lineCount:  21,
 		expectedBlocks: []block{
 			{
-				endLine: 20,
+				startLine: 8,
+				endLine:   20,
 				text: `resource "aws_s3_bucket" "multi-verb" {
   bucket =    "tf-test-bucket"
 
@@ -253,7 +257,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, false, false, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, false, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -262,7 +266,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -285,7 +289,7 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, false, false, nil, &outB, &errB)
 			actualStdErr := errB.String()
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
@@ -305,6 +309,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -319,7 +324,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err := findBlocksInFile(fs, log, testcase.sourcefile, false, true, false, nil, &outB, &errB)
+			err := findBlocksInFile(fs, log, testcase.sourcefile, false, true, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -328,7 +333,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -341,7 +346,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 func TestCmdBlocksJson(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range testcases {
+	for _, testcase := range blocksTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -366,7 +371,7 @@ func TestCmdBlocksJson(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			err = findBlocksInFile(fs, log, testcase.sourcefile, false, false, true, nil, &outB, &errB)
+			err = findBlocksInFile(fs, log, testcase.sourcefile, false, false, true, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -375,7 +380,54 @@ func TestCmdBlocksJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
+			}
+
+			if actualStdErr != "" {
+				t.Errorf("Got error output:\n%s", actualStdErr)
+			}
+		})
+	}
+}
+
+func TestCmdBlocksFmtVerbsJson(t *testing.T) {
+	t.Parallel()
+
+	for _, testcase := range blocksTestcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewReadOnlyFs(afero.NewOsFs())
+
+			data := Output{}
+			for _, block := range testcase.expectedBlocks {
+				data.BlockCount++
+				blockData := Block{
+					StartLine: block.startLine,
+					EndLine:   block.endLine,
+					Text:      fmtverbs.Escape(block.text) + "\n",
+				}
+				data.Blocks = append(data.Blocks, blockData)
+			}
+			expected, err := json.Marshal(data)
+			if err != nil {
+				t.Fatalf("Error generating expected JSON output: %v", err)
+			}
+
+			var outB strings.Builder
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			err = findBlocksInFile(fs, log, testcase.sourcefile, false, false, true, true, nil, &outB, &errB)
+			actualStdOut := outB.String()
+			actualStdErr := errB.String()
+
+			if err != nil {
+				t.Fatalf("Got an error when none was expected: %v", err)
+			}
+
+			if !equivalentJSON([]byte(actualStdOut), expected) {
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {

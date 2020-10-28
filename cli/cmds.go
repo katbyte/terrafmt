@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
+	verbs "github.com/katbyte/terrafmt/lib/fmtverbs"
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
@@ -202,9 +203,10 @@ func Make() *cobra.Command {
 			if zeroTerminated && jsonOutput {
 				return fmt.Errorf("only one of zero-terminated or json can be specified")
 			}
+			fmtCompat := viper.GetBool("fmtcompat")
 
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, fmtCompat, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	root.AddCommand(blocksCmd)
@@ -379,7 +381,7 @@ func (w jsonBlockWriter) Close() error {
 	return encoder.Encode(w.data)
 }
 
-func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput bool, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
@@ -400,6 +402,9 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		LineRead:    blocks.ReaderIgnore,
 		BlockWriter: blockWriter,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			if fmtverbs {
+				b = verbs.Escape(b)
+			}
 			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, b)
 			return nil
 		},
