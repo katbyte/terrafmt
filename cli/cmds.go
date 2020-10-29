@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,14 +25,36 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
-const (
-	ExitCodeNoError             = 0
-	ExitCodeMiscError           = 1
-	ExitCodeBlockParsingError   = 1 << 1
-	ExitCodeFormattingDiffError = 1 << 2
+var (
+	ErrBlockParsing   = errors.New("failed to parse the block")
+	ErrMisc           = errors.New("misc error")
+	ErrFormattingDiff = errors.New("file diffs after formatting")
 )
+
+type ExitCode struct {
+	code int
+}
+
+func (rc ExitCode) Code() int {
+	return rc.code
+}
+
+func NewExitCodeFromError(err error) ExitCode {
+	var rc ExitCode
+	if errors.Is(err, ErrMisc) {
+		rc.code |= 1
+	}
+	if errors.Is(err, ErrBlockParsing) {
+		rc.code |= 1 << 1
+	}
+	if errors.Is(err, ErrFormattingDiff) {
+		rc.code |= 1 << 2
+	}
+	return rc
+}
 
 func Make() *cobra.Command {
 	root := &cobra.Command{
@@ -70,25 +93,29 @@ func Make() *cobra.Command {
 			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
 			verbose := viper.GetBool("verbose")
 
-			var errs *multierror.Error
-			exitCode := ExitCodeNoError
-
+			g := new(errgroup.Group)
 			for _, filename := range filenames {
-				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				filename := filename
+				g.Go(func() error {
+					br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 
-				if err != nil {
-					errs = multierror.Append(errs, err)
-				}
+					if err != nil {
+						return err
+					}
 
-				if br.ErrorBlocks > 0 {
-					exitCode |= ExitCodeBlockParsingError
+					var errs *multierror.Error
+					if br.ErrorBlocks > 0 {
+						errs = multierror.Append(errs, ErrBlockParsing)
+					}
+					return errs.ErrorOrNil()
+				})
+			}
+			if err := g.Wait(); err != nil {
+				rc := NewExitCodeFromError(err)
+				if rc.Code() != 0 {
+					os.Exit(rc.Code())
 				}
-			}
-			if errs != nil {
-				return errs
-			}
-			if exitCode != ExitCodeNoError {
-				os.Exit(exitCode)
+				return err
 			}
 
 			return nil
@@ -122,7 +149,7 @@ func Make() *cobra.Command {
 				return err
 			}
 			if br.ErrorBlocks > 0 {
-				os.Exit(ExitCodeBlockParsingError)
+				os.Exit(NewExitCodeFromError(ErrBlockParsing).Code())
 			}
 
 			return nil
@@ -151,28 +178,33 @@ func Make() *cobra.Command {
 				return err
 			}
 
-			var errs *multierror.Error
 			check := viper.GetBool("check")
-			exitCode := ExitCodeNoError
-
+			g := new(errgroup.Group)
 			for _, filename := range filenames {
-				br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
-				if err != nil {
-					errs = multierror.Append(errs, err)
-					continue
-				}
-				if br.ErrorBlocks > 0 {
-					exitCode |= ExitCodeBlockParsingError
-				}
-				if check && fileDiff {
-					exitCode |= ExitCodeFormattingDiffError
-				}
+				filename := filename
+				g.Go(func() error {
+					br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+					if err != nil {
+						return err
+					}
+
+					var errs *multierror.Error
+					if br.ErrorBlocks > 0 {
+						errs = multierror.Append(errs, ErrBlockParsing)
+					}
+					if check && fileDiff {
+						errs = multierror.Append(errs, ErrFormattingDiff)
+					}
+					return errs.ErrorOrNil()
+				})
 			}
-			if errs != nil {
-				return errs
-			}
-			if exitCode != ExitCodeNoError {
-				os.Exit(exitCode)
+
+			if err := g.Wait(); err != nil {
+				rc := NewExitCodeFromError(err)
+				if rc.Code() != 0 {
+					os.Exit(rc.Code())
+				}
+				return err
 			}
 
 			return nil
