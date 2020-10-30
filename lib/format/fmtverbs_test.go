@@ -186,9 +186,38 @@ resource "resource" "test" {
 }
 `,
 		},
+		{
+			name: "verb in index",
+			block: `resource "aws_apigatewayv2_domain_name" "test" {
+  domain_name = "%[1]s.example.com"
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.test[%[2]d].arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+`,
+			expected: `resource "aws_apigatewayv2_domain_name" "test" {
+  domain_name = "%[1]s.example.com"
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.test[%[2]d].arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+`,
+		},
 	}
+
+	t.Parallel()
+
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
 			result, err := FmtVerbBlock(log, test.block, "test")

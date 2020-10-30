@@ -30,10 +30,10 @@ func Escape(b string) string {
 	b = regexp.MustCompile(`(?m)("\${.*\[)(%(?:\.[0-9])?(?:\[[\d]+\])?d)(\]}")$`).ReplaceAllString(b, `${1}0/*@@_@@ TFMT:$2:TFMT @@_@@*/$3`)
 
 	// = [%s(, %s)]
-	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?[sdfgtq](,\s*)?)+\]$)`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
+	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?[sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
 	// = [%[n]s(, %[n]s)]
-	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?\[[\d]+\][sdfgtq](,\s*)?)+\]$)`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
+	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?\[[\d]+\][sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
 	//  .12 - something.%s.prop
 	b = regexp.MustCompile(`\.%([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT$1`)

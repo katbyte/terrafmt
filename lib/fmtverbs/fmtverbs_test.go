@@ -413,9 +413,34 @@ resource "aws_dynamodb_table" "test" {
 }
 `,
 		},
+		{
+			name: "verb in index",
+			block: `
+resource "resource" "test" {
+  attr = aws_acm_certificate.test[%[2]d].arn
+  attr = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+  attr = aws_acm_certificate.test[%d].arn
+  attr = "${aws_acm_certificate.test.*.arn[%d]}"
+}
+`,
+			expected: `
+resource "resource" "test" {
+  attr = aws_acm_certificate.test["@@_@@ TFMT:[%[2]d]:TFMT @@_@@"].arn
+  attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+  attr = aws_acm_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].arn
+  attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+}
+`,
+		},
 	}
+
+	t.Parallel()
+
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := Escape(test.block)
 			if result != test.expected {
 				t.Fatalf("Unexpected escaped result: ('-' actual, '+' expected)\n%s\n", diff.Diff(result, test.expected))

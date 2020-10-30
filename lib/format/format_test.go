@@ -87,8 +87,14 @@ resource "resource" "test" {
 			error:    true,
 		},
 	}
+
+	t.Parallel()
+
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
 			result, err := Block(log, test.block, "test")
