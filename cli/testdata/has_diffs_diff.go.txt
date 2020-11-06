@@ -9,3 +9,8 @@
 <red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
 <green>+  bucket = "tf-test-bucket-extra-space-%d"</>
  }
+<lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>42</>
+<red>-     resource "aws_s3_bucket" "leading-space" {</>
+<green>+resource "aws_s3_bucket" "leading-space" {</>
+   bucket = "tf-test-bucket-leading-space-%d"
+ }

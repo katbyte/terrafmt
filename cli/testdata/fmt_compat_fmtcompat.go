@@ -10,6 +10,10 @@ resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
   %s
+
+  tags = {
+    %[1]q = %[2]q
+  }
 }
 `, randInt)
 }
@@ -28,6 +32,10 @@ resource "aws_s3_bucket" "extra-space" {
   bucket = "tf-test-bucket-extra-space-%d"
 
   %s
+
+  tags = {
+    %[1]q = %[2]q
+  }
 }
 `, randInt) + testReturnSprintfSimple()
 }

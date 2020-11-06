@@ -34,9 +34,9 @@ var upgradeTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_upgrade012.go", // This has stricter formatting than `fmt`
-		lineCount:         39,
-		updatedBlockCount: 2,
-		totalBlockCount:   4,
+		lineCount:         47,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -45,9 +45,9 @@ var upgradeTestcases = []struct {
 		fmtcompat:  false,
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-			"block 3 @ %s:26 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 3 @ %s:30 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
 		},
-		lineCount:       33,
+		lineCount:       41,
 		totalBlockCount: 3,
 	},
 	{
@@ -55,8 +55,8 @@ var upgradeTestcases = []struct {
 		sourcefile:        "testdata/fmt_compat.go",
 		resultfile:        "testdata/fmt_compat_upgrade012.go",
 		fmtcompat:         true,
-		lineCount:         33,
-		updatedBlockCount: 2,
+		lineCount:         41,
+		updatedBlockCount: 1,
 		totalBlockCount:   3,
 	},
 	{
@@ -88,7 +88,8 @@ var upgradeTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			// "block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform 0.12upgrade",
 		},
 		errorBlockCount: 1,
 		lineCount:       21,
@@ -148,7 +149,7 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
@@ -252,7 +253,7 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			}
 			actualContent := c.String(string(data))
 			if actualContent != expected {
-				t.Errorf("File does not match expected:\n%s", diff.Diff(actualContent, expected))
+				t.Errorf("File does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualContent, expected))
 			}
 
 			errMsg := []string{}

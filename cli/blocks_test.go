@@ -57,7 +57,7 @@ var blocksTestcases = []struct {
 	{
 		name:       "Go formatting",
 		sourcefile: "testdata/has_diffs.go",
-		lineCount:  39,
+		lineCount:  47,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -88,36 +88,51 @@ var blocksTestcases = []struct {
   bucket = "tf-test-bucket-end-line-%d"
 }`,
 			},
+			{
+				startLine: 42,
+				endLine:   46,
+				text: `     resource "aws_s3_bucket" "leading-space" {
+  bucket = "tf-test-bucket-leading-space-%d"
+}`,
+			},
 		},
 	},
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  33,
+		lineCount:  41,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
-				endLine:   14,
+				endLine:   18,
 				text: `resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
   %s
+
+  tags = {
+    %[1]q = %[2]q
+  }
 }`,
 			},
 			{
-				startLine: 18,
-				endLine:   22,
+				startLine: 22,
+				endLine:   26,
 				text: `resource "aws_s3_bucket" "absolutely-nothing" {
   bucket = "tf-test-bucket-absolutely-nothing"
 }`,
 			},
 			{
-				startLine: 26,
-				endLine:   32,
+				startLine: 30,
+				endLine:   40,
 				text: `resource "aws_s3_bucket" "extra-space" {
   bucket    = "tf-test-bucket-extra-space-%d"
 
   %s
+
+  tags = {
+    %[1]q    = %[2]q
+  }
 }`,
 			},
 		},
@@ -292,14 +307,14 @@ func TestCmdBlocksVerbose(t *testing.T) {
 			err := findBlocksInFile(fs, log, testcase.sourcefile, true, false, false, false, nil, &outB, &errB)
 			actualStdErr := errB.String()
 			if err != nil {
-				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
+				t.Fatalf("Got an error when none was expected: %v", err)
 			}
 
 			expectedSummaryLine := c.String(fmt.Sprintf("Finished processing <cyan>%d</> lines <yellow>%d</> blocks!", testcase.lineCount, len(testcase.expectedBlocks)))
 
 			summaryLine := strings.TrimSpace(actualStdErr)
 			if summaryLine != expectedSummaryLine {
-				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+				t.Errorf("Unexpected summary:\nexpected %s\ngot      %s", expectedSummaryLine, summaryLine)
 			}
 		})
 	}

@@ -35,18 +35,18 @@ var fmtTestcases = []struct {
 		name:              "Go formatting",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt.go",
-		lineCount:         39,
-		updatedBlockCount: 2,
-		totalBlockCount:   4,
+		lineCount:         47,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
 	},
 	{
 		name:              "Go formatting, fix finish line",
 		sourcefile:        "testdata/has_diffs.go",
 		resultfile:        "testdata/has_diffs_fmt_fix_finish.go",
 		fixFinishLines:    true,
-		lineCount:         39,
-		updatedBlockCount: 2,
-		totalBlockCount:   4,
+		lineCount:         47,
+		updatedBlockCount: 3,
+		totalBlockCount:   5,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -55,10 +55,10 @@ var fmtTestcases = []struct {
 		fmtcompat:  false,
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:4,3-4:",
-			"block 3 @ %s:26 failed to process with: failed to parse hcl: %s:4,3-4:",
+			"block 3 @ %s:30 failed to process with: failed to parse hcl: %s:4,3-4:",
 		},
+		lineCount:       41,
 		errorBlockCount: 2,
-		lineCount:       33,
 		totalBlockCount: 3,
 	},
 	{
@@ -66,7 +66,7 @@ var fmtTestcases = []struct {
 		sourcefile:        "testdata/fmt_compat.go",
 		resultfile:        "testdata/fmt_compat_fmtcompat.go",
 		fmtcompat:         true,
-		lineCount:         33,
+		lineCount:         41,
 		updatedBlockCount: 1,
 		totalBlockCount:   3,
 	},
@@ -99,7 +99,7 @@ var fmtTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:6,17-18:",
 		},
 		errorBlockCount: 1,
 		lineCount:       21,
@@ -173,7 +173,7 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Case %q: Output does not match expected:\n%s", testcase.name, diff.Diff(actualStdOut, expected))
+				t.Errorf("Case %q: Output does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
@@ -278,7 +278,7 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			}
 			actualContent := c.String(string(data))
 			if actualContent != expected {
-				t.Errorf("Case %q: File does not match expected:\n%s", testcase.name, diff.Diff(actualContent, expected))
+				t.Errorf("Case %q: File does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualContent, expected))
 			}
 
 			if testcase.errorBlockCount != br.ErrorBlocks {

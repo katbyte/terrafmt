@@ -34,9 +34,9 @@ var diffTestcases = []struct {
 		name:                  "Go formatting",
 		sourcefile:            "testdata/has_diffs.go",
 		resultfile:            "testdata/has_diffs_diff.go.txt",
-		lineCount:             39,
-		unformattedBlockCount: 2,
-		totalBlockCount:       4,
+		lineCount:             47,
+		unformattedBlockCount: 3,
+		totalBlockCount:       5,
 	},
 	{
 		name:       "Go fmt verbs",
@@ -46,10 +46,10 @@ var diffTestcases = []struct {
 		noDiff:     true,
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
-			"block 3 @ %s:26 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
+			"block 3 @ %s:30 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
 		},
+		lineCount:       41,
 		errorBlockCount: 2,
-		lineCount:       33,
 		totalBlockCount: 3,
 	},
 	{
@@ -57,7 +57,7 @@ var diffTestcases = []struct {
 		sourcefile:            "testdata/fmt_compat.go",
 		resultfile:            "testdata/fmt_compat_diff_fmtcompat.go.txt",
 		fmtcompat:             true,
-		lineCount:             33,
+		lineCount:             41,
 		unformattedBlockCount: 1,
 		totalBlockCount:       3,
 	},
@@ -91,7 +91,7 @@ var diffTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/unsupported_fmt.go:5,5-6:",
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/unsupported_fmt.go:6,17-18:",
 		},
 		errorBlockCount:       1,
 		lineCount:             21,
@@ -157,7 +157,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected:\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
