@@ -2,12 +2,10 @@ package cli
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -299,23 +297,8 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
-	log := common.CreateLogger(cmd.ErrOrStderr())
-
 	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
-
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-	tfCmd := exec.Command("terraform", "version")
-	tfCmd.Stdout = stdout
-	tfCmd.Stderr = stderr
-	if err := tfCmd.Run(); err != nil {
-		log.Warnf("Error running terraform: %s", err)
-		return
-	}
-	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
-	// nolint errcheck
-	fmt.Println("  + " + terraformVersion)
 }
 
 type textBlockWriter struct {
