@@ -6,18 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
-	"github.com/hashicorp/terraform-exec/tfinstall"
 	"github.com/sirupsen/logrus"
 )
 
-func Block(log *logrus.Logger, b string) (string, error) {
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-
+func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (string, error) {
 	// Make temp directory
 	tempDir, err := ioutil.TempDir(".", "tmp-module")
 	if err != nil {
@@ -42,24 +37,10 @@ func Block(log *logrus.Logger, b string) (string, error) {
 		log.Fatal(err)
 	}
 
-	ctx := context.Background()
-
-	tfBin, err := tfinstall.Find(ctx, tfinstall.ExactVersion("0.12.29", tempDir))
+	tf, err := tfexec.NewTerraform(tempDir, tfPath)
 	if err != nil {
 		return "", err
 	}
-
-	relTfBin, err := filepath.Rel(tempDir, tfBin)
-	if err != nil {
-		return "", err
-	}
-
-	tf, err := tfexec.NewTerraform(tempDir, relTfBin)
-	if err != nil {
-		return "", err
-	}
-	tf.SetStdout(stdout)
-	tf.SetStderr(stderr)
 
 	err = tf.Init(ctx)
 	if err != nil {

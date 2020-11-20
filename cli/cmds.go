@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -517,6 +518,13 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 }
 
 func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	ctx := context.Background()
+
+	tfBin, err := upgrade012.InstallTerraform(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	blocksFormatted := 0
 	br := blocks.Reader{
 		Log:      log,
@@ -525,9 +533,9 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = upgrade012.Upgrade12VerbBlock(log, b)
+				fb, err = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
 			} else {
-				fb, err = upgrade012.Block(log, b)
+				fb, err = upgrade012.Block(ctx, tfBin, log, b)
 			}
 
 			if err != nil {
@@ -541,7 +549,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			return nil
 		},
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err = br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}
