@@ -9,7 +9,7 @@ require (
 	github.com/gookit/color v1.2.6
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/hcl/v2 v2.6.0
-	github.com/hashicorp/terraform-exec v0.11.0
+	github.com/hashicorp/terraform-exec v0.11.1-0.20201127183041-b76393f0a6fb
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
@@ -26,5 +26,3 @@ require (
 	gopkg.in/ini.v1 v1.57.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
-
-replace github.com/hashicorp/terraform-exec => github.com/gdavison/terraform-exec v0.11.1-0.20201119065153-f3b9d3de85ef
