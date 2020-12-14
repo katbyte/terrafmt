@@ -2,12 +2,11 @@ package cli
 
 import (
 	"bufio"
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -299,23 +298,8 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
-	log := common.CreateLogger(cmd.ErrOrStderr())
-
 	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
-
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-	tfCmd := exec.Command("terraform", "version")
-	tfCmd.Stdout = stdout
-	tfCmd.Stderr = stderr
-	if err := tfCmd.Run(); err != nil {
-		log.Warnf("Error running terraform: %s", err)
-		return
-	}
-	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
-	// nolint errcheck
-	fmt.Println("  + " + terraformVersion)
 }
 
 type textBlockWriter struct {
@@ -534,6 +518,13 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 }
 
 func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	ctx := context.Background()
+
+	tfBin, err := upgrade012.InstallTerraform(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	blocksFormatted := 0
 	br := blocks.Reader{
 		Log:      log,
@@ -542,9 +533,9 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = upgrade012.Upgrade12VerbBlock(log, b)
+				fb, err = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
 			} else {
-				fb, err = upgrade012.Block(log, b)
+				fb, err = upgrade012.Block(ctx, tfBin, log, b)
 			}
 
 			if err != nil {
@@ -558,7 +549,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			return nil
 		},
 	}
-	err := br.DoTheThing(fs, filename, stdin, stdout)
+	err = br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}

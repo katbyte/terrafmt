@@ -2,19 +2,17 @@ package upgrade012
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 
+	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/sirupsen/logrus"
 )
 
-func Block(log *logrus.Logger, b string) (string, error) {
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-
+func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (string, error) {
 	// Make temp directory
 	tempDir, err := ioutil.TempDir(".", "tmp-module")
 	if err != nil {
@@ -39,46 +37,25 @@ func Block(log *logrus.Logger, b string) (string, error) {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("terraform", "init", "-no-color")
-	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(),
-		"TF_IN_AUTOMATION=1",
-	)
-	cmd.Stderr = stderr
-	err = cmd.Run()
+	tf, err := tfexec.NewTerraform(tempDir, tfPath)
 	if err != nil {
-		return "", fmt.Errorf("cmd.Run() failed in terraform init with %w: %s", err, stderr)
+		return "", err
 	}
 
-	log.Debugf("running terraform... ")
-	cmd = exec.Command("terraform", "0.12upgrade", "-yes", "-no-color")
-	cmd.Dir = tempDir
-	cmd.Env = append(os.Environ(),
-		"TF_IN_AUTOMATION=1",
-	)
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	err = cmd.Run()
-
+	err = tf.Init(ctx)
 	if err != nil {
-		_, err := fmt.Println(stdout)
-		if err != nil {
-			return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %w: %s | %s", err, stdout, stderr)
-		}
-
-		return "", fmt.Errorf("cmd.Run() failed in terraform 0.12upgrade with %w: %s", err, stderr)
+		return "", fmt.Errorf("terraform init failed: %w", err)
 	}
 
-	ec := cmd.ProcessState.ExitCode()
-	log.Debugf("terraform exited with %d", ec)
-	if ec != 0 {
-		return "", fmt.Errorf("terraform failed with %d: %s", ec, stderr)
+	err = tf.Upgrade012(ctx)
+	if err != nil {
+		return "", fmt.Errorf("terraform 0.12upgrade failed: %w", err)
 	}
 
 	// Read from temp file
 	raw, err := ioutil.ReadFile(tmpFile.Name())
 	if err != nil {
-		return "", fmt.Errorf("terrafmt failed with readfile: %w", err)
+		return "", fmt.Errorf("failed to read %s: %w", tmpFile.Name(), err)
 	}
 
 	// 0.12upgrade always adds a trailing newline, even if it's already there

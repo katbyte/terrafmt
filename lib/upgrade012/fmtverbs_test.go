@@ -1,6 +1,7 @@
 package upgrade012
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -188,6 +189,13 @@ data "google_dns_managed_zone" "qa" {
 
 	t.Parallel()
 
+	ctx := context.Background()
+
+	tfBin, err := InstallTerraform(ctx)
+	if err != nil {
+		t.Fatalf("Failed to configure Terraform executable: %s", err)
+	}
+
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
@@ -195,9 +203,9 @@ data "google_dns_managed_zone" "qa" {
 
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			result, err := Upgrade12VerbBlock(log, test.block)
+			result, err := Upgrade12VerbBlock(ctx, tfBin, log, test.block)
 			if err != nil && !test.error {
-				t.Fatalf("Got an error when none was expected: %v", err)
+				t.Fatalf("Got an error when none was expected: %s", err)
 			}
 			if err == nil && test.error {
 				t.Errorf("Expected an error and none was generated")
