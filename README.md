@@ -35,6 +35,7 @@ The tool currently supports blocks with the following start and end lines:
 |```terraform        |`,  |
 |return fmt.Sprintf(`|`,  |
 |return fmt.Sprintf(`|`)  |
+|return `            |`   |
 
 ### Extract Terraform Blocks
 

@@ -64,6 +64,8 @@ func ReaderIgnore(br *Reader, number int, line string) error {
 func IsStartLine(line string) bool {
 	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
 		return true
+	} else if strings.HasSuffix(line, "return `\n") { // acctest
+		return true
 	} else if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
 	} else if strings.HasPrefix(line, "```terraform") { // documentation
@@ -77,6 +79,8 @@ func IsStartLine(line string) bool {
 
 func IsFinishLine(line string) bool {
 	if accTestFinishLineWithLeadingSpacesMatcher.MatchString(line) { // acctest
+		return true
+	} else if strings.HasSuffix(line, "`\n") { // acctest
 		return true
 	} else if strings.HasPrefix(line, "```") { // documentation
 		return true
