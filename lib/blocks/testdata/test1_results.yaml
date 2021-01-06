@@ -4,6 +4,10 @@ expected_results:
       bucket = "tf-test-bucket-simple"
     }
   - |
+    resource "aws_s3_bucket" "simple2" {
+      bucket = "tf-test-bucket-simple2"
+    }
+  - |
     resource "aws_s3_bucket" "with-parameters" {
       bucket = "tf-test-bucket-with-parameters-%d"
     }
