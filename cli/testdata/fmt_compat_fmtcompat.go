@@ -39,3 +39,17 @@ resource "aws_s3_bucket" "extra-space" {
 }
 `, randInt) + testReturnSprintfSimple()
 }
+
+func testForExpression(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_elasticache_replication_group" "for-expression" {
+  replication_group_id = %[1]q
+
+  node_groups {
+    primary_availability_zone  = aws_subnet.test[0].availability_zone
+    replica_availability_zones = [for x in range(1, %[2]d + 1) : element(aws_subnet.test[*].availability_zone, x)]
+    replica_count              = %[2]d
+  }
+}
+`, randInt)
+}

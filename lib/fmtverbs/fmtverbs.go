@@ -11,7 +11,7 @@ func Escape(b string) string {
 	// conditional expression: = %t ? ...
 	b = regexp.MustCompile(`(=\s*)(%\[[\d+]\]t)(\s\?)`).ReplaceAllString(b, `${1}true/*@@_@@ TFMT:${2}:TFMT @@_@@*/${3}`)
 
-	// %s
+	// %s - whole line
 	// figure out why the * doesn't match both later
 	b = regexp.MustCompile(`(?m:^%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
 	b = regexp.MustCompile(`(?m:^[ \t]*%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
@@ -47,8 +47,13 @@ func Escape(b string) string {
 	// = %[n]s
 	b = regexp.MustCompile(`(?m:%(\.[0-9])?\[[\d]+\][sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
 
-	// base64encode(%s) or md5(%s)
-	b = regexp.MustCompile(`\(%`).ReplaceAllString(b, `(TFFMTKTBRACKETPERCENT`)
+	// function(..., %s, ...)
+	// function(..., %[n]s, ...)
+	b = regexp.MustCompile(`\(.*%(\[(\d+)\])?[sdfgtq].*?\)`).ReplaceAllStringFunc(b, func(v string) string {
+		result := regexp.MustCompile(`%([sdfgtq])`).ReplaceAllString(v, `TFMTFNPARAM_$1`)
+		result = regexp.MustCompile(`%\[(\d+)\]([sdfgtq])`).ReplaceAllString(result, `TFMTFNPARAM_$1$2`)
+		return result
+	})
 
 	return b
 }
@@ -78,8 +83,11 @@ func Unscape(fb string) string {
 	// .12 - something.%s.prop
 	fb = strings.ReplaceAll(fb, ".TFMTKTKTTFMT", ".%")
 
-	// function(%
-	fb = strings.ReplaceAll(fb, "TFFMTKTBRACKETPERCENT", "%")
+	// function(..., %[n]s, ...)
+	fb = regexp.MustCompile(`TFMTFNPARAM_(\d+)([sdfgtq])`).ReplaceAllString(fb, `%[$1]$2`)
+
+	// function(..., %s, ...)
+	fb = strings.ReplaceAll(fb, "TFMTFNPARAM_", "%")
 
 	return fb
 }

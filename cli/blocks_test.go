@@ -100,7 +100,7 @@ var blocksTestcases = []struct {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  41,
+		lineCount:  55,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -132,6 +132,19 @@ var blocksTestcases = []struct {
 
   tags = {
     %[1]q    = %[2]q
+  }
+}`,
+			},
+			{
+				startLine: 44,
+				endLine:   54,
+				text: `resource "aws_elasticache_replication_group" "for-expression" {
+  replication_group_id = %[1]q
+
+  node_groups {
+    primary_availability_zone  = aws_subnet.test[0].availability_zone
+    replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
+    replica_count              = %[2]d
   }
 }`,
 			},

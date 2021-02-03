@@ -17,7 +17,6 @@ var diffTestcases = []struct {
 	resultfile            string
 	noDiff                bool
 	lineCount             int
-	errorBlockCount       int
 	unformattedBlockCount int
 	totalBlockCount       int
 	errMsg                []string
@@ -47,19 +46,19 @@ var diffTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
 			"block 3 @ %s:30 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
+			"block 4 @ %s:44 failed to process with: failed to parse hcl: testdata/fmt_compat.go:2,26-27:",
 		},
-		lineCount:       41,
-		errorBlockCount: 2,
-		totalBlockCount: 3,
+		lineCount:       55,
+		totalBlockCount: 4,
 	},
 	{
 		name:                  "Go fmt verbs --fmtcompat",
 		sourcefile:            "testdata/fmt_compat.go",
 		resultfile:            "testdata/fmt_compat_diff_fmtcompat.go.txt",
 		fmtcompat:             true,
-		lineCount:             41,
-		unformattedBlockCount: 1,
-		totalBlockCount:       3,
+		lineCount:             55,
+		unformattedBlockCount: 2,
+		totalBlockCount:       4,
 	},
 	{
 		name:       "Go bad terraform",
@@ -68,7 +67,6 @@ var diffTestcases = []struct {
 		errMsg: []string{
 			"block 2 @ %s:16 failed to process with: failed to parse hcl: testdata/bad_terraform.go:3,1-1:",
 		},
-		errorBlockCount:       1,
 		lineCount:             20,
 		unformattedBlockCount: 1,
 		totalBlockCount:       2,
@@ -80,7 +78,6 @@ var diffTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/unsupported_fmt.go:5,5-6:",
 		},
-		errorBlockCount:       1,
 		lineCount:             21,
 		unformattedBlockCount: 0,
 		totalBlockCount:       1,
@@ -93,7 +90,6 @@ var diffTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: testdata/unsupported_fmt.go:6,17-18:",
 		},
-		errorBlockCount:       1,
 		lineCount:             21,
 		unformattedBlockCount: 0,
 		totalBlockCount:       1,
@@ -152,8 +148,8 @@ func TestCmdDiffDefault(t *testing.T) {
 				t.Errorf(("Expected diff, but did not get one"))
 			}
 
-			if testcase.errorBlockCount != br.ErrorBlocks {
-				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
+			if len(testcase.errMsg) != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", len(testcase.errMsg), br.ErrorBlocks)
 			}
 
 			if actualStdOut != expected {

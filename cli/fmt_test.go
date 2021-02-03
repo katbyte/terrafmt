@@ -20,7 +20,6 @@ var fmtTestcases = []struct {
 	fmtcompat         bool
 	fixFinishLines    bool
 	lineCount         int
-	errorBlockCount   int
 	updatedBlockCount int
 	totalBlockCount   int
 }{
@@ -56,19 +55,19 @@ var fmtTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:4,3-4:",
 			"block 3 @ %s:30 failed to process with: failed to parse hcl: %s:4,3-4:",
+			"block 4 @ %s:44 failed to process with: failed to parse hcl: %s:2,26-27:",
 		},
-		lineCount:       41,
-		errorBlockCount: 2,
-		totalBlockCount: 3,
+		lineCount:       55,
+		totalBlockCount: 4,
 	},
 	{
 		name:              "Go fmt verbs --fmtcompat",
 		sourcefile:        "testdata/fmt_compat.go",
 		resultfile:        "testdata/fmt_compat_fmtcompat.go",
 		fmtcompat:         true,
-		lineCount:         41,
-		updatedBlockCount: 1,
-		totalBlockCount:   3,
+		lineCount:         55,
+		updatedBlockCount: 2,
+		totalBlockCount:   4,
 	},
 	{
 		name:       "Go bad terraform",
@@ -77,7 +76,6 @@ var fmtTestcases = []struct {
 		errMsg: []string{
 			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:3,1-1:",
 		},
-		errorBlockCount:   1,
 		lineCount:         20,
 		updatedBlockCount: 1,
 		totalBlockCount:   2,
@@ -89,7 +87,6 @@ var fmtTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
 		},
-		errorBlockCount: 1,
 		lineCount:       21,
 		totalBlockCount: 1,
 	},
@@ -101,7 +98,6 @@ var fmtTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:6,17-18:",
 		},
-		errorBlockCount: 1,
 		lineCount:       21,
 		totalBlockCount: 1,
 	},
@@ -168,8 +164,8 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
 			}
 
-			if testcase.errorBlockCount != br.ErrorBlocks {
-				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
+			if len(testcase.errMsg) != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", len(testcase.errMsg), br.ErrorBlocks)
 			}
 
 			if actualStdOut != expected {
@@ -281,8 +277,8 @@ func TestCmdFmtFileDefault(t *testing.T) {
 				t.Errorf("Case %q: File does not match expected: ('-' actual, '+' expected)\n%s", testcase.name, diff.Diff(actualContent, expected))
 			}
 
-			if testcase.errorBlockCount != br.ErrorBlocks {
-				t.Errorf("Expected %d block errors, got %d", testcase.errorBlockCount, br.ErrorBlocks)
+			if len(testcase.errMsg) != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", len(testcase.errMsg), br.ErrorBlocks)
 			}
 
 			errMsg := []string{}
