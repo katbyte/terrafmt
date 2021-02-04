@@ -1,6 +1,7 @@
 package upgrade012
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -149,13 +150,25 @@ Hi there i am going to fail... =C
 			error:    true,
 		},
 	}
+
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tfBin, err := InstallTerraform(ctx)
+	if err != nil {
+		t.Fatalf("Failed to configure Terraform executable: %s", err)
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			result, err := Block(log, test.block)
+			result, err := Block(ctx, tfBin, log, test.block)
 			if err != nil && !test.error {
-				t.Fatalf("Got an error when none was expected: %v", err)
+				t.Errorf("Got an error when none was expected: %s", err)
 			}
 			if err == nil && test.error {
 				t.Errorf("Expected an error and none was generated")

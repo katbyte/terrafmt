@@ -55,10 +55,10 @@ var fmtTestcases = []struct {
 		fmtcompat:  false,
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:4,3-4:",
-			"block 3 @ %s:26 failed to process with: failed to parse hcl: %s:4,3-4:",
+			"block 3 @ %s:30 failed to process with: failed to parse hcl: %s:4,3-4:",
 		},
+		lineCount:       41,
 		errorBlockCount: 2,
-		lineCount:       33,
 		totalBlockCount: 3,
 	},
 	{
@@ -66,7 +66,7 @@ var fmtTestcases = []struct {
 		sourcefile:        "testdata/fmt_compat.go",
 		resultfile:        "testdata/fmt_compat_fmtcompat.go",
 		fmtcompat:         true,
-		lineCount:         33,
+		lineCount:         41,
 		updatedBlockCount: 1,
 		totalBlockCount:   3,
 	},
@@ -99,7 +99,7 @@ var fmtTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:5,5-6:",
+			"block 1 @ %s:8 failed to process with: failed to parse hcl: %s:6,17-18:",
 		},
 		errorBlockCount: 1,
 		lineCount:       21,

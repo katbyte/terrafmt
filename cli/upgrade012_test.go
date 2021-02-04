@@ -44,10 +44,10 @@ var upgradeTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  false,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
-			"block 3 @ %s:26 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 1 @ %s:8 failed to process with: terraform init failed:",
+			"block 3 @ %s:30 failed to process with: terraform init failed:",
 		},
-		lineCount:       33,
+		lineCount:       41,
 		totalBlockCount: 3,
 	},
 	{
@@ -55,8 +55,8 @@ var upgradeTestcases = []struct {
 		sourcefile:        "testdata/fmt_compat.go",
 		resultfile:        "testdata/fmt_compat_upgrade012.go",
 		fmtcompat:         true,
-		lineCount:         33,
-		updatedBlockCount: 2,
+		lineCount:         41,
+		updatedBlockCount: 1,
 		totalBlockCount:   3,
 	},
 	{
@@ -64,7 +64,7 @@ var upgradeTestcases = []struct {
 		sourcefile: "testdata/bad_terraform.go",
 		resultfile: "testdata/bad_terraform_upgrade012.go",
 		errMsg: []string{
-			"block 2 @ %s:16 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 2 @ %s:16 failed to process with: terraform init failed:",
 		},
 		errorBlockCount:   1,
 		lineCount:         20,
@@ -76,7 +76,7 @@ var upgradeTestcases = []struct {
 		sourcefile: "testdata/unsupported_fmt.go",
 		noDiff:     true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 1 @ %s:8 failed to process with: terraform init failed:",
 		},
 		errorBlockCount: 1,
 		lineCount:       21,
@@ -88,7 +88,7 @@ var upgradeTestcases = []struct {
 		noDiff:     true,
 		fmtcompat:  true,
 		errMsg: []string{
-			"block 1 @ %s:8 failed to process with: cmd.Run() failed in terraform init with exit status 1:",
+			"block 1 @ %s:8 failed to process with: terraform 0.12upgrade failed:",
 		},
 		errorBlockCount: 1,
 		lineCount:       21,

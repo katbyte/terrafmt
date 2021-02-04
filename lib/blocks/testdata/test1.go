@@ -12,6 +12,14 @@ resource "aws_s3_bucket" "simple" {
 `)
 }
 
+func testReturnStringSimple() string {
+	return `
+resource "aws_s3_bucket" "simple2" {
+  bucket = "tf-test-bucket-simple2"
+}
+`
+}
+
 func testReturnSprintfWithParameters(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "with-parameters" {

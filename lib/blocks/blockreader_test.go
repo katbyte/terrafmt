@@ -70,6 +70,14 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
+					text: `resource "aws_s3_bucket" "simple2" {
+  bucket = "tf-test-bucket-simple2"
+}
+`,
+				},
+				{
+					leadingPadding:  "\n",
+					trailingPadding: "\n",
 					text: `resource "aws_s3_bucket" "with-parameters" {
   bucket = "tf-test-bucket-with-parameters-%d"
 }

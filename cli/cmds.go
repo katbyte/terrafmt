@@ -2,14 +2,13 @@ package cli
 
 import (
 	"bufio"
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
+	verbs "github.com/katbyte/terrafmt/lib/fmtverbs"
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
@@ -204,9 +204,10 @@ func Make() *cobra.Command {
 			if zeroTerminated && jsonOutput {
 				return fmt.Errorf("only one of zero-terminated or json can be specified")
 			}
+			fmtCompat := viper.GetBool("fmtcompat")
 
 			fs := afero.NewOsFs()
-			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, fmtCompat, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	root.AddCommand(blocksCmd)
@@ -299,23 +300,8 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
-	log := common.CreateLogger(cmd.ErrOrStderr())
-
 	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
-
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-	tfCmd := exec.Command("terraform", "version")
-	tfCmd.Stdout = stdout
-	tfCmd.Stderr = stderr
-	if err := tfCmd.Run(); err != nil {
-		log.Warnf("Error running terraform: %s", err)
-		return
-	}
-	terraformVersion := strings.SplitN(stdout.String(), "\n", 2)[0]
-	// nolint errcheck
-	fmt.Println("  + " + terraformVersion)
 }
 
 type textBlockWriter struct {
@@ -381,7 +367,7 @@ func (w jsonBlockWriter) Close() error {
 	return encoder.Encode(w.data)
 }
 
-func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput bool, stdin io.Reader, stdout, stderr io.Writer) error {
+func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
@@ -402,6 +388,9 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		LineRead:    blocks.ReaderIgnore,
 		BlockWriter: blockWriter,
 		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			if fmtverbs {
+				b = verbs.Escape(b)
+			}
 			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, b)
 			return nil
 		},
@@ -557,6 +546,13 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 }
 
 func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	ctx := context.Background()
+
+	tfBin, err := upgrade012.InstallTerraform(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	blocksFormatted := 0
 	br := blocks.Reader{
 		Log:      log,
@@ -565,9 +561,9 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			var fb string
 			var err error
 			if fmtverbs {
-				fb, err = upgrade012.Upgrade12VerbBlock(log, b)
+				fb, err = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
 			} else {
-				fb, err = upgrade012.Block(log, b)
+				fb, err = upgrade012.Block(ctx, tfBin, log, b)
 			}
 			if err != nil {
 				return err
@@ -600,7 +596,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			return nil
 		},
 	}
-	err := br.DoTheThingNew(fs, filename, stdin, stdout)
+	err = br.DoTheThingNew(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}
