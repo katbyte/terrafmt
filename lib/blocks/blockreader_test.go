@@ -9,43 +9,6 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestBlockReaderIsFinishLine(t *testing.T) {
-	tests := []struct {
-		name     string
-		line     string
-		expected bool
-	}{
-		{
-			name:     "acctest without vars",
-			line:     "`)\n",
-			expected: true,
-		},
-		{
-			name:     "acctest with vars",
-			line:     "`,",
-			expected: true,
-		},
-		{
-			name:     "acctest without vars and whitespaces",
-			line:     "  `)\n",
-			expected: true,
-		},
-		{
-			name:     "acctest with vars and whitespaces",
-			line:     "  `,",
-			expected: true,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result := IsFinishLine(test.line)
-			if result != test.expected {
-				t.Errorf("Got: \n%#v\nexpected:\n%#v\n", result, test.expected)
-			}
-		})
-	}
-}
-
 func TestBlockDetection(t *testing.T) {
 	type block struct {
 		leadingPadding  string
@@ -180,7 +143,7 @@ func TestBlockDetection(t *testing.T) {
 				return nil
 			},
 		}
-		err := br.DoTheThingNew(fs, testcase.sourcefile, nil, nil)
+		err := br.DoTheThing(fs, testcase.sourcefile, nil, nil)
 		if err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue

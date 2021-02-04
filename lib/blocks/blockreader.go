@@ -20,8 +20,7 @@ import (
 )
 
 var (
-	accTestFinishLineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*`(,|\\)\n)")
-	lineWithLeadingSpacesMatcher              = regexp.MustCompile("^[[:space:]]*(.*\n)$")
+	lineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*(.*\n)$")
 )
 
 type blockReadFunc func(*Reader, int, string) error
@@ -75,11 +74,7 @@ func ReaderIgnore(br *Reader, number int, line string) error {
 }
 
 func IsStartLine(line string) bool {
-	if strings.HasSuffix(line, "return fmt.Sprintf(`\n") { // acctest
-		return true
-	} else if strings.HasSuffix(line, "return `\n") { // acctest
-		return true
-	} else if strings.HasPrefix(line, "```hcl") { // documentation
+	if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
 	} else if strings.HasPrefix(line, "```terraform") { // documentation
 		return true
@@ -91,15 +86,7 @@ func IsStartLine(line string) bool {
 }
 
 func IsFinishLine(line string) bool {
-	if accTestFinishLineWithLeadingSpacesMatcher.MatchString(line) { // acctest
-		return true
-	} else if strings.HasSuffix(line, "`\n") { // acctest
-		return true
-	} else if strings.HasPrefix(line, "```") { // documentation
-		return true
-	}
-
-	return false
+	return strings.HasPrefix(line, "```") // documentation
 }
 
 type blockVisitor struct {
@@ -145,11 +132,11 @@ func looksLikeTerraform(s string) bool {
 	return terraformMatcher.MatchString(s)
 }
 
-func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
+func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	inStream := &bytes.Buffer{}
 	if filename != "" {
 		if !strings.HasSuffix(filename, ".go") {
-			return br.DoTheThing(fs, filename, stdin, stdout)
+			return br.doTheThingPatternMatch(fs, filename, stdin, stdout)
 		}
 	} else {
 		tee := io.TeeReader(stdin, inStream)
@@ -157,7 +144,7 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 		if matched, err := regexp.MatchReader(`package [a-zA-Z0-9_]+\n`, teee); err != nil {
 			return err
 		} else if !matched {
-			return br.DoTheThing(fs, filename, inStream, stdout)
+			return br.doTheThingPatternMatch(fs, filename, inStream, stdout)
 		}
 	}
 
@@ -232,7 +219,7 @@ func (br *Reader) DoTheThingNew(fs afero.Fs, filename string, stdin io.Reader, s
 	return nil
 }
 
-func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
+func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	var buf *bytes.Buffer
 
 	if filename != "" {

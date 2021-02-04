@@ -396,7 +396,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		},
 	}
 
-	err := br.DoTheThingNew(fs, filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return err
 	}
@@ -458,7 +458,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		},
 	}
 
-	err := br.DoTheThingNew(fs, filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return nil, false, err
 	}
@@ -531,7 +531,7 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 		},
 		FixFinishLines: fixFinishLines,
 	}
-	err := br.DoTheThingNew(fs, filename, stdin, stdout)
+	err := br.DoTheThing(fs, filename, stdin, stdout)
 
 	fc := "magenta"
 	if blocksFormatted > 0 {
@@ -596,7 +596,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			return nil
 		},
 	}
-	err = br.DoTheThingNew(fs, filename, stdin, stdout)
+	err = br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err
 	}
