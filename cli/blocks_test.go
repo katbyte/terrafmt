@@ -372,9 +372,10 @@ func TestCmdBlocksJson(t *testing.T) {
 			for _, block := range testcase.expectedBlocks {
 				data.BlockCount++
 				blockData := Block{
-					StartLine: block.startLine,
-					EndLine:   block.endLine,
-					Text:      block.text + "\n",
+					BlockNumber: data.BlockCount,
+					StartLine:   block.startLine,
+					EndLine:     block.endLine,
+					Text:        block.text + "\n",
 				}
 				data.Blocks = append(data.Blocks, blockData)
 			}
@@ -419,9 +420,10 @@ func TestCmdBlocksFmtVerbsJson(t *testing.T) {
 			for _, block := range testcase.expectedBlocks {
 				data.BlockCount++
 				blockData := Block{
-					StartLine: block.startLine,
-					EndLine:   block.endLine,
-					Text:      fmtverbs.Escape(block.text) + "\n",
+					BlockNumber: data.BlockCount,
+					StartLine:   block.startLine,
+					EndLine:     block.endLine,
+					Text:        fmtverbs.Escape(block.text) + "\n",
 				}
 				data.Blocks = append(data.Blocks, blockData)
 			}
