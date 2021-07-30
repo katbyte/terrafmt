@@ -325,7 +325,7 @@ func (w zeroTerminatedBlockWriter) Write(index, startLine, endLine int, text str
 func (w zeroTerminatedBlockWriter) Close() error { return nil }
 
 type Block struct {
-	BlockNumber int    `json:block_number`
+	BlockNumber int    `json:"block_number"`
 	StartLine   int    `json:"start_line"`
 	EndLine     int    `json:"end_line"`
 	Text        string `json:"text"`
