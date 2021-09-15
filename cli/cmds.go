@@ -325,9 +325,10 @@ func (w zeroTerminatedBlockWriter) Write(index, startLine, endLine int, text str
 func (w zeroTerminatedBlockWriter) Close() error { return nil }
 
 type Block struct {
-	StartLine int    `json:"start_line"`
-	EndLine   int    `json:"end_line"`
-	Text      string `json:"text"`
+	BlockNumber int    `json:"block_number"`
+	StartLine   int    `json:"start_line"`
+	EndLine     int    `json:"end_line"`
+	Text        string `json:"text"`
 }
 
 type Output struct {
@@ -354,9 +355,10 @@ type jsonBlockWriter struct {
 func (w *jsonBlockWriter) Write(index, startLine, endLine int, text string) {
 	w.data.BlockCount++
 	w.data.Blocks = append(w.data.Blocks, Block{
-		StartLine: startLine,
-		EndLine:   endLine,
-		Text:      text,
+		BlockNumber: index,
+		StartLine:   startLine,
+		EndLine:     endLine,
+		Text:        text,
 	})
 }
 

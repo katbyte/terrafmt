@@ -52,6 +52,7 @@ To output the blocks using a JSON structure, use the flags `--json` or `-j`. The
     "block_count": 1,
     "blocks": [
         {
+            "block_number": 1,
             "start_line": 4,
             "end_line": 9,
             "text": "..."
@@ -69,6 +70,7 @@ To output the blocks using a JSON structure, use the flags `--json` or `-j`. The
     "block_count": 1,
     "blocks": [
         {
+            "block_number": 1,
             "start_line": 4,
             "end_line": 9,
             "text": "..."
