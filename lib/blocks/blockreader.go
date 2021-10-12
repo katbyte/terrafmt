@@ -193,6 +193,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
+				return fmt.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 			}
 		}
 	}
