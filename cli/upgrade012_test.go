@@ -47,9 +47,10 @@ var upgradeTestcases = []struct {
 			"block 3 @ %s:30 failed to process with: terraform init failed:",
 			"block 4 @ %s:44 failed to process with: terraform init failed:",
 			"block 5 @ %s:53 failed to process with: terraform init failed:",
+			"block 6 @ %s:67 failed to process with: terraform init failed:",
 		},
-		lineCount:       64,
-		totalBlockCount: 5,
+		lineCount:       76,
+		totalBlockCount: 6,
 	},
 	{
 		name:       "Go fmt verbs --fmtcompat",
@@ -62,9 +63,9 @@ var upgradeTestcases = []struct {
 			// for-expressions were added in Terraform 0.12
 			"block 5 @ %s:53 failed to process with: terraform 0.12upgrade failed:",
 		},
-		lineCount:         64,
+		lineCount:         76,
 		updatedBlockCount: 1,
-		totalBlockCount:   5,
+		totalBlockCount:   6,
 	},
 	{
 		name:       "Go bad terraform",

@@ -11,6 +11,12 @@ func Escape(b string) string {
 	// conditional expression: = %t ? ...
 	b = regexp.MustCompile(`(=\s*)(%\[[\d+]\]t)(\s\?)`).ReplaceAllString(b, `${1}true/*@@_@@ TFMT:${2}:TFMT @@_@@*/${3}`)
 
+	// resource name %s
+	b = regexp.MustCompile(`([resource|data]\s+"[-a-zA-Z0-9_]+"\s+"[-a-zA-Z0-9_]*)%(?:\[([\d]+)\])?s`).ReplaceAllString(b, `${1}TFMTRESNAME_${2}s`)
+
+	// resource name %q
+	b = regexp.MustCompile(`([resource|data]\s+"[-a-zA-Z0-9_]+"\s+)%(?:\[([\d]+)\])?q`).ReplaceAllString(b, `${1}"TFMTRESNAME_${2}q"`)
+
 	// %s - whole line
 	// figure out why the * doesn't match both later
 	b = regexp.MustCompile(`(?m:^%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
@@ -94,6 +100,18 @@ func Unscape(fb string) string {
 
 	// %s =
 	fb = regexp.MustCompile(`Ω([sdfgtq])`).ReplaceAllString(fb, `%${1}`)
+
+	// resource name %[n]s
+	fb = regexp.MustCompile(`TFMTRESNAME_(\d+)s`).ReplaceAllString(fb, `%[$1]s`)
+
+	// resource name %s
+	fb = regexp.MustCompile(`TFMTRESNAME_s`).ReplaceAllString(fb, `%s`)
+
+	// resource name %[n]s
+	fb = regexp.MustCompile(`"TFMTRESNAME_(\d+)q"`).ReplaceAllString(fb, `%[$1]q`)
+
+	// resource name %s
+	fb = regexp.MustCompile(`"TFMTRESNAME_q"`).ReplaceAllString(fb, `%q`)
 
 	return fb
 }

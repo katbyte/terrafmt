@@ -520,6 +520,41 @@ resource "resource" "test" {
 }
 `,
 		},
+		{
+			name: "verb in resource name",
+			block: `
+resource "resource" "%s" {
+}
+
+resource "resource" "test-%[1]s" {
+}
+
+resource "resource" "%s-test" {
+}
+
+data "data_source" %[1]q {
+}
+
+resource "resource" %q {
+}
+`,
+			expected: `
+resource "resource" "TFMTRESNAME_s" {
+}
+
+resource "resource" "test-TFMTRESNAME_1s" {
+}
+
+resource "resource" "TFMTRESNAME_s-test" {
+}
+
+data "data_source" "TFMTRESNAME_1q" {
+}
+
+resource "resource" "TFMTRESNAME_q" {
+}
+`,
+		},
 	}
 
 	t.Parallel()

@@ -148,7 +148,7 @@ resource "aws_vpc" "test" {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  64,
+		lineCount:  76,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -206,6 +206,18 @@ resource "aws_vpc" "test" {
     replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
     replica_count              = %[2]d
   }
+}
+`,
+			},
+			{
+				startLine: 67,
+				endLine:   75,
+				text: `resource "aws_s3_bucket" %[1]q {
+  bucket = "tf-test-bucket-with-quotedname"
+}
+
+resource "aws_s3_bucket" "%[1]s-copy" {
+  bucket = "tf-test-bucket-with-name-in-quotes"
 }
 `,
 			},
