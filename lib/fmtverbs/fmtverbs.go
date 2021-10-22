@@ -42,10 +42,16 @@ func Escape(b string) string {
 	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?\[[\d]+\][sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
 	//  .12 - something.%s.prop
-	b = regexp.MustCompile(`\.%([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT$1`)
+	b = regexp.MustCompile(`\.%([sdt])`).ReplaceAllString(b, `.TFMTKTKTTFMT${1}`)
 
 	//  .12 - something.%[n]s.prop
-	b = regexp.MustCompile(`\.%\[(\d+)\]([sdfgtq])`).ReplaceAllString(b, `.TFMTKTKTTFMT_$1$2`)
+	b = regexp.MustCompile(`\.%\[(\d+)\]([sdt])`).ReplaceAllString(b, `.TFMTKTKTTFMT_${1}${2}`)
+
+	//  .12 - something.text%s.prop
+	b = regexp.MustCompile(`\.([-a-zA-Z0-9_]+)%([sdt])`).ReplaceAllString(b, `.${1}TFMTKTKTTFMT${2}`)
+
+	//  .12 - something.text%[n]s.prop
+	b = regexp.MustCompile(`\.([-a-zA-Z0-9_]+)%\[(\d+)\]([sdt])`).ReplaceAllString(b, `.${1}TFMTKTKTTFMT_${2}${3}`)
 
 	// = %s
 	b = regexp.MustCompile(`(?m:%(\.[0-9])?[sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
@@ -84,10 +90,10 @@ func Unscape(fb string) string {
 	fb = strings.ReplaceAll(fb, ":TFMT @@_@@\"", "")
 
 	// .12 - something.%[n]s.prop
-	fb = regexp.MustCompile(`\.TFMTKTKTTFMT_(\d+)([sdfgtq])`).ReplaceAllString(fb, `.%[$1]$2`)
+	fb = regexp.MustCompile(`TFMTKTKTTFMT_(\d+)`).ReplaceAllString(fb, `%[$1]`)
 
 	// .12 - something.%s.prop
-	fb = strings.ReplaceAll(fb, ".TFMTKTKTTFMT", ".%")
+	fb = strings.ReplaceAll(fb, "TFMTKTKTTFMT", "%")
 
 	// function(..., %[n]s, ...)
 	fb = regexp.MustCompile(`TFMTFNPARAM_(\d+)([sdfgtq])`).ReplaceAllString(fb, `%[$1]$2`)

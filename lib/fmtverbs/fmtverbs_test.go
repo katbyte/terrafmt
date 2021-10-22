@@ -245,20 +245,14 @@ resource "resource" "test" {
 resource "resource" "test" {
   s = data.source.%s.id
   d = data.source.%d.id
-  f = data.source.%f.id
-  g = data.source.%g.id
   t = data.source.%t.id
-  q = data.source.%q.id
 }
 `,
 			expected: `
 resource "resource" "test" {
   s = data.source.TFMTKTKTTFMTs.id
   d = data.source.TFMTKTKTTFMTd.id
-  f = data.source.TFMTKTKTTFMTf.id
-  g = data.source.TFMTKTKTTFMTg.id
   t = data.source.TFMTKTKTTFMTt.id
-  q = data.source.TFMTKTKTTFMTq.id
 }
 `,
 		},
@@ -268,20 +262,14 @@ resource "resource" "test" {
 resource "resource" "test" {
   s = data.source.%[1]s.id
   d = data.source.%[2]d.id
-  f = data.source.%[3]f.id
-  g = data.source.%[4]g.id
   t = data.source.%[5]t.id
-  q = data.source.%[6]q.id
 }
 `,
 			expected: `
 resource "resource" "test" {
   s = data.source.TFMTKTKTTFMT_1s.id
   d = data.source.TFMTKTKTTFMT_2d.id
-  f = data.source.TFMTKTKTTFMT_3f.id
-  g = data.source.TFMTKTKTTFMT_4g.id
   t = data.source.TFMTKTKTTFMT_5t.id
-  q = data.source.TFMTKTKTTFMT_6q.id
 }
 `,
 		},
@@ -524,34 +512,42 @@ resource "resource" "test" {
 			name: "verb in resource name",
 			block: `
 resource "resource" "%s" {
+  kat = resource.test-%s.byte
 }
 
 resource "resource" "test-%[1]s" {
+  kat = resource.%s-test.byte
 }
 
 resource "resource" "%s-test" {
+  kat = resource.%s.byte
 }
 
 data "data_source" %[1]q {
 }
 
 resource "resource" %q {
+  kat = resource.%[1]s.byte
 }
 `,
 			expected: `
 resource "resource" "TFMTRESNAME_s" {
+  kat = resource.test-TFMTKTKTTFMTs.byte
 }
 
 resource "resource" "test-TFMTRESNAME_1s" {
+  kat = resource.TFMTKTKTTFMTs-test.byte
 }
 
 resource "resource" "TFMTRESNAME_s-test" {
+  kat = resource.TFMTKTKTTFMTs.byte
 }
 
 data "data_source" "TFMTRESNAME_1q" {
 }
 
 resource "resource" "TFMTRESNAME_q" {
+  kat = resource.TFMTKTKTTFMT_1s.byte
 }
 `,
 		},
