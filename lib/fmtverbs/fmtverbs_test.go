@@ -551,6 +551,27 @@ resource "resource" "TFMTRESNAME_q" {
 }
 `,
 		},
+		{
+			name: "provider meta-argument",
+			block: `
+resource "resource" "test" {
+  provider = %s
+}
+
+resource "resource" "test2" {
+  provider = %[1]s
+}
+`,
+			expected: `
+resource "resource" "test" {
+  provider = tfmtprovider.PROVIDER
+}
+
+resource "resource" "test2" {
+  provider = tfmtprovider.PROVIDER_1
+}
+`,
+		},
 	}
 
 	t.Parallel()
