@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
@@ -496,10 +498,36 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 				return err
 			}
 
-			_, err = br.Writer.Write([]byte(fb))
+			hasChange := fb != b
 
-			if err == nil && fb != b {
-				blocksFormatted++
+			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
+				if br.FixFinishLines {
+					trimmed := strings.TrimRight(br.CurrentNodeTrailingPadding, " \t")
+					if trimmed != br.CurrentNodeTrailingPadding {
+						br.CurrentNodeTrailingPadding = trimmed
+						hasChange = true
+					}
+				}
+
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
+					})
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && hasChange {
+					blocksFormatted++
+				}
 			}
 
 			return err
@@ -540,13 +568,32 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			} else {
 				fb, err = upgrade012.Block(ctx, tfBin, log, b)
 			}
-
 			if err != nil {
 				return err
 			}
 
-			if _, err = br.Writer.Write([]byte(fb)); err == nil && fb != b {
-				blocksFormatted++
+			hasChange := fb != b
+
+			if br.CurrentNodeCursor != nil {
+				fb = strings.TrimSuffix(fb, "\n")
+
+				if hasChange {
+					br.CurrentNodeCursor.Replace(&ast.BasicLit{
+						Kind: token.STRING,
+						Value: br.CurrentNodeQuoteChar +
+							br.CurrentNodeLeadingPadding +
+							fb +
+							br.CurrentNodeTrailingPadding +
+							br.CurrentNodeQuoteChar,
+					})
+					blocksFormatted++
+				}
+			} else {
+				_, err = br.Writer.Write([]byte(fb))
+
+				if err == nil && hasChange {
+					blocksFormatted++
+				}
 			}
 
 			return nil
