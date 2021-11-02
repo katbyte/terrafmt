@@ -130,9 +130,10 @@ func Make() *cobra.Command {
 
 	//options : only count, blocks diff/found, total lines diff, etc
 	diffCmd := &cobra.Command{
-		Use:   "diff [path]",
-		Short: "formats terraform blocks in a directory, file, or stdin and shows the difference",
-		Args:  cobra.RangeArgs(0, 1),
+		Use:          "diff [path]",
+		Short:        "formats terraform blocks in a directory, file, or stdin and shows the difference",
+		Args:         cobra.RangeArgs(0, 1),
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log := common.CreateLogger(cmd.ErrOrStderr())
 
