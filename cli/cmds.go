@@ -227,6 +227,7 @@ func Make() *cobra.Command {
 	pflags.BoolP("check", "c", false, "return an error during diff if formatting is required")
 	pflags.BoolP("verbose", "v", false, "show files as they are processed& additional stats")
 	pflags.BoolP("quiet", "q", false, "quiet mode, only shows block line numbers ")
+	pflags.BoolP("no-color", "C", false, "disable colorful output")
 
 	if err := viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat")); err != nil {
 		panic(err)
@@ -240,9 +241,17 @@ func Make() *cobra.Command {
 	if err := viper.BindPFlag("verbose", pflags.Lookup("verbose")); err != nil {
 		panic(err)
 	}
+	if err := viper.BindPFlag("no-color", pflags.Lookup("no-color")); err != nil {
+		panic(err)
+	}
 
 	//todo bind to env?
 
+	cobra.OnInitialize(func() {
+		if viper.GetBool("no-color") {
+			c.Enable = false
+		}
+	})
 	return root
 }
 
