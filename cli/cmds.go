@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
+	"github.com/magodo/hclgrep/hclgrep"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -214,6 +216,67 @@ func Make() *cobra.Command {
 	root.AddCommand(blocksCmd)
 	blocksCmd.Flags().BoolP("zero-terminated", "z", false, "outputs blocks separated by null separator")
 	blocksCmd.Flags().BoolP("json", "j", false, "outputs blocks in JSON format")
+
+	// options
+	grepCmd := &cobra.Command{
+		Use:   "grep [path] -- [hclgrep option]",
+		Short: "search for HCL pattern in the terraform blocks from a file ",
+		Args: func(cmd *cobra.Command, args []string) error {
+			l := cmd.Flags().ArgsLenAtDash()
+			min, max := 0, 1
+			if l < min || l > max {
+				return fmt.Errorf("accepts between %d and %d arg(s) before the `--`, received %d", min, max, l)
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			log := common.CreateLogger(cmd.ErrOrStderr())
+
+			var path string
+			hclgrepArgs := cmd.Flags().Args()
+			if cmd.Flags().ArgsLenAtDash() == 1 {
+				path = args[0]
+				hclgrepArgs = hclgrepArgs[1:]
+			}
+
+			log.Debugf("terrafmt grep %s", path)
+
+			fs := afero.NewOsFs()
+			pattern, _ := cmd.Flags().GetString("pattern")
+			filenames, err := allFiles(fs, path, pattern)
+			if err != nil {
+				return err
+			}
+
+			m := hclgrep.Matcher{}
+			cmds, _, err := m.ParseCmds(hclgrepArgs)
+			if err != nil {
+				return fmt.Errorf("parsing hclgrep args %v: %w", hclgrepArgs, err)
+			}
+			verbose := viper.GetBool("verbose")
+
+			var errs *multierror.Error
+			exitCode := ExitCodeNoError
+			for _, filename := range filenames {
+				br, err := grepInFile(fs, log, filename, verbose, cmds, m, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				if err != nil {
+					errs = multierror.Append(errs, err)
+				}
+				if br.ErrorBlocks > 0 {
+					exitCode |= ExitCodeBlockParsingError
+				}
+			}
+			if errs != nil {
+				return errs
+			}
+			if exitCode != ExitCodeNoError {
+				os.Exit(exitCode)
+			}
+			return nil
+		},
+	}
+	root.AddCommand(grepCmd)
+	grepCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -614,4 +677,50 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 	}
 
 	return &br, err
+}
+
+func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, cmds []hclgrep.Cmd, m hclgrep.Matcher, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+	// // Suppress color since the extracted block will be hclgrep-ed.
+	// c.Enable = false
+	var blockWriter blocks.BlockWriter
+	blockWriter = textBlockWriter{
+		writer: stdout,
+	}
+
+	br := blocks.Reader{
+		Log:         log,
+		ReadOnly:    true,
+		LineRead:    blocks.ReaderIgnore,
+		BlockWriter: blockWriter,
+		BlockRead: func(br *blocks.Reader, i int, b string) error {
+			b = verbs.Escape(b)
+			rbuf := strings.NewReader(strings.Repeat("\n", br.LineCount-br.BlockCurrentLine) + b)
+
+			wbuf := bytes.NewBuffer([]byte{})
+			m.Out = wbuf
+			if err := m.File(cmds, filename, rbuf); err != nil {
+				return err
+			}
+			if wbuf.String() == "" {
+				return nil
+			}
+			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, wbuf.String())
+			return nil
+		},
+	}
+
+	err := br.DoTheThing(fs, filename, stdin, stdout)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = blockWriter.Close(); err != nil {
+		return nil, fmt.Errorf("error writing blocks output: %w", err)
+	}
+
+	if verbose {
+		fmt.Fprint(stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	}
+
+	return &br, nil
 }
