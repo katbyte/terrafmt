@@ -16,8 +16,6 @@ github.com/agext/levenshtein
 # github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
 ## explicit
 github.com/andreyvit/diff
-# github.com/apparentlymart/go-textseg/v12 v12.0.0
-## explicit
 # github.com/apparentlymart/go-textseg/v13 v13.0.0
 github.com/apparentlymart/go-textseg/v13/textseg
 # github.com/aws/aws-sdk-go v1.15.78
@@ -141,7 +139,7 @@ github.com/konsorten/go-windows-terminal-sequences
 github.com/kylelemons/godebug/diff
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
-# github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba
+# github.com/magodo/hclgrep v0.0.0-20220303061548-1b2b24c7caf6
 ## explicit
 github.com/magodo/hclgrep/hclgrep
 # github.com/mitchellh/go-homedir v1.1.0

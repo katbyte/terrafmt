@@ -60,12 +60,11 @@ func TestCmdGrepDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			m := hclgrep.Matcher{}
-			cmds, _, err := m.ParseCmds(testcase.hclgrep)
+			opts, _, err := hclgrep.ParseArgs(testcase.hclgrep)
 			if err != nil {
 				t.Fatalf("parsing hclgrep args %v: %v", testcase.hclgrep, err)
 			}
-			br, err := grepInFile(fs, log, testcase.sourcefile, false, cmds, m, nil, &outB, &errB)
+			br, err := grepInFile(fs, log, testcase.sourcefile, false, opts, nil, &outB, &errB)
 			if err != nil {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}

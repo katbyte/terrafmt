@@ -5,14 +5,13 @@ go 1.14
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
-	github.com/apparentlymart/go-textseg/v12 v12.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gookit/color v1.2.6
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform-exec v0.12.0
 	github.com/kylelemons/godebug v1.1.0
-	github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba
+	github.com/magodo/hclgrep v0.0.0-20220303061548-1b2b24c7caf6
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
