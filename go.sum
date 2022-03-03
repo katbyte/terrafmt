@@ -217,6 +217,10 @@ github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.1 h1:ZC2Vc7/ZFkGmsVC9KvOjumD+G5lXy2RtTKyzRKO2BQ4=
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
+github.com/magodo/hclgrep v0.0.0-20220302090457-a79a14152f67 h1:26O7UW8V7AQLz1exlb8AXJ2GAnzy1FSWVju01GlsMuM=
+github.com/magodo/hclgrep v0.0.0-20220302090457-a79a14152f67/go.mod h1:QiidlBReFWATzqy+XbH2ZeHmpXVmL0iz/hElMG1AjPY=
+github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba h1:bbO0u27/m8Mrh0XYEE3YKg3ti6FGOl8j+w7fOonJAcU=
+github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba/go.mod h1:QiidlBReFWATzqy+XbH2ZeHmpXVmL0iz/hElMG1AjPY=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-isatty v0.0.3/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNxMWT7Zi4=
 github.com/mattn/go-isatty v0.0.4/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNxMWT7Zi4=

@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform-exec v0.12.0
 	github.com/kylelemons/godebug v1.1.0
-	github.com/magodo/hclgrep v0.0.0
+	github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
@@ -27,5 +27,3 @@ require (
 	golang.org/x/tools v0.0.0-20200817023811-d00afeaade8f
 	gopkg.in/ini.v1 v1.57.0 // indirect
 )
-
-replace github.com/magodo/hclgrep => ../hclgrep

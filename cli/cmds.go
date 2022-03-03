@@ -680,8 +680,6 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 }
 
 func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, cmds []hclgrep.Cmd, m hclgrep.Matcher, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
-	// // Suppress color since the extracted block will be hclgrep-ed.
-	// c.Enable = false
 	var blockWriter blocks.BlockWriter
 	blockWriter = textBlockWriter{
 		writer: stdout,

@@ -141,7 +141,7 @@ github.com/konsorten/go-windows-terminal-sequences
 github.com/kylelemons/godebug/diff
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
-# github.com/magodo/hclgrep v0.0.0 => ../hclgrep
+# github.com/magodo/hclgrep v0.0.0-20220303021322-4a19d52104ba
 ## explicit
 github.com/magodo/hclgrep/hclgrep
 # github.com/mitchellh/go-homedir v1.1.0
@@ -375,4 +375,3 @@ honnef.co/go/tools/staticcheck/vrp
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
-# github.com/magodo/hclgrep => ../hclgrep
