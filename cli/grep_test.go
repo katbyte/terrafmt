@@ -37,10 +37,10 @@ resource "aws_s3_bucket" "simple" {
 resource "aws_s3_bucket" "no-errors" {
   bucket = "tf-test-bucket-no-errors-%d"
 
-#@@_@@ TFMT:  %s:TMFT @@_@@#
+  %s
 
   tags = {
-    "@@_@@ TFMT:%[1]q:TFMT @@_@@" = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+    %[1]q = %[2]q
   }
 }
 `),

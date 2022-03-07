@@ -700,7 +700,7 @@ func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, 
 			if wbuf.String() == "" {
 				return nil
 			}
-			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, wbuf.String())
+			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, verbs.Unscape(wbuf.String()))
 			return nil
 		},
 	}
