@@ -218,8 +218,8 @@ func Make() *cobra.Command {
 	blocksCmd.Flags().BoolP("json", "j", false, "outputs blocks in JSON format")
 
 	// options
-	grepCmd := &cobra.Command{
-		Use:   "grep [path] -- [hclgrep option]",
+	hclgrepCmd := &cobra.Command{
+		Use:   "hclgrep [path] -- [hclgrep option]",
 		Short: "search for HCL pattern in the terraform blocks from a file ",
 		Args: func(cmd *cobra.Command, args []string) error {
 			l := cmd.Flags().ArgsLenAtDash()
@@ -239,7 +239,7 @@ func Make() *cobra.Command {
 				hclgrepArgs = hclgrepArgs[1:]
 			}
 
-			log.Debugf("terrafmt grep %s", path)
+			log.Debugf("terrafmt hclgrep %s", path)
 
 			fs := afero.NewOsFs()
 			pattern, _ := cmd.Flags().GetString("pattern")
@@ -257,7 +257,7 @@ func Make() *cobra.Command {
 			var errs *multierror.Error
 			exitCode := ExitCodeNoError
 			for _, filename := range filenames {
-				br, err := grepInFile(fs, log, filename, verbose, opts, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, err := hclgrepInFile(fs, log, filename, verbose, opts, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 				}
@@ -274,8 +274,8 @@ func Make() *cobra.Command {
 			return nil
 		},
 	}
-	root.AddCommand(grepCmd)
-	grepCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
+	root.AddCommand(hclgrepCmd)
+	hclgrepCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
 	root.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -678,7 +678,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 	return &br, err
 }
 
-func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, opts []hclgrep.Option, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
+func hclgrepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, opts []hclgrep.Option, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	var blockWriter blocks.BlockWriter
 	blockWriter = textBlockWriter{
 		writer: stdout,
@@ -693,6 +693,7 @@ func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, 
 			b = verbs.Escape(b)
 			rbuf := strings.NewReader(strings.Repeat("\n", br.LineCount-br.BlockCurrentLine) + b)
 			wbuf := bytes.NewBuffer([]byte{})
+
 			m := hclgrep.NewMatcher(append(opts, hclgrep.OptionOutput(wbuf))...)
 			if err := m.File(filename, rbuf); err != nil {
 				return err
@@ -700,6 +701,7 @@ func grepInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose bool, 
 			if wbuf.String() == "" {
 				return nil
 			}
+
 			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, verbs.Unscape(wbuf.String()))
 			return nil
 		},

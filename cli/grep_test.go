@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-var grepTestcases = []struct {
+var hclgrepTestcases = []struct {
 	name       string
 	hclgrep    []string
 	sourcefile string
@@ -50,7 +50,7 @@ resource "aws_s3_bucket" "no-errors" {
 func TestCmdGrepDefault(t *testing.T) {
 	t.Parallel()
 
-	for _, testcase := range grepTestcases {
+	for _, testcase := range hclgrepTestcases {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
@@ -64,7 +64,7 @@ func TestCmdGrepDefault(t *testing.T) {
 			if err != nil {
 				t.Fatalf("parsing hclgrep args %v: %v", testcase.hclgrep, err)
 			}
-			br, err := grepInFile(fs, log, testcase.sourcefile, false, opts, nil, &outB, &errB)
+			br, err := hclgrepInFile(fs, log, testcase.sourcefile, false, opts, nil, &outB, &errB)
 			if err != nil {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}
