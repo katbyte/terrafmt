@@ -75,7 +75,7 @@ var fmtTestcases = []struct {
 		sourcefile: "testdata/bad_terraform.go",
 		resultfile: "testdata/bad_terraform_fmt.go",
 		errMsg: []string{
-			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:3,1-1:",
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:",
 		},
 		errorBlockCount:   1,
 		lineCount:         20,
