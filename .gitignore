@@ -2,7 +2,6 @@
 .idea
 
 # Binaries for programs and plugins
-
 /terrafmt
 
 # Test binary, built with `go test -c`
@@ -11,5 +10,5 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-
+# macOS Finder.app
 .DS_STORE
