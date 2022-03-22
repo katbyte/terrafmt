@@ -33,9 +33,7 @@ func checkExpectedErrors(t *testing.T, errOutput string, expectedErrs []string) 
 				}
 			}
 		}
-	} else {
-		if errOutput != "" {
-			t.Errorf("Got unexpected error output:\n%s", errOutput)
-		}
+	} else if errOutput != "" {
+		t.Errorf("Got unexpected error output:\n%s", errOutput)
 	}
 }

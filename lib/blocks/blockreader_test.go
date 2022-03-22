@@ -112,13 +112,15 @@ func TestBlockDetection(t *testing.T) {
 					text: `    resource "aws_s3_bucket" "leading-space" {
   bucket = "tf-test-bucket-leading-space"
 }
-`},
+`,
+				},
 				{
 					text: `    
     resource "aws_s3_bucket" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line"
 }
-`},
+`,
+				},
 			},
 		},
 	}

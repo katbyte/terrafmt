@@ -56,7 +56,7 @@ func Escape(b string) string {
 func Unscape(fb string) string {
 	// NOTE: the order of these replacements matter
 
-	//undo replace
+	// undo replace
 	fb = regexp.MustCompile(`[ ]*#@@_@@ TFMT:`).ReplaceAllString(fb, ``)
 	fb = strings.ReplaceAll(fb, "#@@_@@ TFMT:", "")
 	fb = strings.ReplaceAll(fb, ":TMFT @@_@@#", "")

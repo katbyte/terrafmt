@@ -39,7 +39,7 @@ func TestFmtVerbBlock(t *testing.T) {
 `,
 		},
 
-		//todo nested or forloop with letters?
+		// todo nested or forloop with letters?
 		{
 			name: "bareverb",
 			block: `%s

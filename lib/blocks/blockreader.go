@@ -19,9 +19,7 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-var (
-	lineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*(.*\n)$")
-)
+var lineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*(.*\n)$")
 
 type blockReadFunc func(*Reader, int, string) error
 
@@ -35,11 +33,11 @@ type Reader struct {
 
 	Log *logrus.Logger
 
-	//io
+	// io
 	Reader io.Reader
 	Writer io.Writer
 
-	//stats
+	// stats
 	LineCount        int // total lines processed
 	LinesBlock       int // total block lines processed
 	BlockCount       int // total blocks found
@@ -52,11 +50,11 @@ type Reader struct {
 
 	ErrorBlocks int
 
-	//options
+	// options
 	ReadOnly       bool
 	FixFinishLines bool
 
-	//callbacks
+	// callbacks
 	LineRead  func(*Reader, int, string) error
 	BlockRead blockReadFunc
 
@@ -74,6 +72,7 @@ func ReaderIgnore(br *Reader, number int, line string) error {
 }
 
 func IsStartLine(line string) bool {
+	// nolint:gocritic
 	if strings.HasPrefix(line, "```hcl") { // documentation
 		return true
 	} else if strings.HasPrefix(line, "```terraform") { // documentation
@@ -95,8 +94,10 @@ type blockVisitor struct {
 	f    blockReadFunc
 }
 
-var leadingPaddingMatcher = regexp.MustCompile(`^\s*\n`)
-var trailingPaddingMatcher = regexp.MustCompile(`\n\s*$`)
+var (
+	leadingPaddingMatcher  = regexp.MustCompile(`^\s*\n`)
+	trailingPaddingMatcher = regexp.MustCompile(`\n\s*$`)
+)
 
 func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 	if node, ok := cursor.Node().(*ast.BasicLit); ok && node.Kind == token.STRING {
@@ -186,9 +187,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		fset: fset,
 		f:    br.BlockRead,
 	}
-	result := astutil.Apply(f, func(cursor *astutil.Cursor) bool {
-		return visitor.Visit(cursor)
-	}, nil)
+	result := astutil.Apply(f, visitor.Visit, nil)
 
 	br.LineCount = fset.Position(f.End()).Line // For summary line
 
@@ -215,7 +214,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 	}
 
 	// todo should this be at the end of a command?
-	//fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	// fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
 	return nil
 }
 
@@ -254,7 +253,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 	s := bufio.NewScanner(br.Reader)
 	for s.Scan() { // scan file
 		br.LineCount += 1
-		//br.CurrentLine = s.Text()+"\n"
+		// br.CurrentLine = s.Text()+"\n"
 		l := s.Text() + "\n"
 
 		if err := br.LineRead(br, br.LineCount, l); err != nil {
@@ -297,7 +296,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 
 					// todo configure this behaviour with switch's
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
-						//for now ignore block errors and output unformatted
+						// for now ignore block errors and output unformatted
 						br.ErrorBlocks += 1
 						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
@@ -318,7 +317,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 
 			// ensure last block in the file was property handled
 			if block != "" {
-				//for each line { Lineread()?
+				// for each line { Lineread()?
 				br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
@@ -342,6 +341,6 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 	}
 
 	// todo should this be at the end of a command?
-	//fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
+	// fmt.Fprintf(os.Stderr, c.Sprintf("\nFinished processing <cyan>%d</> lines <yellow>%d</> blocks!\n", br.LineCount, br.BlockCount))
 	return nil
 }

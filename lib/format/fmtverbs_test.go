@@ -28,7 +28,7 @@ resource "resource" "test" {
 `,
 		},
 
-		//todo nested or forloop with letters?
+		// todo nested or forloop with letters?
 		{
 			name: "bareverb",
 			block: `

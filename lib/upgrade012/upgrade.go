@@ -19,8 +19,6 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 		log.Fatal(err)
 	}
 
-	defer os.RemoveAll(tempDir) // clean up
-
 	// Create temp file
 	tmpFile, err := ioutil.TempFile(tempDir, "*.tf")
 	if err != nil {
@@ -30,12 +28,16 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 	// Write from Reader to File
 	if _, err := tmpFile.Write(bytes.NewBufferString(b).Bytes()); err != nil {
 		tmpFile.Close()
+		os.RemoveAll(tempDir)
 		log.Fatal(err)
 	}
 
 	if err := tmpFile.Close(); err != nil {
+		os.RemoveAll(tempDir)
 		log.Fatal(err)
 	}
+
+	defer os.RemoveAll(tempDir)
 
 	tf, err := tfexec.NewTerraform(tempDir, tfPath)
 	if err != nil {

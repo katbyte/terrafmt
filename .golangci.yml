@@ -10,25 +10,41 @@ issues:
 linters:
   disable-all: true
   enable:
+    - asciicheck
+    - bidichk
     - deadcode
+    - durationcheck
+    - errname
     - errcheck
+    - exhaustive
+    - exportloopref
+    - gocritic
     - gofmt
+    - gofumpt
     - goimports
     - gosimple
     - govet
+    - gosec
+    #- godot
     - ineffassign
-    - interfacer
+    - ifshort
     - nakedret
+    - nilnil
+    - nolintlint
+    - makezero
     - misspell
     - staticcheck
     - structcheck
+    #- stylecheck
     - typecheck
     - unused
     - unconvert
+    - unparam
     - varcheck
     - vet
     - vetshadow
     - whitespace
+  #- wsl
 
 linters-settings:
   errcheck:

@@ -46,7 +46,7 @@ func Make() *cobra.Command {
 		},
 	}
 
-	//options : only count, blocks diff/found, total lines diff, etc
+	// options : only count, blocks diff/found, total lines diff, etc
 	fmtCmd := &cobra.Command{
 		Use:   "fmt [path]",
 		Short: "formats terraform blocks in a directory, file, or stdin",
@@ -76,7 +76,6 @@ func Make() *cobra.Command {
 
 			for _, filename := range filenames {
 				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
-
 				if err != nil {
 					errs = multierror.Append(errs, err)
 				}
@@ -100,7 +99,7 @@ func Make() *cobra.Command {
 	fmtCmd.Flags().Bool("fix-finish-lines", false, "fix block finish lines by removing any leading spaces")
 	fmtCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
 
-	//options : only count, blocks diff/found, total lines diff, etc
+	// options : only count, blocks diff/found, total lines diff, etc
 	root.AddCommand(&cobra.Command{
 		Use:   "upgrade012 [file]",
 		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
@@ -130,7 +129,7 @@ func Make() *cobra.Command {
 		},
 	})
 
-	//options : only count, blocks diff/found, total lines diff, etc
+	// options : only count, blocks diff/found, total lines diff, etc
 	diffCmd := &cobra.Command{
 		Use:          "diff [path]",
 		Short:        "formats terraform blocks in a directory, file, or stdin and shows the difference",
@@ -188,7 +187,7 @@ func Make() *cobra.Command {
 	blocksCmd := &cobra.Command{
 		Use:   "blocks [file]",
 		Short: "extracts terraform blocks from a file ",
-		//options: no header (######), format (json? xml? etc), only should block x?
+		// options: no header (######), format (json? xml? etc), only should block x?
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log := common.CreateLogger(cmd.ErrOrStderr())
@@ -245,7 +244,7 @@ func Make() *cobra.Command {
 		panic(err)
 	}
 
-	//todo bind to env?
+	// todo bind to env?
 
 	cobra.OnInitialize(func() {
 		if viper.GetBool("uncoloured") {
@@ -261,7 +260,6 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 	}
 
 	info, err := fs.Stat(path)
-
 	if err != nil {
 		return nil, fmt.Errorf("error reading path (%s): %s", path, err)
 	}
@@ -289,7 +287,6 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 			}
 
 			matched, err := filepath.Match(pattern, filepath.Base(path))
-
 			if err != nil {
 				return err
 			}
@@ -310,7 +307,6 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(cmd *cobra.Command, args []string) {
-	// nolint errcheck
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 }
 
@@ -381,6 +377,8 @@ func (w jsonBlockWriter) Close() error {
 
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
+
+	// nolint: gocritic
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -456,6 +454,8 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				scanner := bufio.NewScanner(strings.NewReader(d))
 				for scanner.Scan() {
 					l := scanner.Text()
+
+					// nolint: gocritic
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
