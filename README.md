@@ -1,6 +1,5 @@
 # terrafmt
 
-[![Build Status](https://travis-ci.org/katbyte/terrafmt.svg?branch=master)](https://travis-ci.com/katbyte/terrafmt)
 [![GolangCI](https://golangci.com/badges/github.com/katbyte/terrafmt.svg)](https://golangci.com)
 [![Go Report Card](https://goreportcard.com/badge/github.com/katbyte/terrafmt)](https://goreportcard.com/report/github.com/katbyte/terrafmt)
 
