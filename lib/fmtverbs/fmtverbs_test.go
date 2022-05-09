@@ -582,14 +582,30 @@ resource "resource" "test" {
 resource "resource" "test2" {
   count = %[2]d
 }
+
+resource "other_resource" "test3" {
+  replica_count = %d
+}
+
+resource "other_resource" "test4" {
+  replica_count = %[2]d
+}
 `,
 			expected: `
 resource "resource" "test" {
-  count = var.tfmtcount
+  count = 1 # tfmtcount_d
 }
 
 resource "resource" "test2" {
-  count = var.tfmtcount_2
+  count = 1 # tfmtcount_[2]d
+}
+
+resource "other_resource" "test3" {
+  replica_count = "@@_@@ TFMT:%d:TFMT @@_@@"
+}
+
+resource "other_resource" "test4" {
+  replica_count = "@@_@@ TFMT:%[2]d:TFMT @@_@@"
 }
 `,
 		},
