@@ -572,6 +572,27 @@ resource "resource" "test2" {
 }
 `,
 		},
+		{
+			name: "count meta-argument",
+			block: `
+resource "resource" "test" {
+  count = %d
+}
+
+resource "resource" "test2" {
+  count = %[2]d
+}
+`,
+			expected: `
+resource "resource" "test" {
+  count = var.tfmtcount
+}
+
+resource "resource" "test2" {
+  count = var.tfmtcount_2
+}
+`,
+		},
 	}
 
 	t.Parallel()
