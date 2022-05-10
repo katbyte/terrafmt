@@ -583,11 +583,19 @@ resource "resource" "test2" {
   count = %[2]d
 }
 
-resource "other_resource" "test3" {
+resource "resource" "test3" {
+  count = %s
+}
+
+resource "resource" "test4" {
+  count = %[3]s
+}
+
+resource "other_resource" "test5" {
   replica_count = %d
 }
 
-resource "other_resource" "test4" {
+resource "other_resource" "test6" {
   replica_count = %[2]d
 }
 `,
@@ -600,11 +608,19 @@ resource "resource" "test2" {
   count = 1 # tfmtcount_[2]d
 }
 
-resource "other_resource" "test3" {
+resource "resource" "test3" {
+  count = 1 # tfmtcount_s
+}
+
+resource "resource" "test4" {
+  count = 1 # tfmtcount_[3]s
+}
+
+resource "other_resource" "test5" {
   replica_count = "@@_@@ TFMT:%d:TFMT @@_@@"
 }
 
-resource "other_resource" "test4" {
+resource "other_resource" "test6" {
   replica_count = "@@_@@ TFMT:%[2]d:TFMT @@_@@"
 }
 `,
