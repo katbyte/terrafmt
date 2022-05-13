@@ -310,7 +310,7 @@ resource "resource" "test" {
   size = ["%s", "%s"]
 
   tags = {
-    "@@_@@ TFMT:%q:TFMT @@_@@" = "@@_@@ TFMT:%q:TFMT @@_@@"
+    TFMTATTR_q = "@@_@@ TFMT:%q:TFMT @@_@@"
   }
 }
 
@@ -344,7 +344,7 @@ resource "resource" "test" {
   size = ["%[1]s", "%[2]s","%[3]s"]
 
   tags = {
-    "@@_@@ TFMT:%[1]q:TFMT @@_@@" = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+    TFMTATTR_1q = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
   }
 }
 `,
@@ -429,6 +429,67 @@ resource "resource" "test" {
   attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
   attr = aws_acm_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].arn
   attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+}
+`,
+		},
+		{
+			name: "verb as parameter name",
+			block: `
+resource "resource" "test1" {
+  %s = %q
+}
+
+resource "resource" "test2" {
+  %[1]s = %q
+}
+
+resource "resource" "test3" {
+  %s = %[3]q
+}
+
+resource "resource" "test4" {
+  %[6]s = %[2]q
+}
+
+resource "resource" "test5" {
+  %s = {
+    %[3]q
+  }
+}
+
+resource "resource" "test6" {
+  %[4]s = {
+    %[2]q
+  }
+}
+`,
+			expected: `
+resource "resource" "test1" {
+  TFMTATTR_s = "@@_@@ TFMT:%q:TFMT @@_@@"
+}
+
+resource "resource" "test2" {
+  TFMTATTR_1s = "@@_@@ TFMT:%q:TFMT @@_@@"
+}
+
+resource "resource" "test3" {
+  TFMTATTR_s = "@@_@@ TFMT:%[3]q:TFMT @@_@@"
+}
+
+resource "resource" "test4" {
+  TFMTATTR_6s = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+}
+
+resource "resource" "test5" {
+  TFMTATTR_s = {
+#@@_@@ TFMT:    %[3]q:TMFT @@_@@#
+  }
+}
+
+resource "resource" "test6" {
+  TFMTATTR_4s = {
+#@@_@@ TFMT:    %[2]q:TMFT @@_@@#
+  }
 }
 `,
 		},
