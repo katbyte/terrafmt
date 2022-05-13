@@ -7,7 +7,7 @@ require (
 	github.com/gookit/color v1.2.6
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hashicorp/hc-install v0.3.1
+	github.com/hashicorp/hc-install v0.3.2
 	github.com/hashicorp/hcl/v2 v2.6.0
 	github.com/hashicorp/terraform-exec v0.12.0
 	github.com/kylelemons/godebug v1.1.0
@@ -22,7 +22,7 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v12 v12.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
