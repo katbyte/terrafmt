@@ -46,18 +46,23 @@ var upgradeTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: terraform init failed:",
 			"block 3 @ %s:30 failed to process with: terraform init failed:",
+			"block 4 @ %s:44 failed to process with: terraform init failed:",
 		},
-		lineCount:       41,
-		totalBlockCount: 3,
+		lineCount:       50,
+		totalBlockCount: 4,
 	},
 	{
-		name:              "Go fmt verbs --fmtcompat",
-		sourcefile:        "testdata/fmt_compat.go",
-		resultfile:        "testdata/fmt_compat_upgrade012.go",
-		fmtcompat:         true,
-		lineCount:         41,
+		name:       "Go fmt verbs --fmtcompat",
+		sourcefile: "testdata/fmt_compat.go",
+		resultfile: "testdata/fmt_compat_upgrade012.go",
+		fmtcompat:  true,
+		errMsg: []string{
+			// terraform 0.12upgrade needs valid parameter names
+			"block 4 @ %s:44 failed to process with: terraform 0.12upgrade failed:",
+		},
+		lineCount:         50,
 		updatedBlockCount: 1,
-		totalBlockCount:   3,
+		totalBlockCount:   4,
 	},
 	{
 		name:       "Go bad terraform",

@@ -310,7 +310,7 @@ resource "resource" "test" {
   size = ["%s", "%s"]
 
   tags = {
-    TFMTATTR_q = "@@_@@ TFMT:%q:TFMT @@_@@"
+    Ωq = "@@_@@ TFMT:%q:TFMT @@_@@"
   }
 }
 
@@ -344,7 +344,7 @@ resource "resource" "test" {
   size = ["%[1]s", "%[2]s","%[3]s"]
 
   tags = {
-    TFMTATTR_1q = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+    Ω_1_q = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
   }
 }
 `,
@@ -465,29 +465,29 @@ resource "resource" "test6" {
 `,
 			expected: `
 resource "resource" "test1" {
-  TFMTATTR_s = "@@_@@ TFMT:%q:TFMT @@_@@"
+  Ωs = "@@_@@ TFMT:%q:TFMT @@_@@"
 }
 
 resource "resource" "test2" {
-  TFMTATTR_1s = "@@_@@ TFMT:%q:TFMT @@_@@"
+  Ω_1_s = "@@_@@ TFMT:%q:TFMT @@_@@"
 }
 
 resource "resource" "test3" {
-  TFMTATTR_s = "@@_@@ TFMT:%[3]q:TFMT @@_@@"
+  Ωs = "@@_@@ TFMT:%[3]q:TFMT @@_@@"
 }
 
 resource "resource" "test4" {
-  TFMTATTR_6s = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+  Ω_6_s = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
 }
 
 resource "resource" "test5" {
-  TFMTATTR_s = {
+  Ωs = {
 #@@_@@ TFMT:    %[3]q:TMFT @@_@@#
   }
 }
 
 resource "resource" "test6" {
-  TFMTATTR_4s = {
+  Ω_4_s = {
 #@@_@@ TFMT:    %[2]q:TMFT @@_@@#
   }
 }
