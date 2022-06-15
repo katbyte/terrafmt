@@ -380,7 +380,7 @@ func (w jsonBlockWriter) Close() error {
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 
-	// nolint: gocritic
+	//nolint: gocritic
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -400,7 +400,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		ReadOnly:    true,
 		LineRead:    blocks.ReaderIgnore,
 		BlockWriter: blockWriter,
-		BlockRead: func(br *blocks.Reader, i int, b string) error {
+		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
 			if fmtverbs {
 				b = verbs.Escape(b)
 			}
@@ -433,7 +433,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		Log:      log,
 		ReadOnly: true,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string) error {
+		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
@@ -443,6 +443,10 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 			}
 			if err != nil {
 				return err
+			}
+
+			if preserveIndent {
+				fb = indentToOriginalLevel(fb, b)
 			}
 
 			if fb == b {
@@ -460,7 +464,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				for scanner.Scan() {
 					l := scanner.Text()
 
-					// nolint: gocritic
+					//nolint: gocritic
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
@@ -500,7 +504,7 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 	br := blocks.Reader{
 		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string) error {
+		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
@@ -510,6 +514,10 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 			}
 			if err != nil {
 				return err
+			}
+
+			if preserveIndent {
+				fb = indentToOriginalLevel(fb, b)
 			}
 
 			hasChange := fb != b
@@ -574,7 +582,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 	br := blocks.Reader{
 		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string) error {
+		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
@@ -584,6 +592,10 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			}
 			if err != nil {
 				return err
+			}
+
+			if preserveIndent {
+				fb = indentToOriginalLevel(fb, b)
 			}
 
 			hasChange := fb != b
