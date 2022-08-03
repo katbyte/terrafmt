@@ -1,3 +1,6 @@
+## 0.5.0 (Unreleased)
+- support for for expressions and functions with multiple parameters ([#59](https://github.com/katbyte/terrafmt/issues/59))
+
 ## 0.4.0 (2022-03-21)
 
 - add option to remove colour from output with `-uncoloured` option ([#52](https://github.com/katbyte/terrafmt/issues/52))
