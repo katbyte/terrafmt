@@ -39,3 +39,12 @@ resource "aws_s3_bucket" "extra-space" {
 }
 `, randInt) + testReturnSprintfSimple()
 }
+
+func testFormatVerbParameter(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "with-parameters-and-append" {
+  bucket = "tf-test-bucket-parameters-and-append-%d"
+  %[1]s     = "something"
+}
+`, randInt)
+}

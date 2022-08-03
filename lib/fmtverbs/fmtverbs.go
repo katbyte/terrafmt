@@ -21,10 +21,10 @@ func Escape(b string) string {
 	b = regexp.MustCompile(`(?m:^[ \t]*%(\.[0-9])?\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
 
 	// %s =
-	b = regexp.MustCompile(`(?m)^([ \t]*)(%(\.[0-9])?[sdfgtq])`).ReplaceAllString(b, `$1"@@_@@ TFMT:$2:TFMT @@_@@"$3`)
+	b = regexp.MustCompile(`(?m)^([ \t]*)%((\.[0-9])?[sdfgtq])`).ReplaceAllString(b, `${1}Ω${2}`)
 
 	// %[n]s =
-	b = regexp.MustCompile(`(?m)^([ \t]*)(%(\.[0-9])?\[[\d]+\][sdfgtq])`).ReplaceAllString(b, `$1"@@_@@ TFMT:$2:TFMT @@_@@"$3`)
+	b = regexp.MustCompile(`(?m)^([ \t]*)%(\.[0-9])?\[([\d]+)\]([sdfgtq])`).ReplaceAllString(b, `${1}Ω_${3}_${4}`)
 
 	// = "${...[%([n])d]}"
 	b = regexp.MustCompile(`(?m)("\${.*\[)(%(?:\.[0-9])?(?:\[[\d]+\])?d)(\]}")$`).ReplaceAllString(b, `${1}0/*@@_@@ TFMT:$2:TFMT @@_@@*/$3`)
@@ -80,6 +80,12 @@ func Unscape(fb string) string {
 
 	// function(%
 	fb = strings.ReplaceAll(fb, "TFFMTKTBRACKETPERCENT", "%")
+
+	// %[n]s =
+	fb = regexp.MustCompile(`Ω_(\d+)_([sdfgtq])`).ReplaceAllString(fb, `%[${1}]${2}`)
+
+	// %s =
+	fb = regexp.MustCompile(`Ω([sdfgtq])`).ReplaceAllString(fb, `%${1}`)
 
 	return fb
 }

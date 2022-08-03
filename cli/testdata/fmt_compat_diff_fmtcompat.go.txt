@@ -10,3 +10,9 @@
 <green>+    %[1]q = %[2]q</>
    }
  }
+<lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>44</>
+ resource "aws_s3_bucket" "with-parameters-and-append" {
+   bucket = "tf-test-bucket-parameters-and-append-%d"
+<red>-  %[1]s     = "something"</>
+<green>+  %[1]s  = "something"</>
+ }

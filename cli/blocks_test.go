@@ -148,7 +148,7 @@ resource "aws_vpc" "test" {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  41,
+		lineCount:  50,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -183,6 +183,15 @@ resource "aws_vpc" "test" {
   tags = {
     %[1]q    = %[2]q
   }
+}
+`,
+			},
+			{
+				startLine: 44,
+				endLine:   49,
+				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
+  bucket = "tf-test-bucket-parameters-and-append-%d"
+  %[1]s     = "something"
 }
 `,
 			},
