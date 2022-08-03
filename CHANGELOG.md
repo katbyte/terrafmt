@@ -1,4 +1,6 @@
 ## 0.5.0 (Unreleased)
+
+- Adds support for format verbs as parameters ([#58](https://github.com/katbyte/terrafmt/issues/58))
 - support for for expressions and functions with multiple parameters ([#59](https://github.com/katbyte/terrafmt/issues/59))
 
 ## 0.4.0 (2022-03-21)
