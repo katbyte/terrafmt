@@ -10,10 +10,6 @@ on:
       - 'vendor/**'
       - '.github/workflows/**'
 
-concurrency:
-  group: 'unit-${{ github.head_ref }}'
-  cancel-in-progress: true
-
 jobs:
   test:
     runs-on: ubuntu-latest
