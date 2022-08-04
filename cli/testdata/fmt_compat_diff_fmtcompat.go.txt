@@ -16,3 +16,14 @@
 <red>-  %[1]s     = "something"</>
 <green>+  %[1]s  = "something"</>
  }
+<lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>53</>
+ resource "aws_elasticache_replication_group" "for-expression" {
+   replication_group_id = %[1]q
+ 
+   node_groups {
+     primary_availability_zone  = aws_subnet.test[0].availability_zone
+<red>-    replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]</>
+<green>+    replica_availability_zones = [for x in range(1, %[2]d + 1) : element(aws_subnet.test[*].availability_zone, x)]</>
+     replica_count              = %[2]d
+   }
+ }

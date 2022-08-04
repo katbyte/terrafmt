@@ -148,7 +148,7 @@ resource "aws_vpc" "test" {
 	{
 		name:       "Go fmt verbs",
 		sourcefile: "testdata/fmt_compat.go",
-		lineCount:  50,
+		lineCount:  64,
 		expectedBlocks: []block{
 			{
 				startLine: 8,
@@ -192,6 +192,20 @@ resource "aws_vpc" "test" {
 				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
   bucket = "tf-test-bucket-parameters-and-append-%d"
   %[1]s     = "something"
+}
+`,
+			},
+			{
+				startLine: 53,
+				endLine:   63,
+				text: `resource "aws_elasticache_replication_group" "for-expression" {
+  replication_group_id = %[1]q
+
+  node_groups {
+    primary_availability_zone  = aws_subnet.test[0].availability_zone
+    replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
+    replica_count              = %[2]d
+  }
 }
 `,
 			},

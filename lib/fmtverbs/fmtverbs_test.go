@@ -226,12 +226,16 @@ resource "resource" "test" {
 resource "resource" "test" {
   kat  = base64encode(%s)
   byte = md5(data.source.%s.id)
+  kat  = base64encode(%[1]s)
+  byte = md5(data.source.%[1]s.id)
 }
 `,
 			expected: `
 resource "resource" "test" {
-  kat  = base64encode(TFFMTKTBRACKETPERCENTs)
+  kat  = base64encode(TFMTFNPARAM_s)
   byte = md5(data.source.TFMTKTKTTFMTs.id)
+  kat  = base64encode(TFMTFNPARAM_1s)
+  byte = md5(data.source.TFMTKTKTTFMT_1s.id)
 }
 `,
 		},
@@ -490,6 +494,29 @@ resource "resource" "test6" {
   Ω_4_s = {
 #@@_@@ TFMT:    %[2]q:TMFT @@_@@#
   }
+}
+`,
+		},
+		{
+			name: "verb in for expression",
+			block: `
+resource "resource" "test" {
+  attr = [for x in range(1, %d+1) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%d, 3) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%[1]d, 3) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%d, %d) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%[1]d, %[2]d) : element(aws_subnet.test[*].availability_zone, x)]
+}
+`,
+			expected: `
+resource "resource" "test" {
+  attr = [for x in range(1, TFMTFNPARAM_d+1) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, TFMTFNPARAM_2d+1) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_d, 3) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, 3) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_d, TFMTFNPARAM_d) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, TFMTFNPARAM_2d) : element(aws_subnet.test[*].availability_zone, x)]
 }
 `,
 		},

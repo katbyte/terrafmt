@@ -19,7 +19,6 @@ var upgradeTestcases = []struct {
 	errMsg            []string
 	fmtcompat         bool
 	lineCount         int
-	errorBlockCount   int
 	updatedBlockCount int
 	totalBlockCount   int
 }{
@@ -47,9 +46,10 @@ var upgradeTestcases = []struct {
 			"block 1 @ %s:8 failed to process with: terraform init failed:",
 			"block 3 @ %s:30 failed to process with: terraform init failed:",
 			"block 4 @ %s:44 failed to process with: terraform init failed:",
+			"block 5 @ %s:53 failed to process with: terraform init failed:",
 		},
-		lineCount:       50,
-		totalBlockCount: 4,
+		lineCount:       64,
+		totalBlockCount: 5,
 	},
 	{
 		name:       "Go fmt verbs --fmtcompat",
@@ -59,10 +59,12 @@ var upgradeTestcases = []struct {
 		errMsg: []string{
 			// terraform 0.12upgrade needs valid parameter names
 			"block 4 @ %s:44 failed to process with: terraform 0.12upgrade failed:",
+			// for-expressions were added in Terraform 0.12
+			"block 5 @ %s:53 failed to process with: terraform 0.12upgrade failed:",
 		},
-		lineCount:         50,
+		lineCount:         64,
 		updatedBlockCount: 1,
-		totalBlockCount:   4,
+		totalBlockCount:   5,
 	},
 	{
 		name:       "Go bad terraform",
@@ -71,7 +73,6 @@ var upgradeTestcases = []struct {
 		errMsg: []string{
 			"block 2 @ %s:16 failed to process with: terraform init failed:",
 		},
-		errorBlockCount:   1,
 		lineCount:         20,
 		updatedBlockCount: 1,
 		totalBlockCount:   2,
@@ -83,7 +84,6 @@ var upgradeTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: terraform init failed:",
 		},
-		errorBlockCount: 1,
 		lineCount:       21,
 		totalBlockCount: 1,
 	},
@@ -95,7 +95,6 @@ var upgradeTestcases = []struct {
 		errMsg: []string{
 			"block 1 @ %s:8 failed to process with: terraform 0.12upgrade failed:",
 		},
-		errorBlockCount: 1,
 		lineCount:       21,
 		totalBlockCount: 1,
 	},
@@ -144,12 +143,16 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, err = upgrade012File(fs, log, "", testcase.fmtcompat, false, inR, &outB, &errB)
+			br, err := upgrade012File(fs, log, "", testcase.fmtcompat, false, inR, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
 			if err != nil {
 				t.Fatalf("Got an error when none was expected: %v", err)
+			}
+
+			if len(testcase.errMsg) != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", len(testcase.errMsg), br.ErrorBlocks)
 			}
 
 			if actualStdOut != expected {
@@ -239,7 +242,7 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, err = upgrade012File(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
+			br, err := upgrade012File(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -258,6 +261,10 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 			actualContent := c.String(string(data))
 			if actualContent != expected {
 				t.Errorf("File does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualContent, expected))
+			}
+
+			if len(testcase.errMsg) != br.ErrorBlocks {
+				t.Errorf("Expected %d block errors, got %d", len(testcase.errMsg), br.ErrorBlocks)
 			}
 
 			errMsg := []string{}
