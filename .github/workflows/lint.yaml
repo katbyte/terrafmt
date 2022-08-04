@@ -1,5 +1,5 @@
 ---
-name: Linting
+name: linting
 on:
   push:
     branches: [ 'main' ]

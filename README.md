@@ -1,6 +1,7 @@
 # terrafmt
 
 ![build](https://github.com/katbyte/terrafmt/actions/workflows/build.yaml/badge.svg)
+![tests](https://github.com/katbyte/terrafmt/actions/workflows/test.yaml/badge.svg)
 ![lint](https://github.com/katbyte/terrafmt/actions/workflows/lint.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/katbyte/terrafmt)](https://goreportcard.com/report/github.com/katbyte/terrafmt)
 
