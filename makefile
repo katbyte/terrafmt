@@ -1,5 +1,5 @@
 GIT_COMMIT=$(shell git describe --always --long --dirty)
-GOLANGCI_LINT_VERSION?=v1.29.0
+GOLANGCI_LINT_VERSION?=v1.47.3
 TEST_TIMEOUT?=15m
 
 default: fmt build
@@ -54,4 +54,6 @@ install:
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}" .
 
-.PHONY: fmt imports build lint install tools
+check-all: build test lint depscheck
+
+.PHONY: fmt imports build lint depscheck check-all install tools

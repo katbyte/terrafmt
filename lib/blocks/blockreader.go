@@ -104,6 +104,7 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
 			value := strings.Trim(unquoted, " \t")
 			value = strings.TrimPrefix(value, "\n")
+
 			if strings.Contains(value, "\n") {
 				bv.br.CurrentNodeCursor = cursor
 				bv.br.CurrentNodeQuoteChar = node.Value[0:1]
@@ -111,17 +112,21 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 				bv.br.CurrentNodeTrailingPadding = trailingPaddingMatcher.FindString(unquoted)
 				bv.br.BlockCount++
 				bv.br.LineCount = bv.fset.Position(node.End()).Line
+
 				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine
 				bv.br.BlockCurrentLine = bv.fset.Position(node.End()).Line - bv.fset.Position(node.Pos()).Line
+
 				err := bv.f(bv.br, 0, value)
 				if err != nil {
 					bv.br.ErrorBlocks++
 					bv.br.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
 				}
+
 				return false
 			}
 		}
 	}
+
 	return true
 }
 
@@ -135,6 +140,7 @@ func looksLikeTerraform(s string) bool {
 
 func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	inStream := &bytes.Buffer{}
+
 	if filename != "" {
 		if !strings.HasSuffix(filename, ".go") {
 			return br.doTheThingPatternMatch(fs, filename, stdin, stdout)
@@ -190,13 +196,13 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 	result := astutil.Apply(f, visitor.Visit, nil)
 
 	br.LineCount = fset.Position(f.End()).Line // For summary line
-
 	if err := format.Node(buf, fset, result); err != nil {
 		return err
 	}
 
-	// If not read-only, need to write back to file.
 	var destination io.Writer
+
+	// If not read-only, need to write back to file.
 	if !br.ReadOnly {
 		if filename != "" {
 			outfile, err := fs.Create(filename)
@@ -208,8 +214,10 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		} else {
 			destination = stdout
 		}
+
 		br.Log.Debugf("copying..")
 		_, err = io.WriteString(destination, buf.String())
+
 		return err
 	}
 
@@ -252,22 +260,22 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 	br.BlockCount = 0
 	s := bufio.NewScanner(br.Reader)
 	for s.Scan() { // scan file
-		br.LineCount += 1
+		br.LineCount++
 		// br.CurrentLine = s.Text()+"\n"
 		l := s.Text() + "\n"
 
 		if err := br.LineRead(br, br.LineCount, l); err != nil {
-			return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l, err)
+			return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %w", br.FileName, br.LineCount, l, err)
 		}
 
 		if IsStartLine(l) {
 			block := ""
 			br.BlockCurrentLine = 0
-			br.BlockCount += 1
+			br.LineCount++
 
 			for s.Scan() { // scan block
-				br.LineCount += 1
-				br.BlockCurrentLine += 1
+				br.LineCount++
+				br.BlockCurrentLine++
 				l2 := s.Text() + "\n"
 
 				// make sure we don't run into another block
@@ -279,11 +287,12 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
-						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l, err)
+						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %w", br.FileName, br.LineCount, l, err)
 					}
 
 					block = ""
-					br.BlockCount += 1
+					br.LineCount++
+
 					continue
 				}
 
@@ -297,7 +306,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					// todo configure this behaviour with switch's
 					if err := br.BlockRead(br, br.LineCount, block); err != nil {
 						// for now ignore block errors and output unformatted
-						br.ErrorBlocks += 1
+						br.ErrorBlocks++
 						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
 						if err := ReaderPassthrough(br, br.LineCount, block); err != nil {
 							return err
@@ -305,10 +314,11 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					}
 
 					if err := br.LineRead(br, br.LineCount, l2); err != nil {
-						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %v", br.FileName, br.LineCount, l2, err)
+						return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %w", br.FileName, br.LineCount, l2, err)
 					}
 
 					block = ""
+
 					break
 				} else {
 					block += l2
@@ -322,6 +332,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 				if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
 					return err
 				}
+
 				return fmt.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 			}
 		}
@@ -337,6 +348,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 
 		br.Log.Debugf("copying..")
 		_, err = io.Copy(destination, buf)
+
 		return err
 	}
 
