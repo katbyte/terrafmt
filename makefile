@@ -54,6 +54,6 @@ install:
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT}" .
 
-check-all: build test lint depscheck
+check-all: depscheck lint build test
 
 .PHONY: fmt imports build lint depscheck check-all install tools

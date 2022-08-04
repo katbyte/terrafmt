@@ -11,10 +11,6 @@ on:
       - 'vendor/**'
       - '.github/workflows/**'
 
-concurrency:
-  group: 'golint-${{ github.head_ref }}'
-  cancel-in-progress: true
-
 jobs:
   golint:
     runs-on: ubuntu-latest
