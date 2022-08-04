@@ -348,6 +348,7 @@ type Output struct {
 // MarshalJSON creates an empty slice if it is nil then marshals to JSON
 func (o Output) MarshalJSON() ([]byte, error) {
 	type Alias Output // Prevent an infinite loop
+
 	a := struct{ Alias }{Alias: (Alias)(o)}
 	if a.Blocks == nil {
 		a.Blocks = make([]Block, 0)
@@ -393,6 +394,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 			writer: stdout,
 		}
 	}
+
 	br := blocks.Reader{
 		Log:         log,
 		ReadOnly:    true,
@@ -611,6 +613,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 			return nil
 		},
 	}
+
 	err = br.DoTheThing(fs, filename, stdin, stdout)
 	if err != nil {
 		return &br, err

@@ -15,6 +15,7 @@ func TestBlockDetection(t *testing.T) {
 		trailingPadding string
 		text            string
 	}
+
 	testcases := []struct {
 		sourcefile     string
 		expectedBlocks []block
@@ -131,7 +132,8 @@ func TestBlockDetection(t *testing.T) {
 	log := common.CreateLogger(errB)
 
 	for _, testcase := range testcases {
-		var actualBlocks []block // also test leading and trailing padding
+		var actualBlocks []block
+		// also test leading and trailing padding
 		br := Reader{
 			Log:      log,
 			ReadOnly: true,

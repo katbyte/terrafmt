@@ -57,7 +57,7 @@ linters:
     - vetshadow
     - wastedassign
     - whitespace
-    - wsl
+    # - wsl #linter configuration is still quite not flexible enough for my liking, leaving disabled for now
 
 linters-settings:
   errcheck:
@@ -68,3 +68,12 @@ linters-settings:
       - color # is there a way to only ignore package names?
   nlreturn:
     block-size: 4
+  wsl:
+    allow-assign-and-anything: true
+    allow-separated-leading-comment: true
+    allow-trailing-comment: true
+    allow-cuddle-declarations: true
+    allow-multiline-assign: true
+    force-case-trailing-whitespace: 1
+    enforce-err-cuddling: true
+

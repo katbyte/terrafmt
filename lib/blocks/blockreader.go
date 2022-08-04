@@ -104,6 +104,7 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 		if unquoted, err := strconv.Unquote(node.Value); err == nil && looksLikeTerraform(unquoted) {
 			value := strings.Trim(unquoted, " \t")
 			value = strings.TrimPrefix(value, "\n")
+
 			if strings.Contains(value, "\n") {
 				bv.br.CurrentNodeCursor = cursor
 				bv.br.CurrentNodeQuoteChar = node.Value[0:1]
@@ -114,6 +115,7 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 
 				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine
 				bv.br.BlockCurrentLine = bv.fset.Position(node.End()).Line - bv.fset.Position(node.Pos()).Line
+
 				err := bv.f(bv.br, 0, value)
 				if err != nil {
 					bv.br.ErrorBlocks++
@@ -138,6 +140,7 @@ func looksLikeTerraform(s string) bool {
 
 func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdout io.Writer) error {
 	inStream := &bytes.Buffer{}
+
 	if filename != "" {
 		if !strings.HasSuffix(filename, ".go") {
 			return br.doTheThingPatternMatch(fs, filename, stdin, stdout)
@@ -193,13 +196,13 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 	result := astutil.Apply(f, visitor.Visit, nil)
 
 	br.LineCount = fset.Position(f.End()).Line // For summary line
-
 	if err := format.Node(buf, fset, result); err != nil {
 		return err
 	}
 
-	// If not read-only, need to write back to file.
 	var destination io.Writer
+
+	// If not read-only, need to write back to file.
 	if !br.ReadOnly {
 		if filename != "" {
 			outfile, err := fs.Create(filename)
@@ -211,6 +214,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		} else {
 			destination = stdout
 		}
+
 		br.Log.Debugf("copying..")
 		_, err = io.WriteString(destination, buf.String())
 
