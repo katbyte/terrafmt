@@ -142,6 +142,7 @@ func TestBlockDetection(t *testing.T) {
 					text:            b,
 					trailingPadding: br.CurrentNodeTrailingPadding,
 				})
+
 				return nil
 			},
 		}

@@ -17,5 +17,6 @@ func Block(log *logrus.Logger, content, path string) (string, error) {
 	if syntaxDiags.HasErrors() {
 		return "", fmt.Errorf("failed to parse hcl: %w\n%s", errors.New(syntaxDiags.Error()), b)
 	}
+
 	return string(hclwrite.Format(b)), nil
 }

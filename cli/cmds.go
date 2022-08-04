@@ -42,7 +42,7 @@ func Make() *cobra.Command {
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return fmt.Errorf("No command specified")
+			return fmt.Errorf("no command specified")
 		},
 	}
 
@@ -205,8 +205,8 @@ func Make() *cobra.Command {
 				return fmt.Errorf("only one of zero-terminated or json can be specified")
 			}
 			fmtCompat := viper.GetBool("fmtcompat")
-
 			fs := afero.NewOsFs()
+
 			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, fmtCompat, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
@@ -251,6 +251,7 @@ func Make() *cobra.Command {
 			c.Enable = false
 		}
 	})
+
 	return root
 }
 
@@ -261,7 +262,7 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 
 	info, err := fs.Stat(path)
 	if err != nil {
-		return nil, fmt.Errorf("error reading path (%s): %s", path, err)
+		return nil, fmt.Errorf("error reading path (%s): %w", path, err)
 	}
 
 	if !info.IsDir() {
@@ -401,7 +402,9 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 			if fmtverbs {
 				b = verbs.Escape(b)
 			}
+
 			br.BlockWriter.Write(br.BlockCount, br.LineCount-br.BlockCurrentLine, br.LineCount, b)
+
 			return nil
 		},
 	}

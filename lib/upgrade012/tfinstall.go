@@ -41,5 +41,6 @@ func InstallTerraform(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return absBin, nil
 }
