@@ -57,7 +57,7 @@ linters:
     - vetshadow
     - wastedassign
     - whitespace
-    #- wsl
+    - wsl
 
 linters-settings:
   errcheck:
