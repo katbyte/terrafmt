@@ -1,6 +1,8 @@
 ---
 name: Linting
 on:
+  push:
+    branches: [ 'main' ]
   pull_request:
     types: ['opened', 'synchronize']
     paths:
@@ -23,5 +25,5 @@ jobs:
           go-version: '1.18.0'
       - uses: golangci/golangci-lint-action@v2
         with:
-          version: 'v1.45.0'
+          version: 'v1.47.3'
           args: -v

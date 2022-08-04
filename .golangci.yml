@@ -1,7 +1,7 @@
 run:
   deadline: 10m10s
   modules-download-mode: vendor
-  go: 1.18
+  go: 1.17 # 1.18 disabled some linters as they don't support generics yet, as such lock to 1.17 until they do
 
 issues:
   max-per-linter: 0
@@ -10,12 +10,18 @@ issues:
 linters:
   disable-all: true
   enable:
+    - asasalint
     - asciicheck
     - bidichk
+    - containedctx
+    - contextcheck
     - deadcode
+    - decorder
     - durationcheck
+    - errchkjson
     - errname
     - errcheck
+    - errorlint
     - exhaustive
     - exportloopref
     - gocritic
@@ -25,17 +31,23 @@ linters:
     - gosimple
     - govet
     - gosec
-    #- godot
     - ineffassign
     - ifshort
     - nakedret
+    - nilerr
     - nilnil
+    - nlreturn
     - nolintlint
+    - noctx
     - makezero
     - misspell
+    #- paralleltest
+    - prealloc
+    - predeclared
     - staticcheck
     - structcheck
-    #- stylecheck
+    - stylecheck
+    - revive
     - typecheck
     - unused
     - unconvert
@@ -43,9 +55,25 @@ linters:
     - varcheck
     - vet
     - vetshadow
+    - wastedassign
     - whitespace
-  #- wsl
+    # - wsl #linter configuration is still quite not flexible enough for my liking, leaving disabled for now
 
 linters-settings:
   errcheck:
     ignore: io:Close
+  misspell:
+    locale: uk
+    ignore-words:
+      - color # is there a way to only ignore package names?
+  nlreturn:
+    block-size: 4
+  wsl:
+    allow-assign-and-anything: true
+    allow-separated-leading-comment: true
+    allow-trailing-comment: true
+    allow-cuddle-declarations: true
+    allow-multiline-assign: true
+    force-case-trailing-whitespace: 1
+    enforce-err-cuddling: true
+
