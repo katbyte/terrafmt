@@ -25,9 +25,14 @@ func New(colors ...Color) Style {
 	return colors
 }
 
-// Save to styles map
+// Save to global styles map
 func (s Style) Save(name string) {
 	AddStyle(name, s)
+}
+
+// Add to global styles map
+func (s *Style) Add(cs ...Color) {
+	*s = append(*s, cs...)
 }
 
 // Render render text
@@ -79,7 +84,7 @@ func (s Style) Code() string {
 
 // String convert to code string. returns like "32;45;3"
 func (s Style) String() string {
-	return colors2code(s...)
+	return Colors2code(s...)
 }
 
 // IsEmpty style
@@ -157,7 +162,7 @@ var (
 	// Notice color style
 	Notice = &Theme{"notice", Style{OpBold, FgCyan}}
 	// Comment color style
-	Comment = &Theme{"comment", Style{OpReset, FgLightYellow}}
+	Comment = &Theme{"comment", Style{OpReset, FgYellow}}
 	// Success color style
 	Success = &Theme{"success", Style{OpBold, FgGreen}}
 	// Primary color style
@@ -251,36 +256,60 @@ func GetStyle(name string) Style {
 }
 
 /*************************************************************
- * quick use style print message
+ * color scheme
  *************************************************************/
 
-// Infof print message with Info style
-func Infof(format string, a ...interface{}) {
-	Info.Printf(format, a...)
+// Scheme struct
+type Scheme struct {
+	Name   string
+	Styles map[string]Style
 }
 
-// Infoln print message with Info style
-func Infoln(a ...interface{}) {
-	Info.Println(a...)
+// NewScheme create new Scheme
+func NewScheme(name string, styles map[string]Style) *Scheme {
+	return &Scheme{Name: name, Styles: styles}
 }
 
-// Errorf print message with Error style
-func Errorf(format string, a ...interface{}) {
-	Error.Printf(format, a...)
+// NewDefaultScheme create an defuault color Scheme
+func NewDefaultScheme(name string) *Scheme {
+	return NewScheme(name, map[string]Style{
+		"info":  {OpReset, FgGreen},
+		"warn":  {OpBold, FgYellow},
+		"error": {FgLightWhite, BgRed},
+	})
 }
 
-// Errorln print message with Error style
-func Errorln(a ...interface{}) {
-	Error.Println(a...)
+// Style get by name
+func (s *Scheme) Style(name string) Style {
+	return s.Styles[name]
 }
 
-// Warnf print message with Warn style
-func Warnf(format string, a ...interface{}) {
-	Warn.Printf(format, a...)
+// Infof message print
+func (s *Scheme) Infof(format string, a ...interface{}) {
+	s.Styles["info"].Printf(format, a...)
 }
 
-// Warnln print message with Warn style
-func Warnln(a ...interface{}) {
-	Warn.Println(a...)
+// Infoln message print
+func (s *Scheme) Infoln(v ...interface{}) {
+	s.Styles["info"].Println(v...)
 }
 
+// Warnf message print
+func (s *Scheme) Warnf(format string, a ...interface{}) {
+	s.Styles["warn"].Printf(format, a...)
+}
+
+// Warnln message print
+func (s *Scheme) Warnln(v ...interface{}) {
+	s.Styles["warn"].Println(v...)
+}
+
+// Errorf message print
+func (s *Scheme) Errorf(format string, a ...interface{}) {
+	s.Styles["error"].Printf(format, a...)
+}
+
+// Errorln message print
+func (s *Scheme) Errorln(v ...interface{}) {
+	s.Styles["error"].Println(v...)
+}
