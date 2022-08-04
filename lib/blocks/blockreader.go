@@ -271,7 +271,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 		if IsStartLine(l) {
 			block := ""
 			br.BlockCurrentLine = 0
-			br.LineCount++
+			br.BlockCount++
 
 			for s.Scan() { // scan block
 				br.LineCount++
@@ -291,7 +291,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					}
 
 					block = ""
-					br.LineCount++
+					br.BlockCount++
 
 					continue
 				}
