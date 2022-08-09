@@ -42,7 +42,7 @@ The tool currently supports blocks with the following start and end lines:
 
 Use the `blocks` command to extract blocks from a file:
 
-![blocks](_docs/blocks.png)
+![blocks](.github/images/blocks.png)
 
 To output only the block content, separated by the null character, use the flags `--zero-terminated` or `z`.
 
@@ -84,17 +84,17 @@ To output the blocks using a JSON structure, use the flags `--json` or `-j`. The
 
 Use the `diff` command to see what would be formatted (files can also be piped in on stdin) :
 
-![diff](_docs/diff.png) 
+![diff](.github/images/diff.png) 
 
 For code files with printf verb formatting use the `-f` switch :
 
-![diff -f](_docs/diff-f.png)
+![diff -f](.github/images/diff-f.png)
 
 ### Format File
 
 Use the `fmt` command to format the blocks:
 
-![fmt](_docs/fmt.png)
+![fmt](.github/images/fmt.png)
 
 ### Format Multiple
 
@@ -115,7 +115,7 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 
 Use the `upgrade012` command to upgrade the blocks to 0.12:
 
-![fmt](_docs/upgrade.png)
+![fmt](.github/images/upgrade.png)
 
 ### Exit codes
 
