@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -14,13 +13,13 @@ import (
 
 func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (string, error) {
 	// Make temp directory
-	tempDir, err := ioutil.TempDir(".", "tmp-module")
+	tempDir, err := os.MkdirTemp(".", "tmp-module")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Create temp file
-	tmpFile, err := ioutil.TempFile(tempDir, "*.tf")
+	tmpFile, err := os.CreateTemp(tempDir, "*.tf")
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +54,7 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 	}
 
 	// Read from temp file
-	raw, err := ioutil.ReadFile(tmpFile.Name())
+	raw, err := os.ReadFile(tmpFile.Name())
 	if err != nil {
 		return "", fmt.Errorf("failed to read %s: %w", tmpFile.Name(), err)
 	}
