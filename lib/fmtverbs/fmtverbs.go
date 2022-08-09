@@ -24,8 +24,12 @@ func Escape(b string) string {
 
 	// provider meta-argument
 	// The provider name must be in lowercase
-	b = regexp.MustCompile(`(provider\s+=\s+)%s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER`)
-	b = regexp.MustCompile(`(provider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}`)
+	b = regexp.MustCompile(`(\bprovider\s+=\s+)%s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER`)
+	b = regexp.MustCompile(`(\bprovider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}`)
+
+	// count meta-argument
+	b = regexp.MustCompile(`(\bcount\s+=\s+)%([ds])`).ReplaceAllString(b, `${1}1 # tfmtcount_${2}`)
+	b = regexp.MustCompile(`(\bcount\s+=\s+)+%(\[(\d+)\][ds])`).ReplaceAllString(b, `${1}1 # tfmtcount_${2}`)
 
 	// %[n]s
 	b = regexp.MustCompile(`(?m:^%(\.[0-9])?\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
@@ -123,6 +127,10 @@ func Unscape(fb string) string {
 
 	// resource name %q
 	fb = regexp.MustCompile(`"TFMTRESNAME_q"`).ReplaceAllLiteralString(fb, `%q`)
+
+	// count meta-argument
+	fb = regexp.MustCompile(`1\s+# tfmtcount_(\[\d+\][ds])`).ReplaceAllString(fb, `%${1}`)
+	fb = regexp.MustCompile(`1\s+# tfmtcount_([ds])`).ReplaceAllString(fb, `%${1}`)
 
 	// provider meta-argument
 	fb = regexp.MustCompile(`tfmtprovider.PROVIDER_(\d+)`).ReplaceAllString(fb, `%[${1}]s`)

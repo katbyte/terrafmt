@@ -572,6 +572,59 @@ resource "resource" "test2" {
 }
 `,
 		},
+		{
+			name: "count meta-argument",
+			block: `
+resource "resource" "test" {
+  count = %d
+}
+
+resource "resource" "test2" {
+  count = %[2]d
+}
+
+resource "resource" "test3" {
+  count = %s
+}
+
+resource "resource" "test4" {
+  count = %[3]s
+}
+
+resource "other_resource" "test5" {
+  replica_count = %d
+}
+
+resource "other_resource" "test6" {
+  replica_count = %[2]d
+}
+`,
+			expected: `
+resource "resource" "test" {
+  count = 1 # tfmtcount_d
+}
+
+resource "resource" "test2" {
+  count = 1 # tfmtcount_[2]d
+}
+
+resource "resource" "test3" {
+  count = 1 # tfmtcount_s
+}
+
+resource "resource" "test4" {
+  count = 1 # tfmtcount_[3]s
+}
+
+resource "other_resource" "test5" {
+  replica_count = "@@_@@ TFMT:%d:TFMT @@_@@"
+}
+
+resource "other_resource" "test6" {
+  replica_count = "@@_@@ TFMT:%[2]d:TFMT @@_@@"
+}
+`,
+		},
 	}
 
 	t.Parallel()
