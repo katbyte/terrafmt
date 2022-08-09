@@ -96,6 +96,14 @@ func TestBlockDetection(t *testing.T) {
 }
 `,
 				},
+				{
+					leadingPadding:  "\n",
+					trailingPadding: "\n",
+					text: `resource "aws_s3_bucket" "%s" {
+  bucket = "tf-test-bucket-with-quotedname"
+}
+`,
+				},
 			},
 		},
 		{
@@ -322,6 +330,34 @@ output "arn" {
 }`,
 			expected: true,
 		},
+		{
+			text: `
+resource "aws_s3_bucket" "%s" {
+  bucket = "tf-test-bucket-simple"
+}`,
+			expected: true,
+		},
+		// 		{
+		// 			text: `
+		// resource "aws_s3_bucket" "%[1]s" {
+		//   bucket = "tf-test-bucket-simple"
+		// }`,
+		// 			expected: true,
+		// 		},
+		// 		{
+		// 			text: `
+		// resource "aws_s3_bucket" %q {
+		//   bucket = "tf-test-bucket-simple"
+		// }`,
+		// 			expected: true,
+		// 		},
+		// 		{
+		// 			text: `
+		// resource "aws_s3_bucket" %[1]q {
+		//   bucket = "tf-test-bucket-simple"
+		// }`,
+		// 			expected: true,
+		// 		},
 		{
 			text:     "%d: bad create: \n%#v\n%#v",
 			expected: false,

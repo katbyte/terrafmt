@@ -13,7 +13,7 @@ import (
 )
 
 func InstallTerraform(ctx context.Context) (string, error) {
-	vc, _ := version.NewConstraint("=0.12.29")
+	vc, _ := version.NewConstraint("=0.12.31")
 	rv := &releases.Versions{
 		Product:     product.Terraform,
 		Constraints: vc,

@@ -224,7 +224,7 @@ func Make() *cobra.Command {
 	pflags := root.PersistentFlags()
 	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d etc) compatibility")
 	pflags.BoolP("check", "c", false, "return an error during diff if formatting is required")
-	pflags.BoolP("verbose", "v", false, "show files as they are processed& additional stats")
+	pflags.BoolP("verbose", "v", false, "show files as they are processed & additional stats")
 	pflags.BoolP("quiet", "q", false, "quiet mode, only shows block line numbers ")
 	pflags.BoolP("uncoloured", "u", false, "disable coloured output")
 

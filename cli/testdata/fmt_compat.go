@@ -62,3 +62,15 @@ resource "aws_elasticache_replication_group" "for-expression" {
 }
 `, randInt)
 }
+
+func testFormatVerbResourceName(name string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" %[1]q {
+  bucket = "tf-test-bucket-with-quotedname"
+}
+
+resource "aws_s3_bucket" "%[1]s-copy" {
+  bucket = "tf-test-bucket-with-name-in-quotes"
+}
+`, name)
+}

@@ -75,6 +75,14 @@ func testLeadingWhiteSpaceAndLine(randInt int) string {
 `, randInt)
 }
 
+func testFormatVerbResourceName(name string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "%s" {
+  bucket = "tf-test-bucket-with-quotedname"
+}
+`, name)
+}
+
 func notTerraformSimpleString() string {
 	fmt.Sprintf("%d: bad create: \n%#v\n%#v", i, cm, tc.Create)
 }
