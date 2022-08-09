@@ -4,6 +4,8 @@
 - adds support for format verbs as parameters ([#58](https://github.com/katbyte/terrafmt/issues/58))
 - support for for expressions and functions with multiple parameters ([#59](https://github.com/katbyte/terrafmt/issues/59))
 - support reStructuredText ([#60](https://github.com/katbyte/terrafmt/issues/60))
+- support format verbs in resource names ([#67](https://github.com/katbyte/terrafmt/issues/67))
+
 
 ## 0.4.0 (2022-03-21)
 
