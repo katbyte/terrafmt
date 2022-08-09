@@ -5,7 +5,7 @@
 - support for for expressions and functions with multiple parameters ([#59](https://github.com/katbyte/terrafmt/issues/59))
 - support reStructuredText ([#60](https://github.com/katbyte/terrafmt/issues/60))
 - support format verbs in resource names ([#67](https://github.com/katbyte/terrafmt/issues/67))
-
+- support for the `count` meta-variable ([#68](https://github.com/katbyte/terrafmt/issues/68))
 
 ## 0.4.0 (2022-03-21)
 
