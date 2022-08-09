@@ -9,7 +9,6 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -157,7 +156,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		if !br.ReadOnly {
 			br.Writer = buf
 		} else {
-			br.Writer = ioutil.Discard
+			br.Writer = io.Discard
 		}
 	} else {
 		br.FileName = "stdin"
@@ -165,7 +164,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		br.Writer = stdout
 
 		if br.ReadOnly {
-			br.Writer = ioutil.Discard
+			br.Writer = io.Discard
 		}
 	}
 
@@ -230,7 +229,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 			buf = bytes.NewBuffer([]byte{})
 			br.Writer = buf
 		} else {
-			br.Writer = ioutil.Discard
+			br.Writer = io.Discard
 		}
 	} else {
 		br.FileName = "stdin"
@@ -238,7 +237,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 		br.Writer = stdout
 
 		if br.ReadOnly {
-			br.Writer = ioutil.Discard
+			br.Writer = io.Discard
 		}
 	}
 
