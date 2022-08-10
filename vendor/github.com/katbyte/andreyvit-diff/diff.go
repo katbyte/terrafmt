@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/katbyte/sergi-go-diff/diffmatchpatch"
 )
 
 func diff(a, b string) []diffmatchpatch.Diff {

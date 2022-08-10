@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/andreyvit/diff"
 	c "github.com/gookit/color"
 	"github.com/hashicorp/go-multierror"
+	diff "github.com/katbyte/andreyvit-diff"
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
 	verbs "github.com/katbyte/terrafmt/lib/fmtverbs"
@@ -380,7 +380,7 @@ func (w jsonBlockWriter) Close() error {
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 
-	//nolint: gocritic
+	// nolint: gocritic
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -464,7 +464,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				for scanner.Scan() {
 					l := scanner.Text()
 
-					//nolint: gocritic
+					// nolint: gocritic
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
