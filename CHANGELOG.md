@@ -1,3 +1,7 @@
+## v0.5.1 (2022-08-09)
+
+- remove `exclude github.com/sergi/go-diff v1.2.0` from go.mod
+
 ## v0.5.0 (2022-08-09)
 
 - allow uppercase letters for the resource name in the block reader ([#56](https://github.com/katbyte/terrafmt/issues/56))
