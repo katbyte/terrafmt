@@ -1,3 +1,7 @@
+## v0.5.2 (2022-08-16)
+
+- fix regression preventing uppcase resource name ([#71](https://github.com/katbyte/terrafmt/issues/71))
+
 ## v0.5.1 (2022-08-09)
 
 - remove `exclude github.com/sergi/go-diff v1.2.0` from go.mod
