@@ -104,6 +104,14 @@ func TestBlockDetection(t *testing.T) {
 }
 `,
 				},
+				{
+					leadingPadding:  "\n",
+					trailingPadding: "\n",
+					text: `resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
+}
+`,
+				},
 			},
 		},
 		{
@@ -127,6 +135,12 @@ func TestBlockDetection(t *testing.T) {
 					text: `    
     resource "aws_s3_bucket" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line"
+}
+`,
+				},
+				{
+					text: `resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
 }
 `,
 				},
