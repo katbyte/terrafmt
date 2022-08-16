@@ -1,6 +1,6 @@
 ## v0.5.2 (2022-08-16)
 
-- fix regression preventing uppcase resource name ([#71](https://github.com/katbyte/terrafmt/issues/71))
+- fix regression preventing uppercase resource name ([#71](https://github.com/katbyte/terrafmt/issues/71))
 
 ## v0.5.1 (2022-08-09)
 
