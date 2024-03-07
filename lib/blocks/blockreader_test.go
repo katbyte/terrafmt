@@ -270,7 +270,7 @@ func TestBlockDetection(t *testing.T) {
 			Log:      log,
 			ReadOnly: true,
 			LineRead: ReaderIgnore,
-			BlockRead: func(br *Reader, i int, b string, preserveIndent bool) error {
+			BlockRead: func(br *Reader, _ int, b string, _ bool) error {
 				actualBlocks = append(actualBlocks, block{
 					leadingPadding:  br.CurrentNodeLeadingPadding,
 					text:            b,

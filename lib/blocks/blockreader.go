@@ -62,12 +62,12 @@ type Reader struct {
 	BlockWriter BlockWriter
 }
 
-func ReaderPassthrough(br *Reader, number int, line string) error {
+func ReaderPassthrough(br *Reader, _ int, line string) error {
 	_, err := br.Writer.Write([]byte(line))
 	return err
 }
 
-func ReaderIgnore(br *Reader, number int, line string) error {
+func ReaderIgnore(_ *Reader, _ int, _ string) error {
 	return nil
 }
 
@@ -313,9 +313,8 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					block = ""
 
 					break
-				} else {
-					block += l2
 				}
+				block += l2
 			}
 
 			// ensure last block in the file was property handled

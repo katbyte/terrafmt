@@ -41,7 +41,7 @@ func Make() *cobra.Command {
 		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return fmt.Errorf("no command specified")
 		},
 	}
@@ -299,7 +299,6 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 			return nil
 		},
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("error walking path (%s): %w", path, err)
 	}
@@ -307,7 +306,7 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 	return filenames, nil
 }
 
-func versionCmd(cmd *cobra.Command, args []string) {
+func versionCmd(_ *cobra.Command, _ []string) {
 	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
 }
 
@@ -315,7 +314,7 @@ type textBlockWriter struct {
 	writer io.Writer
 }
 
-func (w textBlockWriter) Write(index, startLine, endLine int, text string) {
+func (w textBlockWriter) Write(index, _, endLine int, text string) {
 	fmt.Fprint(w.writer, c.Sprintf("\n<white>#######</> <cyan>B%d</><darkGray> @ #%d</>\n", index, endLine))
 	fmt.Fprint(w.writer, text)
 }
@@ -326,7 +325,7 @@ type zeroTerminatedBlockWriter struct {
 	writer io.Writer
 }
 
-func (w zeroTerminatedBlockWriter) Write(index, startLine, endLine int, text string) {
+func (w zeroTerminatedBlockWriter) Write(_, _, _ int, text string) {
 	fmt.Fprint(w.writer, text)
 	fmt.Fprint(w.writer, "\x00")
 }
@@ -380,7 +379,7 @@ func (w jsonBlockWriter) Close() error {
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 
-	// nolint: gocritic
+	//nolint: gocritic
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -400,7 +399,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 		ReadOnly:    true,
 		LineRead:    blocks.ReaderIgnore,
 		BlockWriter: blockWriter,
-		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
+		BlockRead: func(br *blocks.Reader, _ int, b string, _ bool) error {
 			if fmtverbs {
 				b = verbs.Escape(b)
 			}
@@ -433,7 +432,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		Log:      log,
 		ReadOnly: true,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
+		BlockRead: func(br *blocks.Reader, _ int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
@@ -464,7 +463,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				for scanner.Scan() {
 					l := scanner.Text()
 
-					// nolint: gocritic
+					//nolint: gocritic
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
@@ -504,7 +503,7 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 	br := blocks.Reader{
 		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
+		BlockRead: func(br *blocks.Reader, _ int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
@@ -582,7 +581,7 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 	br := blocks.Reader{
 		Log:      log,
 		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, i int, b string, preserveIndent bool) error {
+		BlockRead: func(br *blocks.Reader, _ int, b string, preserveIndent bool) error {
 			var fb string
 			var err error
 			if fmtverbs {
