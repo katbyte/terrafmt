@@ -1,3 +1,7 @@
+## v0.5.3 (2024-03-08)
+
+- update dependencies: `hcl/v2` to `v2.20.0` ([#75](https://github.com/katbyte/terrafmt/issues/75))
+
 ## v0.5.2 (2022-08-16)
 
 - fix regression preventing uppercase resource name ([#71](https://github.com/katbyte/terrafmt/issues/71))
