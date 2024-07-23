@@ -1,3 +1,7 @@
+## v0.5.4 (2024-07-23)
+
+- dependencies: update `hcl/v2` to `v2.20.1` ([#75](https://github.com/katbyte/terrafmt/issues/77))
+
 ## v0.5.3 (2024-03-08)
 
 - dependencies: update `hcl/v2` to `v2.20.0` ([#75](https://github.com/katbyte/terrafmt/issues/75))
