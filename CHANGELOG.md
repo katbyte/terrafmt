@@ -1,3 +1,7 @@
+## v0.5.5 (2024-12-11)
+
+- dependencies: update `katbyte/andreyvit-diff` to `v0.0.2` ([#79](https://github.com/katbyte/terrafmt/issues/79))
+  
 ## v0.5.4 (2024-07-23)
 
 - dependencies: update `hcl/v2` to `v2.20.1` ([#75](https://github.com/katbyte/terrafmt/issues/77))
