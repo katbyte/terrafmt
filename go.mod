@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/hc-install v0.4.0
 	github.com/hashicorp/hcl/v2 v2.20.1
 	github.com/hashicorp/terraform-exec v0.17.2
-	github.com/katbyte/andreyvit-diff v0.0.1
+	github.com/katbyte/andreyvit-diff v0.0.2
 	github.com/kylelemons/godebug v1.1.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.2
@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/terraform-json v0.14.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/katbyte/sergi-go-diff v1.1.1 // indirect
+	github.com/katbyte/sergi-go-diff v1.2.2 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
