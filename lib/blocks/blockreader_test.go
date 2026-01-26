@@ -332,6 +332,18 @@ data "aws_s3_bucket" "simple-data" {
 		},
 		{
 			text: `
+list "azurerm_resource_group" "example" {
+  provider = azurerm
+
+  config {
+    filter = "tagName eq 'query' and tagValue eq 'example'"
+  }
+}
+`,
+			expected: true,
+		},
+		{
+			text: `
 variable "name" {
   type = string
 }`,

@@ -113,12 +113,12 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 	return true
 }
 
-// Includes matching Go format verbs in the resource, data source, variable, or output name.
+// Includes matching Go format verbs in the resource, data source, list, variable, or output name.
 // Technically, this is only valid for the Go matcher, but included generally for simplicity.
-var terraformMatcher = regexp.MustCompile(`(((resource|data)\s+"[-a-z0-9_]+")|(variable|output))\s+"[-a-zA-Z0-9_%\[\]]+"\s+\{`)
+var terraformMatcher = regexp.MustCompile(`(((resource|data|list)\s+"[-a-z0-9_]+")|(variable|output))\s+"[-a-zA-Z0-9_%\[\]]+"\s+\{`)
 
 // A simple check to see if the content looks like a Terraform configuration.
-// Looks for a line with either a resource, data source, variable, or output declaration
+// Looks for a line with either a resource, data source, list, variable, or output declaration
 func looksLikeTerraform(s string) bool {
 	return terraformMatcher.MatchString(s)
 }
