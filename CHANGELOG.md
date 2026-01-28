@@ -1,7 +1,11 @@
+## v0.5.6 (2026-01-28)
+
+- Expand regex to account for new list declarations ([#85](https://github.com/katbyte/terrafmt/issues/85))
+  
 ## v0.5.5 (2024-12-12)
 
 - dependencies: update `katbyte/andreyvit-diff` to `v0.0.2` and  `katbyte/sergi-go-diff` to `v1.2.3` indirectly
-- 
+
 ## v0.5.4 (2024-07-23)
 
 - dependencies: update `hcl/v2` to `v2.20.1` ([#75](https://github.com/katbyte/terrafmt/issues/77))
