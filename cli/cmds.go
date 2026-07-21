@@ -307,7 +307,7 @@ func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
 }
 
 func versionCmd(_ *cobra.Command, _ []string) {
-	fmt.Println("terrafmt v" + version.Version + "-" + version.GitCommit)
+	fmt.Println("terrafmt " + version.Version)
 }
 
 type textBlockWriter struct {
