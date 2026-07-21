@@ -83,6 +83,14 @@ resource "aws_s3_bucket" "%s" {
 `, name)
 }
 
+func testFormatUpperCase(name string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
+}
+`)
+}
+
 func notTerraformSimpleString() string {
 	fmt.Sprintf("%d: bad create: \n%#v\n%#v", i, cm, tc.Create)
 }

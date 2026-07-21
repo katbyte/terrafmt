@@ -1,6 +1,26 @@
+## v0.5.6 (2026-01-28)
+
+- Expand regex to account for new list declarations ([#85](https://github.com/katbyte/terrafmt/issues/85))
+  
+## v0.5.5 (2024-12-12)
+
+- dependencies: update `katbyte/andreyvit-diff` to `v0.0.2` and  `katbyte/sergi-go-diff` to `v1.2.3` indirectly
+
+## v0.5.4 (2024-07-23)
+
+- dependencies: update `hcl/v2` to `v2.20.1` ([#75](https://github.com/katbyte/terrafmt/issues/77))
+
+## v0.5.3 (2024-03-08)
+
+- dependencies: update `hcl/v2` to `v2.20.0` ([#75](https://github.com/katbyte/terrafmt/issues/75))
+
+## v0.5.2 (2022-08-16)
+
+- fix regression preventing uppercase resource name ([#71](https://github.com/katbyte/terrafmt/issues/71))
+
 ## v0.5.1 (2022-08-09)
 
-- remove `exclude github.com/sergi/go-diff v1.2.0` from go.mod
+- remove `exclude sergi/go-diff v1.2.0` from go.mod
 
 ## v0.5.0 (2022-08-09)
 

@@ -32,3 +32,11 @@ Test block with leading whitespace and line
   bucket = "tf-test-bucket-leading-space-and-line"
 }
 ```
+
+Test block with capital letters in resource name
+
+```terraform
+resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
+}
+```

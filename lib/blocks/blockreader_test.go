@@ -104,6 +104,14 @@ func TestBlockDetection(t *testing.T) {
 }
 `,
 				},
+				{
+					leadingPadding:  "\n",
+					trailingPadding: "\n",
+					text: `resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
+}
+`,
+				},
 			},
 		},
 		{
@@ -127,6 +135,12 @@ func TestBlockDetection(t *testing.T) {
 					text: `    
     resource "aws_s3_bucket" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line"
+}
+`,
+				},
+				{
+					text: `resource "aws_s3_bucket" "UpperCase" {
+  bucket = "tf-test-bucket-with-uppercase"
 }
 `,
 				},
@@ -256,7 +270,7 @@ func TestBlockDetection(t *testing.T) {
 			Log:      log,
 			ReadOnly: true,
 			LineRead: ReaderIgnore,
-			BlockRead: func(br *Reader, i int, b string, preserveIndent bool) error {
+			BlockRead: func(br *Reader, _ int, b string, _ bool) error {
 				actualBlocks = append(actualBlocks, block{
 					leadingPadding:  br.CurrentNodeLeadingPadding,
 					text:            b,
@@ -314,6 +328,18 @@ resource "aws_s3_bucket" "simple-resource" {
 data "aws_s3_bucket" "simple-data" {
   bucket = "tf-test-bucket-simple"
 }`,
+			expected: true,
+		},
+		{
+			text: `
+list "azurerm_resource_group" "example" {
+  provider = azurerm
+
+  config {
+    filter = "tagName eq 'query' and tagValue eq 'example'"
+  }
+}
+`,
 			expected: true,
 		},
 		{
