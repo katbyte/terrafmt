@@ -1,3 +1,7 @@
+## v0.5.7 (2026-07-21)
+
+- Fix versioning
+  
 ## v0.5.6 (2026-01-28)
 
 - Expand regex to account for new list declarations ([#85](https://github.com/katbyte/terrafmt/issues/85))
