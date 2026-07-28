@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-func indentToOriginalLevel(formatted string, original string) string {
+func indentToOriginalLevel(formatted, original string) string {
 	prefix := ""
 	for _, r := range original {
 		if unicode.IsSpace(r) {

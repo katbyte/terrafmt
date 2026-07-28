@@ -133,7 +133,6 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -143,7 +142,11 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
 			}
-			defer inR.Close()
+			defer func() {
+				if err := inR.Close(); err != nil {
+					t.Errorf("Error closing test input file %q: %s", testcase.sourcefile, err)
+				}
+			}()
 
 			resultfile := testcase.resultfile
 			if testcase.noDiff {
@@ -187,7 +190,6 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -197,7 +199,11 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Error opening test input file %q: %s", testcase.sourcefile, err)
 			}
-			defer inR.Close()
+			defer func() {
+				if err := inR.Close(); err != nil {
+					t.Errorf("Error closing test input file %q: %s", testcase.sourcefile, err)
+				}
+			}()
 
 			var outB strings.Builder
 			var errB strings.Builder
@@ -236,7 +242,6 @@ func TestCmdFmtFileDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -296,7 +301,6 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 

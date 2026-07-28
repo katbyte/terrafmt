@@ -360,7 +360,6 @@ func TestCmdBlocksDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -399,7 +398,6 @@ func TestCmdBlocksVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -428,7 +426,6 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -466,7 +463,6 @@ func TestCmdBlocksJson(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -514,7 +510,6 @@ func TestCmdBlocksFmtVerbsJson(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range blocksTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -559,12 +554,12 @@ func TestCmdBlocksFmtVerbsJson(t *testing.T) {
 }
 
 func equivalentJSON(b1, b2 []byte) bool {
-	var o1 interface{}
+	var o1 any
 	if err := json.Unmarshal(b1, &o1); err != nil {
 		return false
 	}
 
-	var o2 interface{}
+	var o2 any
 	if err := json.Unmarshal(b2, &o2); err != nil {
 		return false
 	}
@@ -573,6 +568,7 @@ func equivalentJSON(b1, b2 []byte) bool {
 }
 
 func TestBlocksOutputJsonSerializesEmptyArray(t *testing.T) {
+	t.Parallel()
 	expected := `{"block_count":0,"blocks":[]}`
 
 	actual, err := json.Marshal(&Output{})

@@ -1,3 +1,4 @@
+// Package version exposes the terrafmt version and git commit, set at build time.
 package version
 
 import "runtime/debug"

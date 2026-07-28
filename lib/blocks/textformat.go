@@ -43,7 +43,7 @@ func (restructuredTextFormat) isStartingLine(line string) bool {
 }
 
 func (mbf restructuredTextFormat) isFinishLine(line string) bool {
-	return strings.Compare(line, strings.TrimLeftFunc(line, unicode.IsSpace)) == 0
+	return line == strings.TrimLeftFunc(line, unicode.IsSpace)
 }
 
 func (mbf restructuredTextFormat) preserveIndentation() bool {

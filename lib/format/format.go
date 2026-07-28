@@ -1,3 +1,4 @@
+// Package format formats terraform blocks with the HCL formatter.
 package format
 
 import (
