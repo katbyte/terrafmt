@@ -1,9 +1,8 @@
-// Package cli implements the terrafmt commands (fmt, diff, blocks, upgrade012).
+// Package cli implements the terrafmt commands (fmt, diff, blocks).
 package cli
 
 import (
 	"bufio"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,7 +20,6 @@ import (
 	"github.com/katbyte/terrafmt/lib/common"
 	verbs "github.com/katbyte/terrafmt/lib/fmtverbs"
 	"github.com/katbyte/terrafmt/lib/format"
-	"github.com/katbyte/terrafmt/lib/upgrade012"
 	"github.com/katbyte/terrafmt/lib/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -38,7 +36,7 @@ const (
 
 func Make() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "terrafmt [fmt|diff|blocks|upgrade012]",
+		Use:           "terrafmt [fmt|diff|blocks]",
 		Short:         "terrafmt is a small utility to format terraform blocks found in files.",
 		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
@@ -100,36 +98,6 @@ func Make() *cobra.Command {
 	root.AddCommand(fmtCmd)
 	fmtCmd.Flags().Bool("fix-finish-lines", false, "fix block finish lines by removing any leading spaces")
 	fmtCmd.Flags().StringP("pattern", "p", "", "glob pattern to match with each file name (e.g. *.markdown)")
-
-	// options : only count, blocks diff/found, total lines diff, etc
-	root.AddCommand(&cobra.Command{
-		Use:   "upgrade012 [file]",
-		Short: "formats terraform blocks to 0.12 format in a single file or on stdin",
-		Args:  cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			log := common.CreateLogger(cmd.ErrOrStderr())
-
-			filename := ""
-			if len(args) == 1 {
-				filename = args[0]
-			}
-			log.Debugf("terrafmt upgrade012 %s", filename)
-
-			fmtverbs := viper.GetBool("fmtcompat")
-			verbose := viper.GetBool("verbose")
-
-			fs := afero.NewOsFs()
-			br, err := upgrade012File(fs, log, filename, fmtverbs, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
-			if err != nil {
-				return err
-			}
-			if br.ErrorBlocks > 0 {
-				os.Exit(ExitCodeBlockParsingError)
-			}
-
-			return nil
-		},
-	})
 
 	// options : only count, blocks diff/found, total lines diff, etc
 	diffCmd := &cobra.Command{
@@ -558,80 +526,6 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 		FixFinishLines: fixFinishLines,
 	}
 	err := br.DoTheThing(fs, filename, stdin, stdout)
-
-	fc := "magenta"
-	if blocksFormatted > 0 {
-		fc = "lightMagenta"
-	}
-
-	if verbose {
-		fmt.Fprint(stderr, c.Sprintf("<%s>%s</>: <cyan>%d</> lines & formatted <yellow>%d</>/<yellow>%d</> blocks!\n", fc, br.FileName, br.LineCount, blocksFormatted, br.BlockCount))
-	}
-
-	return &br, err
-}
-
-// todo: ~6 years old now, can we remove it?
-func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
-	ctx := context.Background()
-
-	tfBin, err := upgrade012.InstallTerraform(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	blocksFormatted := 0
-	br := blocks.Reader{
-		Log:      log,
-		LineRead: blocks.ReaderPassthrough,
-		BlockRead: func(br *blocks.Reader, _ int, b string, preserveIndent bool) error {
-			var fb string
-			var blockErr error
-			if fmtverbs {
-				fb, blockErr = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
-			} else {
-				fb, blockErr = upgrade012.Block(ctx, tfBin, log, b)
-			}
-			if blockErr != nil {
-				return blockErr
-			}
-
-			if preserveIndent {
-				fb = indentToOriginalLevel(fb, b)
-			}
-
-			hasChange := fb != b
-
-			if br.CurrentNodeCursor != nil {
-				fb = strings.TrimSuffix(fb, "\n")
-
-				if hasChange {
-					br.CurrentNodeCursor.Replace(&ast.BasicLit{
-						Kind: token.STRING,
-						Value: br.CurrentNodeQuoteChar +
-							br.CurrentNodeLeadingPadding +
-							fb +
-							br.CurrentNodeTrailingPadding +
-							br.CurrentNodeQuoteChar,
-					})
-					blocksFormatted++
-				}
-			} else {
-				_, blockErr = br.Writer.Write([]byte(fb))
-
-				if blockErr == nil && hasChange {
-					blocksFormatted++
-				}
-			}
-
-			return blockErr
-		},
-	}
-
-	err = br.DoTheThing(fs, filename, stdin, stdout)
-	if err != nil {
-		return &br, err
-	}
 
 	fc := "magenta"
 	if blocksFormatted > 0 {
