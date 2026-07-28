@@ -1,9 +1,13 @@
 # terrafmt
 
+[![GitHub release](https://img.shields.io/github/v/release/katbyte/terrafmt?color=blueviolet)](https://github.com/katbyte/terrafmt/releases/latest)
 ![build](https://github.com/katbyte/terrafmt/actions/workflows/build.yaml/badge.svg)
-![tests](https://github.com/katbyte/terrafmt/actions/workflows/test.yaml/badge.svg)
+![test](https://github.com/katbyte/terrafmt/actions/workflows/test.yaml/badge.svg)
 ![lint](https://github.com/katbyte/terrafmt/actions/workflows/lint.yaml/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/katbyte/terrafmt)](https://goreportcard.com/report/github.com/katbyte/terrafmt)
+![govulncheck](https://github.com/katbyte/terrafmt/actions/workflows/govulncheck.yaml/badge.svg)
+![CodeQL](https://github.com/katbyte/terrafmt/actions/workflows/codeql-analysis.yml/badge.svg)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/katbyte/terrafmt?color=00ADD8)](https://github.com/katbyte/terrafmt/blob/main/go.mod)
+[![License](https://img.shields.io/github/license/katbyte/terrafmt?color=blue)](https://github.com/katbyte/terrafmt/blob/main/LICENSE)
 
 A tool for extracting or formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in [provider](https://www.terraform.io/docs/providers/index.html) code 
 
