@@ -35,7 +35,7 @@ var blocksTestcases = []struct {
 				startLine: 8,
 				endLine:   12,
 				text: `resource "azurerm_storage_container" "simple" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }
 `,
 			},
@@ -43,7 +43,7 @@ var blocksTestcases = []struct {
 				startLine: 16,
 				endLine:   20,
 				text: `resource "azurerm_storage_container" "with-parameters" {
-  bucket = "tf-test-bucket-with-parameters-%d"
+  name = "tf-test-container-with-parameters-%d"
 }
 `,
 			},
@@ -51,7 +51,7 @@ var blocksTestcases = []struct {
 				startLine: 24,
 				endLine:   28,
 				text: `resource "azurerm_storage_container" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+  name = "tf-test-container-parameters-and-append-%d"
 }
 `,
 			},
@@ -67,7 +67,7 @@ var blocksTestcases = []struct {
 				endLine:   13,
 				text: `resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `,
 			},
@@ -75,7 +75,7 @@ var blocksTestcases = []struct {
 				startLine: 18,
 				endLine:   22,
 				text: `resource "azurerm_storage_container" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+  name = "tf-test-container-no-errors-%d"
 }
 `,
 			},
@@ -83,7 +83,7 @@ var blocksTestcases = []struct {
 				startLine: 26,
 				endLine:   30,
 				text: `resource "azurerm_storage_container" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+  name    = "tf-test-container-extra-space-%d"
 }
 `,
 			},
@@ -91,7 +91,7 @@ var blocksTestcases = []struct {
 				startLine: 34,
 				endLine:   38,
 				text: `resource "azurerm_storage_container" "end-line" {
-  bucket = "tf-test-bucket-end-line-%d"
+  name = "tf-test-container-end-line-%d"
 }
 `,
 			},
@@ -139,7 +139,7 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 81,
 				endLine:   85,
 				text: `    resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+  name = "tf-test-container-leading-space-%d"
 }
 `,
 			},
@@ -154,7 +154,7 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 8,
 				endLine:   18,
 				text: `resource "azurerm_storage_container" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+  name = "tf-test-container-no-errors-%d"
 
   %s
 
@@ -168,7 +168,7 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 22,
 				endLine:   26,
 				text: `resource "azurerm_storage_container" "absolutely-nothing" {
-  bucket = "tf-test-bucket-absolutely-nothing"
+  name = "tf-test-container-absolutely-nothing"
 }
 `,
 			},
@@ -176,7 +176,7 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 30,
 				endLine:   40,
 				text: `resource "azurerm_storage_container" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+  name    = "tf-test-container-extra-space-%d"
 
   %s
 
@@ -190,7 +190,7 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 44,
 				endLine:   49,
 				text: `resource "azurerm_storage_container" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+  name = "tf-test-container-parameters-and-append-%d"
   %[1]s     = "something"
 }
 `,
@@ -202,8 +202,8 @@ resource "azurerm_virtual_network" "test" {
   replication_group_id = %[1]q
 
   node_groups {
-    primary_availability_zone  = azurerm_subnet.test[0].availability_zone
-    replica_availability_zones = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
+    primary_address_prefixes  = azurerm_subnet.test[0].address_prefixes
+    replica_address_prefixess = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
     replica_count              = %[2]d
   }
 }
@@ -213,11 +213,11 @@ resource "azurerm_virtual_network" "test" {
 				startLine: 67,
 				endLine:   75,
 				text: `resource "azurerm_storage_container" %[1]q {
-  bucket = "tf-test-bucket-with-quotedname"
+  name = "tf-test-container-with-quotedname"
 }
 
 resource "azurerm_storage_container" "%[1]s-copy" {
-  bucket = "tf-test-bucket-with-name-in-quotes"
+  name = "tf-test-container-with-name-in-quotes"
 }
 `,
 			},
@@ -232,7 +232,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 8,
 				endLine:   12,
 				text: `rrrrrresource "azurerm_storage_container" "rrrrrrr" {
-  bucket =    "tf-test-bucket"
+  name =    "tf-test-container"
 }
 `,
 			},
@@ -240,7 +240,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 16,
 				endLine:   19,
 				text: `resource "azurerm_storage_container" "unclosed" {
-  bucket =    "tf-test-bucket"
+  name =    "tf-test-container"
 `,
 			},
 		},
@@ -254,13 +254,13 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 8,
 				endLine:   20,
 				text: `resource "azurerm_storage_container" "multi-verb" {
-  bucket =    "tf-test-bucket"
+  name =    "tf-test-container"
 
   tags = {
     %[1]q =    %[2]q
     Test  =  "${%[5]s.name}"
     Name  =       "${%s.name}"
-    byte       = "${azurerm_key_vault_certificate.test.*.arn[%[2]d]}"
+    byte       = "${azurerm_key_vault_certificate.test.*.id[%[2]d]}"
     Data  =    "${data.%s.name}"
   }
 }
@@ -277,7 +277,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 3,
 				endLine:   7,
 				text: `resource "azurerm_storage_container" "one" {
-  bucket = "tf-test-bucket-one"
+  name = "tf-test-container-one"
 }
 `,
 			},
@@ -285,7 +285,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 9,
 				endLine:   13,
 				text: `resource "azurerm_storage_container" "two" {
-  bucket = "tf-test-bucket-two"
+  name = "tf-test-container-two"
 }
 `,
 			},
@@ -293,7 +293,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 15,
 				endLine:   19,
 				text: `resource "azurerm_storage_container" "three" {
-  bucket = "tf-test-bucket-three"
+  name = "tf-test-container-three"
 }
 `,
 			},
@@ -309,7 +309,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				endLine:   8,
 				text: `resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `,
 			},
@@ -317,7 +317,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 10,
 				endLine:   14,
 				text: `resource "azurerm_storage_container" "no-errors" {
-  bucket = "tf-test-bucket-no-errors"
+  name = "tf-test-container-no-errors"
 }
 `,
 			},
@@ -325,7 +325,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 16,
 				endLine:   20,
 				text: `resource "azurerm_storage_container" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space"
+  name    = "tf-test-container-extra-space"
 }
 `,
 			},
@@ -333,7 +333,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 22,
 				endLine:   27,
 				text: `resource "azurerm_storage_container" "end-line" {
-  bucket = "tf-test-bucket-end-line"
+  name = "tf-test-container-end-line"
 }
   
 `,
@@ -342,7 +342,7 @@ resource "azurerm_storage_container" "%[1]s-copy" {
 				startLine: 29,
 				endLine:   33,
 				text: `     resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space"
+  name = "tf-test-container-leading-space"
 }
 `,
 			},

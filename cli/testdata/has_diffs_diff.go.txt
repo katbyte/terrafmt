@@ -2,12 +2,12 @@
  resource "azurerm_storage_container" "extra-lines" {
 <red>-  </>
 <green>+</>
-   bucket = "tf-test-bucket-extra-lines"
+   name = "tf-test-container-extra-lines"
  }
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>26</>
  resource "azurerm_storage_container" "extra-space" {
-<red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
-<green>+  bucket = "tf-test-bucket-extra-space-%d"</>
+<red>-  name    = "tf-test-container-extra-space-%d"</>
+<green>+  name = "tf-test-container-extra-space-%d"</>
  }
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>42</>
  resource "azurerm_lb_backend_address_pool" "test" {
@@ -60,5 +60,5 @@
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>81</>
 <red>-    resource "azurerm_storage_container" "leading-space" {</>
 <green>+resource "azurerm_storage_container" "leading-space" {</>
-   bucket = "tf-test-bucket-leading-space-%d"
+   name = "tf-test-container-leading-space-%d"
  }

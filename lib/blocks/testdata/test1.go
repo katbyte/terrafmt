@@ -7,7 +7,7 @@ import (
 func testReturnSprintfSimple() string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "simple" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }
 `)
 }
@@ -15,7 +15,7 @@ resource "azurerm_storage_container" "simple" {
 func testReturnStringSimple() string {
 	return `
 resource "azurerm_storage_container" "simple2" {
-  bucket = "tf-test-bucket-simple2"
+  name = "tf-test-container-simple2"
 }
 `
 }
@@ -23,7 +23,7 @@ resource "azurerm_storage_container" "simple2" {
 func testReturnSprintfWithParameters(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "with-parameters" {
-  bucket = "tf-test-bucket-with-parameters-%d"
+  name = "tf-test-container-with-parameters-%d"
 }
 `, randInt)
 }
@@ -31,21 +31,21 @@ resource "azurerm_storage_container" "with-parameters" {
 func testReturnSprintfWithParametersAndStringAppend(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+  name = "tf-test-container-parameters-and-append-%d"
 }
 `, randInt) + testReturnSprintfSimple()
 }
 
 const testConst = `
 resource "azurerm_storage_container" "const" {
-  bucket = "tf-test-bucket-const"
+  name = "tf-test-container-const"
 }
 `
 
 func testComposed(randInt int) string {
 	return testReturnSprintfWithParameters(randInt) + fmt.Sprintf(`
 resource "azurerm_storage_container" "composed" {
-  bucket = "tf-test-bucket-composed-%d"
+  name = "tf-test-container-composed-%d"
 }
 `, randInt)
 }
@@ -53,7 +53,7 @@ resource "azurerm_storage_container" "composed" {
 func testDataSource() string {
 	return fmt.Sprintf(`
 data "azurerm_storage_container" "simple" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }
 `)
 }
@@ -61,7 +61,7 @@ data "azurerm_storage_container" "simple" {
 func testLeadingWhiteSpace(randInt int) string {
 	return fmt.Sprintf(`
     resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+  name = "tf-test-container-leading-space-%d"
 }
 `, randInt)
 }
@@ -70,7 +70,7 @@ func testLeadingWhiteSpaceAndLine(randInt int) string {
 	return fmt.Sprintf(`
     
     resource "azurerm_storage_container" "leading-space-and-line" {
-  bucket = "tf-test-bucket-leading-space-and-line-%d"
+  name = "tf-test-container-leading-space-and-line-%d"
 }
 `, randInt)
 }
@@ -78,7 +78,7 @@ func testLeadingWhiteSpaceAndLine(randInt int) string {
 func testFormatVerbResourceName(name string) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "%s" {
-  bucket = "tf-test-bucket-with-quotedname"
+  name = "tf-test-container-with-quotedname"
 }
 `, name)
 }
@@ -86,7 +86,7 @@ resource "azurerm_storage_container" "%s" {
 func testFormatUpperCase(name string) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "UpperCase" {
-  bucket = "tf-test-bucket-with-uppercase"
+  name = "tf-test-container-with-uppercase"
 }
 `)
 }

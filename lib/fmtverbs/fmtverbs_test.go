@@ -366,8 +366,8 @@ resource "resource" "test" {
 }
 
 resource "resource" "test" {
-  kat  = "${azurerm_key_vault_certificate.test.*.arn[%d]}"
-  byte = "${azurerm_key_vault_certificate.test.*.arn[%[2]d]}"
+  kat  = "${azurerm_key_vault_certificate.test.*.id[%d]}"
+  byte = "${azurerm_key_vault_certificate.test.*.id[%[2]d]}"
 }
 `,
 			expected: `
@@ -377,8 +377,8 @@ resource "resource" "test" {
 }
 
 resource "resource" "test" {
-  kat  = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
-  byte = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+  kat  = "${azurerm_key_vault_certificate.test.*.id[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+  byte = "${azurerm_key_vault_certificate.test.*.id[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
 }
 `,
 		},
@@ -409,18 +409,18 @@ resource "azurerm_cosmosdb_table" "test" {
 			name: "verb in index",
 			block: `
 resource "resource" "test" {
-  attr = azurerm_key_vault_certificate.test[%[2]d].arn
-  attr = "${azurerm_key_vault_certificate.test.*.arn[%[2]d]}"
-  attr = azurerm_key_vault_certificate.test[%d].arn
-  attr = "${azurerm_key_vault_certificate.test.*.arn[%d]}"
+  attr = azurerm_key_vault_certificate.test[%[2]d].id
+  attr = "${azurerm_key_vault_certificate.test.*.id[%[2]d]}"
+  attr = azurerm_key_vault_certificate.test[%d].id
+  attr = "${azurerm_key_vault_certificate.test.*.id[%d]}"
 }
 `,
 			expected: `
 resource "resource" "test" {
-  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%[2]d]:TFMT @@_@@"].arn
-  attr = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
-  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].arn
-  attr = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%[2]d]:TFMT @@_@@"].id
+  attr = "${azurerm_key_vault_certificate.test.*.id[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].id
+  attr = "${azurerm_key_vault_certificate.test.*.id[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
 }
 `,
 		},
@@ -489,22 +489,22 @@ resource "resource" "test6" {
 			name: "verb in for expression",
 			block: `
 resource "resource" "test" {
-  attr = [for x in range(1, %d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%[1]d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%d, %d) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%[1]d, %[2]d) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, %d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(%d, 3) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(%[1]d, 3) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(%d, %d) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(%[1]d, %[2]d) : element(azurerm_subnet.test[*].address_prefixes, x)]
 }
 `,
 			expected: `
 resource "resource" "test" {
-  attr = [for x in range(1, TFMTFNPARAM_d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(1, TFMTFNPARAM_2d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_1d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_d, TFMTFNPARAM_d) : element(azurerm_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_1d, TFMTFNPARAM_2d) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, TFMTFNPARAM_d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(1, TFMTFNPARAM_2d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(TFMTFNPARAM_d, 3) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, 3) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(TFMTFNPARAM_d, TFMTFNPARAM_d) : element(azurerm_subnet.test[*].address_prefixes, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, TFMTFNPARAM_2d) : element(azurerm_subnet.test[*].address_prefixes, x)]
 }
 `,
 		},

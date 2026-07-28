@@ -1,5 +1,5 @@
 <lightMagenta>testdata/bad_terraform.go</><darkGray>:</><magenta>8</>
  rrrrrresource "azurerm_storage_container" "rrrrrrr" {
-<red>-  bucket =    "tf-test-bucket"</>
-<green>+  bucket = "tf-test-bucket"</>
+<red>-  name =    "tf-test-container"</>
+<green>+  name = "tf-test-container"</>
  }

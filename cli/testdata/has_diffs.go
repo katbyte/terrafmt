@@ -8,7 +8,7 @@ func testExtraLines() string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `)
 }
@@ -17,7 +17,7 @@ resource "azurerm_storage_container" "extra-lines" {
 func testNoFormattingErrors(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+  name = "tf-test-container-no-errors-%d"
 }
 `, randInt)
 }
@@ -25,7 +25,7 @@ resource "azurerm_storage_container" "no-errors" {
 func testExtraSpace(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+  name    = "tf-test-container-extra-space-%d"
 }
 `, randInt) + testReturnSprintfSimple()
 }
@@ -33,7 +33,7 @@ resource "azurerm_storage_container" "extra-space" {
 func testFinishLineWhiteSpace(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "end-line" {
-  bucket = "tf-test-bucket-end-line-%d"
+  name = "tf-test-container-end-line-%d"
 }
   `, randInt)
 }
@@ -80,7 +80,7 @@ resource "azurerm_virtual_network" "test" {
 func testLeadingWhiteSpace(randInt int) string {
 	return fmt.Sprintf(`
     resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+  name = "tf-test-container-leading-space-%d"
 }
 `, randInt)
 }

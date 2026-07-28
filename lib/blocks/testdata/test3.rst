@@ -4,7 +4,7 @@ Test fenced code block with `terraform`
 
 .. code:: terraform
   resource "azurerm_storage_container" "terraform" {
-    bucket = "tf-test-bucket-terraform"
+    name = "tf-test-container-terraform"
   }
 
 Stuff that is not to be formatted.

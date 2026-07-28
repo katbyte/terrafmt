@@ -192,9 +192,9 @@ resource "resource" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = azurerm_key_vault_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,
@@ -202,9 +202,9 @@ resource "resource" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = azurerm_key_vault_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,

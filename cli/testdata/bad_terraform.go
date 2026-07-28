@@ -7,7 +7,7 @@ import (
 func testInvalidBlockName(randInt int) string {
 	return fmt.Sprintf(`
 rrrrrresource "azurerm_storage_container" "rrrrrrr" {
-  bucket =    "tf-test-bucket"
+  name =    "tf-test-container"
 }
 `, randInt)
 }
@@ -15,6 +15,6 @@ rrrrrresource "azurerm_storage_container" "rrrrrrr" {
 func testUnclosedBlock(randInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_storage_container" "unclosed" {
-  bucket =    "tf-test-bucket"
+  name =    "tf-test-container"
 `, randInt)
 }

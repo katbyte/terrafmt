@@ -28,7 +28,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "simple" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }
 `,
 				},
@@ -36,7 +36,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "simple2" {
-  bucket = "tf-test-bucket-simple2"
+  name = "tf-test-container-simple2"
 }
 `,
 				},
@@ -44,7 +44,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "with-parameters" {
-  bucket = "tf-test-bucket-with-parameters-%d"
+  name = "tf-test-container-with-parameters-%d"
 }
 `,
 				},
@@ -52,7 +52,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+  name = "tf-test-container-parameters-and-append-%d"
 }
 `,
 				},
@@ -60,7 +60,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "const" {
-  bucket = "tf-test-bucket-const"
+  name = "tf-test-container-const"
 }
 `,
 				},
@@ -68,7 +68,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "composed" {
-  bucket = "tf-test-bucket-composed-%d"
+  name = "tf-test-container-composed-%d"
 }
 `,
 				},
@@ -76,7 +76,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `data "azurerm_storage_container" "simple" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }
 `,
 				},
@@ -84,7 +84,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `    resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+  name = "tf-test-container-leading-space-%d"
 }
 `,
 				},
@@ -93,7 +93,7 @@ func TestBlockDetection(t *testing.T) {
 					trailingPadding: "\n",
 					text: `    
     resource "azurerm_storage_container" "leading-space-and-line" {
-  bucket = "tf-test-bucket-leading-space-and-line-%d"
+  name = "tf-test-container-leading-space-and-line-%d"
 }
 `,
 				},
@@ -101,7 +101,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "%s" {
-  bucket = "tf-test-bucket-with-quotedname"
+  name = "tf-test-container-with-quotedname"
 }
 `,
 				},
@@ -109,7 +109,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
 					text: `resource "azurerm_storage_container" "UpperCase" {
-  bucket = "tf-test-bucket-with-uppercase"
+  name = "tf-test-container-with-uppercase"
 }
 `,
 				},
@@ -119,29 +119,29 @@ func TestBlockDetection(t *testing.T) {
 			sourcefile: "testdata/test2.markdown",
 			expectedBlocks: []block{
 				{text: `resource "azurerm_storage_container" "hcl" {
-  bucket = "tf-test-bucket-hcl"
+  name = "tf-test-container-hcl"
 }
 `},
 				{text: `resource "azurerm_storage_container" "tf" {
-  bucket = "tf-test-bucket-tf"
+  name = "tf-test-container-tf"
 }
 `},
 				{
 					text: `    resource "azurerm_storage_container" "leading-space" {
-  bucket = "tf-test-bucket-leading-space"
+  name = "tf-test-container-leading-space"
 }
 `,
 				},
 				{
 					text: `    
     resource "azurerm_storage_container" "leading-space-and-line" {
-  bucket = "tf-test-bucket-leading-space-and-line"
+  name = "tf-test-container-leading-space-and-line"
 }
 `,
 				},
 				{
 					text: `resource "azurerm_storage_container" "UpperCase" {
-  bucket = "tf-test-bucket-with-uppercase"
+  name = "tf-test-container-with-uppercase"
 }
 `,
 				},
@@ -152,7 +152,7 @@ func TestBlockDetection(t *testing.T) {
 			expectedBlocks: []block{
 				{
 					text: `  resource "azurerm_storage_container" "terraform" {
-    bucket = "tf-test-bucket-terraform"
+    name = "tf-test-container-terraform"
   }
 
 `,
@@ -321,14 +321,14 @@ func TestLooksLikeTerraform(t *testing.T) {
 		{
 			text: `
 resource "azurerm_storage_container" "simple-resource" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }`,
 			expected: true,
 		},
 		{
 			text: `
 data "azurerm_storage_container" "simple-data" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }`,
 			expected: true,
 		},
@@ -370,35 +370,35 @@ variable "name" {
 		{
 			text: `
 output "arn" {
-  value = azurerm_storage_container.simple-resource.arn
+  value = azurerm_storage_container.simple-resource.id
 }`,
 			expected: true,
 		},
 		{
 			text: `
 resource "azurerm_storage_container" "%s" {
-  bucket = "tf-test-bucket-simple"
+  name = "tf-test-container-simple"
 }`,
 			expected: true,
 		},
 		// 		{
 		// 			text: `
 		// resource "azurerm_storage_container" "%[1]s" {
-		//   bucket = "tf-test-bucket-simple"
+		//   name = "tf-test-container-simple"
 		// }`,
 		// 			expected: true,
 		// 		},
 		// 		{
 		// 			text: `
 		// resource "azurerm_storage_container" %q {
-		//   bucket = "tf-test-bucket-simple"
+		//   name = "tf-test-container-simple"
 		// }`,
 		// 			expected: true,
 		// 		},
 		// 		{
 		// 			text: `
 		// resource "azurerm_storage_container" %[1]q {
-		//   bucket = "tf-test-bucket-simple"
+		//   name = "tf-test-container-simple"
 		// }`,
 		// 			expected: true,
 		// 		},

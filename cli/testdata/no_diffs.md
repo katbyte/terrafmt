@@ -2,24 +2,24 @@
 
 ```terraform
 resource "azurerm_storage_container" "one" {
-  bucket = "tf-test-bucket-one"
+  name = "tf-test-container-one"
 }
 ```
 
 ```hcl
 resource "azurerm_storage_container" "two" {
-  bucket = "tf-test-bucket-two"
+  name = "tf-test-container-two"
 }
 ```
 
 ```tf
 resource "azurerm_storage_container" "three" {
-  bucket = "tf-test-bucket-three"
+  name = "tf-test-container-three"
 }
 ```
 
 ```
 resource "azurerm_storage_container" "four" {
-  bucket = "tf-test-bucket-four"
+  name = "tf-test-container-four"
 }
 ```
