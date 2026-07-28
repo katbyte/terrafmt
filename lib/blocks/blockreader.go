@@ -150,7 +150,11 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				br.Log.Warnf("failed to close %s: %v", filename, err)
+			}
+		}()
 		br.Reader = file
 
 		// for now write to buffer
@@ -187,15 +191,15 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 	}
 
 	var destination io.Writer
+	var outfile afero.File
 
 	// If not read-only, need to write back to file.
 	if !br.ReadOnly {
 		if filename != "" {
-			outfile, createErr := fs.Create(filename)
-			if createErr != nil {
-				return createErr
+			outfile, err = fs.Create(filename)
+			if err != nil {
+				return err
 			}
-			defer outfile.Close()
 			destination = outfile
 		} else {
 			destination = stdout
@@ -203,6 +207,14 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 
 		br.Log.Debugf("copying..")
 		_, err = io.WriteString(destination, buf.String())
+
+		// a failed close on a just-written file can mean lost data, so it takes over err (unless
+		// the write already failed, in which case that error wins)
+		if outfile != nil {
+			if closeErr := outfile.Close(); err == nil {
+				err = closeErr
+			}
+		}
 
 		return err
 	}
@@ -222,7 +234,11 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				br.Log.Warnf("failed to close %s: %v", filename, err)
+			}
+		}()
 		br.Reader = file
 
 		// for now write to buffer
@@ -336,10 +352,15 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 		if err != nil {
 			return err
 		}
-		defer destination.Close()
 
 		br.Log.Debugf("copying..")
 		_, err = io.Copy(destination, buf)
+
+		// a failed close on a just-written file can mean lost data, so it takes over err (unless
+		// the write already failed, in which case that error wins)
+		if closeErr := destination.Close(); err == nil {
+			err = closeErr
+		}
 
 		return err
 	}

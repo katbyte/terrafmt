@@ -28,7 +28,9 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 
 	// Write from Reader to File
 	if _, err := tmpFile.Write(bytes.NewBufferString(b).Bytes()); err != nil {
-		tmpFile.Close()
+		if closeErr := tmpFile.Close(); closeErr != nil {
+			log.Warnf("failed to close temp file %s: %v", tmpFile.Name(), closeErr)
+		}
 		removeTempDir(log, tempDir)
 		log.Fatal(err)
 	}

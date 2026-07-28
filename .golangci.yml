@@ -84,17 +84,12 @@ linters:
     errcheck:
       check-type-assertions: true # unchecked x.(T) assertions panic on mismatch
       exclude-functions:
-        # best-effort console output and cleanup; errors are not actionable
+        # best-effort console output; errors are not actionable
         - fmt.Fprint
         - fmt.Fprintf
         - fmt.Fprintln
-        - (io.Closer).Close
-        - (*os.File).Close
     exhaustive:
       default-signifies-exhaustive: true # a default: case satisfies the exhaustiveness check
-    gosec:
-      excludes:
-        - G104 # unhandled errors; duplicates errcheck but ignores its exclude-functions list above
     gocritic:
       enabled-tags: [diagnostic, style, performance] # enables extra checks like hugeParam and rangeValCopy beyond the default set
       settings:
