@@ -52,8 +52,8 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/gookit/color v1.5.1
-## explicit; go 1.14
+# github.com/gookit/color v1.6.1
+## explicit; go 1.18
 github.com/gookit/color
 # github.com/hashicorp/errwrap v1.0.0
 ## explicit
@@ -173,8 +173,8 @@ github.com/spf13/viper/internal/encoding/yaml
 # github.com/subosito/gotenv v1.3.0
 ## explicit; go 1.18
 github.com/subosito/gotenv
-# github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
-## explicit; go 1.15
+# github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+## explicit; go 1.19
 github.com/xo/terminfo
 # github.com/zclconf/go-cty v1.14.3
 ## explicit; go 1.18
