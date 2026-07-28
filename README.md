@@ -4,17 +4,26 @@
 ![tests](https://github.com/katbyte/terrafmt/actions/workflows/test.yaml/badge.svg)
 ![lint](https://github.com/katbyte/terrafmt/actions/workflows/lint.yaml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/katbyte/terrafmt)](https://goreportcard.com/report/github.com/katbyte/terrafmt)
+[![release](https://img.shields.io/github/v/release/katbyte/terrafmt)](https://github.com/katbyte/terrafmt/releases/latest)
 
-A tool for extracting or formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in [provider](https://www.terraform.io/docs/providers/index.html) code 
+A tool for extracting and formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in other files, primarily intended to help with [provider](https://www.terraform.io/docs/providers/index.html) development.
 
 ## Install
 
-### Local Install
-
-Use Go to install directly into your `$GOBIN` directory (e.g. `$GOPATH/bin`):
+### Homebrew
 
 ```console
-go get github.com/katbyte/terrafmt
+brew install katbyte/tap/terrafmt
+```
+
+### Pre-built binaries
+
+Binaries for linux, macOS, windows, freebsd, openbsd, and solaris are attached to each [release](https://github.com/katbyte/terrafmt/releases/latest).
+
+### Go
+
+```console
+go install github.com/katbyte/terrafmt@latest
 ```
 
 ## Usage
@@ -25,18 +34,11 @@ Information about usage and options can be found by using the `help` command:
 terrafmt help
 ```
 
-This tool can extract terraform blocks, run `terraform fmt` on the blocks and display the difference or update them in place.
+terrafmt finds terraform blocks embedded in files, runs the equivalent of `terraform fmt` on them, and can display the difference or update them in place. It understands:
 
-The tool currently supports blocks with the following start and end lines:
-
-|start               |end |
-|--------------------|----|
-|```hcl              |``` |
-|```tf               |`,  |
-|```terraform        |`,  |
-|return fmt.Sprintf(`|`,  |
-|return fmt.Sprintf(`|`)  |
-|return `            |`   |
+- **Markdown** (`.md`, `.markdown`, and other non-go files): fenced code blocks opened with ` ```hcl `, ` ```tf `, or ` ```terraform `
+- **reStructuredText** (`.rst`): `.. code:: terraform` directives (block indentation is preserved)
+- **Go** (`.go`): multiline string literals that look like terraform configuration, e.g. acceptance test configs returned by `fmt.Sprintf`
 
 ### Extract Terraform Blocks
 
@@ -44,27 +46,9 @@ Use the `blocks` command to extract blocks from a file:
 
 ![blocks](.github/images/blocks.png)
 
-To output only the block content, separated by the null character, use the flags `--zero-terminated` or `z`.
+To output only the block content, separated by the null character, use `--zero-terminated`/`-z`.
 
-To output the blocks using a JSON structure, use the flags `--json` or `-j`. The format is
-
-```json
-{
-    "block_count": 1,
-    "blocks": [
-        {
-            "block_number": 1,
-            "start_line": 4,
-            "end_line": 9,
-            "text": "..."
-        }
-    ]
-}
-```
-
-Go [format verbs](https://golang.org/pkg/fmt/) can be escaped in the output blocks by using the flags `--fmtcompat` or `-f`.
-
-To output the blocks using a JSON structure, use the flags `--json` or `-j`. The format is
+To output the blocks as JSON, use `--json`/`-j`:
 
 ```json
 {
@@ -79,68 +63,67 @@ To output the blocks using a JSON structure, use the flags `--json` or `-j`. The
     ]
 }
 ```
+
+Go [format verbs](https://golang.org/pkg/fmt/) (`%s`, `%d`, `%[1]q`, ...) can be escaped in the output blocks with `--fmtcompat`/`-f`.
 
 ### Show What Format Would Do
 
-Use the `diff` command to see what would be formatted (files can also be piped in on stdin) :
+Use the `diff` command to see what would be formatted (files can also be piped in on stdin):
 
-![diff](.github/images/diff.png) 
+![diff](.github/images/diff.png)
 
-For code files with printf verb formatting use the `-f` switch :
+For go files containing format verbs use the `-f` switch:
 
 ![diff -f](.github/images/diff-f.png)
 
-### Format File
+### Format Files
 
-Use the `fmt` command to format the blocks:
+Use the `fmt` command to format blocks in place. It accepts a single file, stdin, or a directory to walk — combine with `--pattern`/`-p` to filter by file name:
 
 ![fmt](.github/images/fmt.png)
 
-### Format Multiple
-
-One can use find and egrep to format multiple files:
-```shell
-find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; done
-./website/docs/d/api_management.html.markdown: 136 lines & formatted 0/1 blocks!
-./website/docs/d/api_management_api.html.markdown: 79 lines & formatted 0/1 blocks!
-./website/docs/d/api_management_group.html.markdown: 46 lines & formatted 0/1 blocks!
-./website/docs/d/api_management_product.html.markdown: 52 lines & formatted 0/1 blocks!
-./website/docs/d/api_management_user.html.markdown: 48 lines & formatted 0/1 blocks!
-./website/docs/d/app_service.html.markdown: 139 lines & formatted 0/1 blocks!
-./website/docs/d/app_service_certificate.html.markdown: 54 lines & formatted 0/1 blocks!
-./website/docs/d/app_service_certificate_order.html.markdown: 79 lines & formatted 0/1 blocks!
+```console
+terrafmt fmt ./website --pattern '*.markdown'
+terrafmt fmt ./internal --pattern '*_test.go' -f
 ```
 
 ### Exit codes
 
-To help usage of `terrafmt` in workflows, some commands will return actionable exit codes.
+To help usage of `terrafmt` in workflows, some commands return actionable exit codes.
 
-If a Terraform parsing error is encountered in a block, the exit code is `2`.
+If a terraform parsing error is encountered in a block, the exit code is `2`.
 
-If the command `diff` with the `--check` flag enabled encounters a formatting difference, it will return `4`. If a file contains both blocks with parsing errors and a formatting difference, it will combine the exit codes to return `6`. These codes can be tested using bitwise checks.
+If the `diff` command with the `--check` flag enabled encounters a formatting difference, it will return `4`. If a file contains both blocks with parsing errors and a formatting difference, the codes combine to `6`. These can be tested using bitwise checks.
 
-Otherwise, `terrafmt` will return `1` on an error.
+Otherwise, `terrafmt` returns `1` on an error.
 
-## Development and Testing
+## Development
 
-This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency management.
-
-### Updating Dependencies
+This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) with a vendored `vendor/` directory.
 
 ```console
-$ go get URL
-$ go mod tidy
-$ go mod vendor
+make build      # build the binary
+make test       # run the tests (with -race)
+make lint       # run golangci-lint
+make lint-fix   # run golangci-lint and apply autofixes
+make fmt        # gofmt/gofumpt/goimports the source
+make depscheck  # verify go.mod/go.sum/vendor are consistent
+make check-all  # build + test + lint + depscheck
 ```
 
-### Unit Testing
+When updating dependencies, re-vendor:
 
 ```console
-$ go test ./...
+go get <module>
+go mod tidy
+go mod vendor
 ```
 
-### Local Install
+## Releasing
+
+Releases are cut by pushing a semver tag; CI ([goreleaser](https://goreleaser.com)) builds the binaries, publishes the GitHub release, and updates the [homebrew tap](https://github.com/katbyte/homebrew-tap) formula:
 
 ```console
-$ go install .
+git tag v0.6.0
+git push origin v0.6.0
 ```

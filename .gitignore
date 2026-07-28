@@ -4,3 +4,4 @@
 /terrafmt
 *.test
 *.out
+/dist/
