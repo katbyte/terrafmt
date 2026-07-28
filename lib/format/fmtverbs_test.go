@@ -28,6 +28,32 @@ resource "resource" "test" {
 `,
 		},
 
+		{
+			// q verbs as function arguments used to escape into invalid hcl and fail to
+			// parse with "Missing argument separator" (issue #37)
+			name: "quoted verb as function argument",
+			block: `
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_signing_profile" "test" {
+  platform_id = "test-platform"
+  name = replace(%[1]q, "-", "_")
+  kat = split(%q, "a-b")
+}
+# ...
+`,
+			expected: `
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_signing_profile" "test" {
+  platform_id = "test-platform"
+  name        = replace(%[1]q, "-", "_")
+  kat         = split(%q, "a-b")
+}
+# ...
+`,
+		},
+
 		// todo nested or forloop with letters?
 		{
 			name: "bareverb",

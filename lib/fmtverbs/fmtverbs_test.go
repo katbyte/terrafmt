@@ -228,6 +228,8 @@ resource "resource" "test" {
   byte = md5(data.source.%s.id)
   kat  = base64encode(%[1]s)
   byte = md5(data.source.%[1]s.id)
+  name = replace(%[1]q, "-", "_")
+  mega = split(%q, "a-b")
 }
 `,
 			expected: `
@@ -236,6 +238,8 @@ resource "resource" "test" {
   byte = md5(data.source.TFMTKTKTTFMTs.id)
   kat  = base64encode(TFMTFNPARAM_1s)
   byte = md5(data.source.TFMTKTKTTFMT_1s.id)
+  name = replace(TFMTFNPARAM_1q, "-", "_")
+  mega = split(TFMTFNPARAM_q, "a-b")
 }
 `,
 		},
