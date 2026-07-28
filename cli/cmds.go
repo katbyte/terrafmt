@@ -381,7 +381,7 @@ func (w *jsonBlockWriter) Close() error {
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 
-	// nolint: gocritic
+	//nolint:gocritic // ifElseChain: a switch here would not be any clearer
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -465,7 +465,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				for scanner.Scan() {
 					l := scanner.Text()
 
-					// nolint: gocritic
+					//nolint:gocritic // ifElseChain: a switch here would not be any clearer
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
