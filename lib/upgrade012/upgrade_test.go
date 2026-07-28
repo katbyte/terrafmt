@@ -2,6 +2,7 @@ package upgrade012
 
 import (
 	"context"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -9,6 +10,11 @@ import (
 )
 
 func TestBlock(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOARCH == "arm64" {
+		t.Skipf("terraform 0.12.31 has no %s/%s build", runtime.GOOS, runtime.GOARCH)
+	}
 	tests := []struct {
 		name     string
 		block    string
@@ -151,8 +157,6 @@ Hi there i am going to fail... =C
 		},
 	}
 
-	t.Parallel()
-
 	ctx := context.Background()
 
 	tfBin, err := InstallTerraform(ctx)
@@ -161,7 +165,6 @@ Hi there i am going to fail... =C
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 

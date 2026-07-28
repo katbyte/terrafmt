@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -119,8 +120,11 @@ var upgradeTestcases = []struct {
 func TestCmdUpgrade012StdinDefault(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOARCH == "arm64" {
+		t.Skipf("terraform 0.12.31 has no %s/%s build", runtime.GOOS, runtime.GOARCH)
+	}
+
 	for _, testcase := range upgradeTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -172,8 +176,11 @@ func TestCmdUpgrade012StdinDefault(t *testing.T) {
 func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOARCH == "arm64" {
+		t.Skipf("terraform 0.12.31 has no %s/%s build", runtime.GOOS, runtime.GOARCH)
+	}
+
 	for _, testcase := range upgradeTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -220,8 +227,11 @@ func TestCmdUpgrade012StdinVerbose(t *testing.T) {
 func TestCmdUpgrade012FileDefault(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOARCH == "arm64" {
+		t.Skipf("terraform 0.12.31 has no %s/%s build", runtime.GOOS, runtime.GOARCH)
+	}
+
 	for _, testcase := range upgradeTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -280,8 +290,11 @@ func TestCmdUpgrade012FileDefault(t *testing.T) {
 func TestCmdUpgrade012FileVerbose(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOARCH == "arm64" {
+		t.Skipf("terraform 0.12.31 has no %s/%s build", runtime.GOOS, runtime.GOARCH)
+	}
+
 	for _, testcase := range upgradeTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 

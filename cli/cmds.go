@@ -1,9 +1,11 @@
+// Package cli implements the terrafmt commands (fmt, diff, blocks, upgrade012).
 package cli
 
 import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
@@ -42,7 +44,7 @@ func Make() *cobra.Command {
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return fmt.Errorf("no command specified")
+			return errors.New("no command specified")
 		},
 	}
 
@@ -202,7 +204,7 @@ func Make() *cobra.Command {
 			zeroTerminated, _ := cmd.Flags().GetBool("zero-terminated")
 			jsonOutput, _ := cmd.Flags().GetBool("json")
 			if zeroTerminated && jsonOutput {
-				return fmt.Errorf("only one of zero-terminated or json can be specified")
+				return errors.New("only one of zero-terminated or json can be specified")
 			}
 			fmtCompat := viper.GetBool("fmtcompat")
 			fs := afero.NewOsFs()
@@ -255,7 +257,7 @@ func Make() *cobra.Command {
 	return root
 }
 
-func allFiles(fs afero.Fs, path string, pattern string) ([]string, error) {
+func allFiles(fs afero.Fs, path, pattern string) ([]string, error) {
 	if path == "" {
 		return []string{""}, nil
 	}
@@ -348,7 +350,7 @@ type Output struct {
 func (o Output) MarshalJSON() ([]byte, error) {
 	type Alias Output // Prevent an infinite loop
 
-	a := struct{ Alias }{Alias: (Alias)(o)}
+	a := struct{ Alias }{Alias: Alias(o)}
 	if a.Blocks == nil {
 		a.Blocks = make([]Block, 0)
 	}
@@ -371,7 +373,7 @@ func (w *jsonBlockWriter) Write(index, startLine, endLine int, text string) {
 	})
 }
 
-func (w jsonBlockWriter) Close() error {
+func (w *jsonBlockWriter) Close() error {
 	encoder := json.NewEncoder(w.writer)
 	return encoder.Encode(w.data)
 }
@@ -379,7 +381,7 @@ func (w jsonBlockWriter) Close() error {
 func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose, zeroTerminated, jsonOutput, fmtverbs bool, stdin io.Reader, stdout, stderr io.Writer) error {
 	var blockWriter blocks.BlockWriter
 
-	//nolint: gocritic
+	// nolint: gocritic
 	if zeroTerminated {
 		blockWriter = zeroTerminatedBlockWriter{
 			writer: stdout,
@@ -463,7 +465,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 				for scanner.Scan() {
 					l := scanner.Text()
 
-					//nolint: gocritic
+					// nolint: gocritic
 					if strings.HasPrefix(l, "+") {
 						fmt.Fprint(outW, c.Sprintf("<green>%s</>\n", l))
 					} else if strings.HasPrefix(l, "-") {
@@ -569,6 +571,7 @@ func formatFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, fixF
 	return &br, err
 }
 
+// todo: ~6 years old now, can we remove it?
 func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, error) {
 	ctx := context.Background()
 
@@ -583,14 +586,14 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 		LineRead: blocks.ReaderPassthrough,
 		BlockRead: func(br *blocks.Reader, _ int, b string, preserveIndent bool) error {
 			var fb string
-			var err error
+			var blockErr error
 			if fmtverbs {
-				fb, err = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
+				fb, blockErr = upgrade012.Upgrade12VerbBlock(ctx, tfBin, log, b)
 			} else {
-				fb, err = upgrade012.Block(ctx, tfBin, log, b)
+				fb, blockErr = upgrade012.Block(ctx, tfBin, log, b)
 			}
-			if err != nil {
-				return err
+			if blockErr != nil {
+				return blockErr
 			}
 
 			if preserveIndent {
@@ -614,14 +617,14 @@ func upgrade012File(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, 
 					blocksFormatted++
 				}
 			} else {
-				_, err = br.Writer.Write([]byte(fb))
+				_, blockErr = br.Writer.Write([]byte(fb))
 
-				if err == nil && hasChange {
+				if blockErr == nil && hasChange {
 					blocksFormatted++
 				}
 			}
 
-			return nil
+			return blockErr
 		},
 	}
 

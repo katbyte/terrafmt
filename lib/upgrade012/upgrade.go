@@ -1,3 +1,5 @@
+// Package upgrade012 upgrades terraform blocks to 0.12 syntax by running them
+// through a real terraform binary's 0.12upgrade command.
 package upgrade012
 
 import (
@@ -27,16 +29,16 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 	// Write from Reader to File
 	if _, err := tmpFile.Write(bytes.NewBufferString(b).Bytes()); err != nil {
 		tmpFile.Close()
-		os.RemoveAll(tempDir)
+		removeTempDir(log, tempDir)
 		log.Fatal(err)
 	}
 
 	if err := tmpFile.Close(); err != nil {
-		os.RemoveAll(tempDir)
+		removeTempDir(log, tempDir)
 		log.Fatal(err)
 	}
 
-	defer os.RemoveAll(tempDir)
+	defer removeTempDir(log, tempDir)
 
 	tf, err := tfexec.NewTerraform(tempDir, tfPath)
 	if err != nil {
@@ -65,7 +67,12 @@ func Block(ctx context.Context, tfPath string, log *logrus.Logger, b string) (st
 	if strings.HasSuffix(fb, "\n\n") {
 		fb = strings.TrimSuffix(fb, "\n")
 	}
-	// fb := strings.TrimSuffix(string(raw), "\n")
 
 	return fb, nil
+}
+
+func removeTempDir(log *logrus.Logger, tempDir string) {
+	if err := os.RemoveAll(tempDir); err != nil {
+		log.Warnf("failed to remove temp dir %s: %v", tempDir, err)
+	}
 }

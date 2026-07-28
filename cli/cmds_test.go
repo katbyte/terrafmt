@@ -12,6 +12,7 @@ func init() {
 }
 
 func checkExpectedErrors(t *testing.T, errOutput string, expectedErrs []string) {
+	t.Helper()
 	if expectedErrCount := len(expectedErrs); expectedErrCount > 0 {
 		allMatches := logMsgRegexp.FindAllStringSubmatch(errOutput, -1)
 		actualErrs := make([]string, 0, len(allMatches))

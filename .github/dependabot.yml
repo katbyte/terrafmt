@@ -1,0 +1,13 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # dependabot auto-detects the vendor/ directory and runs `go mod tidy` + `go mod vendor` on updates
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"

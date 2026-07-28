@@ -10,6 +10,7 @@ import (
 )
 
 func TestBlockDetection(t *testing.T) {
+	t.Parallel()
 	type block struct {
 		leadingPadding  string
 		trailingPadding string
@@ -312,6 +313,7 @@ func TestBlockDetection(t *testing.T) {
 }
 
 func TestLooksLikeTerraform(t *testing.T) {
+	t.Parallel()
 	testcases := []struct {
 		text     string
 		expected bool

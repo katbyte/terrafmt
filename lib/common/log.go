@@ -1,3 +1,4 @@
+// Package common holds shared helpers, currently logger construction.
 package common
 
 import (

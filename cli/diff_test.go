@@ -117,7 +117,6 @@ func TestCmdDiffDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range diffTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -171,7 +170,6 @@ func TestCmdDiffVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range diffTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 

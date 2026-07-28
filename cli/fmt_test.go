@@ -133,7 +133,6 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -187,7 +186,6 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -236,7 +234,6 @@ func TestCmdFmtFileDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -296,7 +293,6 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 	t.Parallel()
 
 	for _, testcase := range fmtTestcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 

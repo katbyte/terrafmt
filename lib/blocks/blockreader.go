@@ -1,3 +1,4 @@
+// Package blocks finds and extracts terraform blocks embedded in go, markdown, and rst files.
 package blocks
 
 import (
@@ -19,7 +20,7 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-var lineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*(.*\n)$")
+var lineWithLeadingSpacesMatcher = regexp.MustCompile("^[[:space:]]*(.*\n)$") //nolint:gocritic // TODO: simplify regex in a follow-up PR
 
 type blockReadFunc func(*Reader, int, string, bool) error
 
@@ -190,9 +191,9 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 	// If not read-only, need to write back to file.
 	if !br.ReadOnly {
 		if filename != "" {
-			outfile, err := fs.Create(filename)
-			if err != nil {
-				return err
+			outfile, createErr := fs.Create(filename)
+			if createErr != nil {
+				return createErr
 			}
 			defer outfile.Close()
 			destination = outfile
@@ -241,12 +242,12 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 		}
 	}
 
-	var format textFormat
+	var textFmt textFormat
 	switch filepath.Ext(filename) {
 	case ".rst":
-		format = restructuredTextFormat{}
+		textFmt = restructuredTextFormat{}
 	default:
-		format = markdownTextFormat{}
+		textFmt = markdownTextFormat{}
 	}
 
 	br.LineCount = 0
@@ -254,14 +255,13 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 	s := bufio.NewScanner(br.Reader)
 	for s.Scan() { // scan file
 		br.LineCount++
-		// br.CurrentLine = s.Text()+"\n"
 		l := s.Text() + "\n"
 
 		if err := br.LineRead(br, br.LineCount, l); err != nil {
 			return fmt.Errorf("NB LineRead failed @ %s:%d for %s: %w", br.FileName, br.LineCount, l, err)
 		}
 
-		if format.isStartingLine(l) {
+		if textFmt.isStartingLine(l) {
 			block := ""
 			br.BlockCurrentLine = 0
 			br.BlockCount++
@@ -272,7 +272,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 				l2 := s.Text() + "\n"
 
 				// make sure we don't run into another block
-				if format.isStartingLine(l2) {
+				if textFmt.isStartingLine(l2) {
 					// the end of current block must be malformed, so lets pass it through and log an error
 					br.Log.Errorf("block %d @ %s:%d failed to find end of block", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine)
 					if err := ReaderPassthrough(br, br.LineCount, block); err != nil { // is this ok or should we loop with LineRead?
@@ -289,7 +289,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					continue
 				}
 
-				if format.isFinishLine(l2) {
+				if textFmt.isFinishLine(l2) {
 					if br.FixFinishLines {
 						l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
 					}
@@ -297,7 +297,7 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 					br.LinesBlock += br.BlockCurrentLine
 
 					// todo configure this behaviour with switch's
-					if err := br.BlockRead(br, br.LineCount, block, format.preserveIndentation()); err != nil {
+					if err := br.BlockRead(br, br.LineCount, block, textFmt.preserveIndentation()); err != nil {
 						// for now ignore block errors and output unformatted
 						br.ErrorBlocks++
 						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)

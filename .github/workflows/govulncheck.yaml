@@ -1,0 +1,23 @@
+---
+name: govulncheck
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'vendor/**'
+      - '.github/workflows/govulncheck.yaml'
+  schedule:
+    - cron: '17 4 * * 1' # weekly, so new CVEs against unchanged code still get flagged
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: golang/govulncheck-action@v1
+        with:
+          go-version-file: ./.go-version
