@@ -111,6 +111,21 @@ var diffTestcases = []struct {
 		unformattedBlockCount: 4,
 		totalBlockCount:       5,
 	},
+	{
+		name:                  "Markdown indented fences",
+		sourcefile:            "testdata/has_indented.md",
+		resultfile:            "testdata/has_indented_diff.md.txt",
+		lineCount:             18,
+		unformattedBlockCount: 1,
+		totalBlockCount:       2,
+	},
+	{
+		name:            "Markdown indented fences no change",
+		sourcefile:      "testdata/has_indented_fmt.md",
+		noDiff:          true,
+		lineCount:       18,
+		totalBlockCount: 2,
+	},
 }
 
 func TestCmdDiffDefault(t *testing.T) {

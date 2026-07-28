@@ -40,3 +40,13 @@ resource "aws_s3_bucket" "UpperCase" {
   bucket = "tf-test-bucket-with-uppercase"
 }
 ```
+
+Test block with an indented fence inside a list item
+
+1. Create it:
+
+    ```hcl
+    resource "aws_s3_bucket" "indented" {
+      bucket = "tf-test-bucket-indented"
+    }
+    ```

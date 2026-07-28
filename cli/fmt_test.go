@@ -127,6 +127,21 @@ var fmtTestcases = []struct {
 		updatedBlockCount: 4,
 		totalBlockCount:   5,
 	},
+	{
+		name:              "Markdown indented fences",
+		sourcefile:        "testdata/has_indented.md",
+		resultfile:        "testdata/has_indented_fmt.md",
+		lineCount:         18,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:            "Markdown indented fences no change",
+		sourcefile:      "testdata/has_indented_fmt.md",
+		noDiff:          true,
+		lineCount:       18,
+		totalBlockCount: 2,
+	},
 }
 
 func TestCmdFmtStdinDefault(t *testing.T) {

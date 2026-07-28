@@ -282,6 +282,10 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 			br.BlockCurrentLine = 0
 			br.BlockCount++
 
+			// an indented fence (e.g. inside a markdown list item) means the block content is
+			// indented too; preserve that indentation when formatting (issue #51)
+			fenceIndented := strings.TrimLeft(l, " \t") != l
+
 			for s.Scan() { // scan block
 				br.LineCount++
 				br.BlockCurrentLine++
@@ -301,19 +305,22 @@ func (br *Reader) doTheThingPatternMatch(fs afero.Fs, filename string, stdin io.
 
 					block = ""
 					br.BlockCount++
+					fenceIndented = strings.TrimLeft(l2, " \t") != l2
 
 					continue
 				}
 
 				if textFmt.isFinishLine(l2) {
-					if br.FixFinishLines {
+					// stripping the finish line's leading whitespace would break the layout of an
+					// intentionally indented block, so leave those alone
+					if br.FixFinishLines && !fenceIndented {
 						l2 = lineWithLeadingSpacesMatcher.ReplaceAllString(l2, `$1`)
 					}
 
 					br.LinesBlock += br.BlockCurrentLine
 
 					// todo configure this behaviour with switch's
-					if err := br.BlockRead(br, br.LineCount, block, textFmt.preserveIndentation()); err != nil {
+					if err := br.BlockRead(br, br.LineCount, block, textFmt.preserveIndentation() || fenceIndented); err != nil {
 						// for now ignore block errors and output unformatted
 						br.ErrorBlocks++
 						br.Log.Errorf("block %d @ %s:%d failed to process with: %v", br.BlockCount, br.FileName, br.LineCount-br.BlockCurrentLine, err)
