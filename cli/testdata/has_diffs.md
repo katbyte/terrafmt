@@ -1,33 +1,33 @@
 # Has Diffs
 
 ```hcl
-resource "aws_s3_bucket" "extra-lines" {
+resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 ```
 
 ```hcl
-resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors"
+resource "azurerm_storage_container" "no-errors" {
+  name = "tf-test-container-no-errors"
 }
 ```
 
 ```hcl
-resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space"
+resource "azurerm_storage_container" "extra-space" {
+  name    = "tf-test-container-extra-space"
 }
 ```
 
 ```hcl
-resource "aws_s3_bucket" "end-line" {
-  bucket = "tf-test-bucket-end-line"
+resource "azurerm_storage_container" "end-line" {
+  name = "tf-test-container-end-line"
 }
   
 ```
 
 ```hcl
-     resource "aws_s3_bucket" "leading-space" {
-  bucket = "tf-test-bucket-leading-space"
+     resource "azurerm_storage_container" "leading-space" {
+  name = "tf-test-container-leading-space"
 }
 ```

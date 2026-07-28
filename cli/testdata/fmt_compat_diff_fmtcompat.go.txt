@@ -1,7 +1,7 @@
 <lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>30</>
- resource "aws_s3_bucket" "extra-space" {
-<red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
-<green>+  bucket = "tf-test-bucket-extra-space-%d"</>
+ resource "azurerm_storage_container" "extra-space" {
+<red>-  name    = "tf-test-container-extra-space-%d"</>
+<green>+  name = "tf-test-container-extra-space-%d"</>
  
    %s
  
@@ -11,19 +11,21 @@
    }
  }
 <lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>44</>
- resource "aws_s3_bucket" "with-parameters-and-append" {
-   bucket = "tf-test-bucket-parameters-and-append-%d"
+ resource "azurerm_storage_container" "with-parameters-and-append" {
+<red>-  name = "tf-test-container-parameters-and-append-%d"</>
 <red>-  %[1]s     = "something"</>
-<green>+  %[1]s  = "something"</>
+<green>+  name  = "tf-test-container-parameters-and-append-%d"</>
+<green>+  %[1]s = "something"</>
  }
 <lightMagenta>testdata/fmt_compat.go</><darkGray>:</><magenta>53</>
- resource "aws_elasticache_replication_group" "for-expression" {
+ resource "azurerm_redis_cache" "for-expression" {
    replication_group_id = %[1]q
  
    node_groups {
-     primary_availability_zone  = aws_subnet.test[0].availability_zone
-<red>-    replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]</>
-<green>+    replica_availability_zones = [for x in range(1, %[2]d + 1) : element(aws_subnet.test[*].availability_zone, x)]</>
-     replica_count              = %[2]d
+     primary_address_prefixes  = azurerm_subnet.test[0].address_prefixes
+<red>-    replica_address_prefixess = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]</>
+<red>-    replica_count              = %[2]d</>
+<green>+    replica_address_prefixess = [for x in range(1, %[2]d + 1) : element(azurerm_subnet.test[*].address_prefixes, x)]</>
+<green>+    replica_count             = %[2]d</>
    }
  }

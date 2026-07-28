@@ -6,9 +6,9 @@ import (
 
 func testExtraLines() string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "extra-lines" {
+resource "azurerm_storage_container" "extra-lines" {
 
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `)
 }
@@ -16,34 +16,34 @@ resource "aws_s3_bucket" "extra-lines" {
 // This is included to verify blocks with diffs and no diffs in the same file
 func testNoFormattingErrors(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+resource "azurerm_storage_container" "no-errors" {
+  name = "tf-test-container-no-errors-%d"
 }
 `, randInt)
 }
 
 func testExtraSpace(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "extra-space" {
-  bucket = "tf-test-bucket-extra-space-%d"
+resource "azurerm_storage_container" "extra-space" {
+  name = "tf-test-container-extra-space-%d"
 }
 `, randInt) + testReturnSprintfSimple()
 }
 
 func testFinishLineWhiteSpace(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "end-line" {
-  bucket = "tf-test-bucket-end-line-%d"
+resource "azurerm_storage_container" "end-line" {
+  name = "tf-test-container-end-line-%d"
 }
   `, randInt)
 }
 
 func testNoPadding(randInt int) string {
-	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+	return fmt.Sprintf(`resource "azurerm_lb_backend_address_pool" "test" {
   name     = "%s"
   port     = 443
   protocol = "HTTPS"
-  vpc_id   = "${aws_vpc.test.id}"
+  vpc_id   = "${azurerm_virtual_network.test.id}"
 
   deregistration_delay = 200
 
@@ -68,7 +68,7 @@ func testNoPadding(randInt int) string {
   }
 }
 
-resource "aws_vpc" "test" {
+resource "azurerm_virtual_network" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
@@ -79,8 +79,8 @@ resource "aws_vpc" "test" {
 
 func testLeadingWhiteSpace(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+resource "azurerm_storage_container" "leading-space" {
+  name = "tf-test-container-leading-space-%d"
 }
 `, randInt)
 }

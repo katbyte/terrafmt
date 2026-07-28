@@ -6,24 +6,24 @@ import (
 
 func testReturnSprintfSimple() string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "simple" {
-  bucket = "tf-test-bucket-simple"
+resource "azurerm_storage_container" "simple" {
+  name = "tf-test-container-simple"
 }
 `)
 }
 
 func testReturnSprintfWithParameters(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "with-parameters" {
-  bucket = "tf-test-bucket-with-parameters-%d"
+resource "azurerm_storage_container" "with-parameters" {
+  name = "tf-test-container-with-parameters-%d"
 }
 `, randInt)
 }
 
 func testReturnSprintfWithParametersAndStringAppend(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+resource "azurerm_storage_container" "with-parameters-and-append" {
+  name = "tf-test-container-parameters-and-append-%d"
 }
 `, randInt) + testReturnSprintfSimple()
 }
