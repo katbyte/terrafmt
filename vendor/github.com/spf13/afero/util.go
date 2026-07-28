@@ -43,7 +43,7 @@ func WriteReader(fs Fs, path string, r io.Reader) (err error) {
 	ospath := filepath.FromSlash(dir)
 
 	if ospath != "" {
-		err = fs.MkdirAll(ospath, 0777) // rwx, rw, r
+		err = fs.MkdirAll(ospath, 0o777) // rwx, rw, r
 		if err != nil {
 			if err != os.ErrExist {
 				return err
@@ -71,7 +71,7 @@ func SafeWriteReader(fs Fs, path string, r io.Reader) (err error) {
 	ospath := filepath.FromSlash(dir)
 
 	if ospath != "" {
-		err = fs.MkdirAll(ospath, 0777) // rwx, rw, r
+		err = fs.MkdirAll(ospath, 0o777) // rwx, rw, r
 		if err != nil {
 			return
 		}
@@ -113,18 +113,18 @@ func GetTempDir(fs Fs, subPath string) string {
 	if subPath != "" {
 		// preserve windows backslash :-(
 		if FilePathSeparator == "\\" {
-			subPath = strings.Replace(subPath, "\\", "____", -1)
+			subPath = strings.ReplaceAll(subPath, "\\", "____")
 		}
 		dir = dir + UnicodeSanitize((subPath))
 		if FilePathSeparator == "\\" {
-			dir = strings.Replace(dir, "____", "\\", -1)
+			dir = strings.ReplaceAll(dir, "____", "\\")
 		}
 
 		if exists, _ := Exists(fs, dir); exists {
 			return addSlash(dir)
 		}
 
-		err := fs.MkdirAll(dir, 0777)
+		err := fs.MkdirAll(dir, 0o777)
 		if err != nil {
 			panic(err)
 		}
@@ -197,7 +197,6 @@ func FileContainsAnyBytes(fs Fs, filename string, subslices [][]byte) (bool, err
 
 // readerContains reports whether any of the subslices is within r.
 func readerContainsAny(r io.Reader, subslices ...[]byte) bool {
-
 	if r == nil || len(subslices) == 0 {
 		return false
 	}
