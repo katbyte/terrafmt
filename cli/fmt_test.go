@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -19,6 +20,7 @@ var fmtTestcases = []struct {
 	errMsg            []string
 	fmtcompat         bool
 	fixFinishLines    bool
+	skipStdin         bool
 	lineCount         int
 	updatedBlockCount int
 	totalBlockCount   int
@@ -57,7 +59,7 @@ var fmtTestcases = []struct {
 			"block 3 @ %s:30 failed to process with: failed to parse hcl: %s:4,3-4:",
 			"block 4 @ %s:44 failed to process with: failed to parse hcl: %s:3,3-4:",
 			"block 5 @ %s:53 failed to process with: failed to parse hcl: %s:2,26-27:",
-			"block 6 @ %s:67 failed to process with: failed to parse hcl: %s:1,26-27:",
+			"block 6 @ %s:67 failed to process with: failed to parse hcl: %s:1,38-39:",
 		},
 		lineCount:       76,
 		totalBlockCount: 6,
@@ -76,7 +78,7 @@ var fmtTestcases = []struct {
 		sourcefile: "testdata/bad_terraform.go",
 		resultfile: "testdata/bad_terraform_fmt.go",
 		errMsg: []string{
-			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:1,37-38: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:1,49-50: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
 		},
 		lineCount:         20,
 		updatedBlockCount: 1,
@@ -111,6 +113,23 @@ var fmtTestcases = []struct {
 		totalBlockCount: 3,
 	},
 	{
+		name:            "Rst no change",
+		skipStdin:       true, // rst is detected by file extension, which stdin does not have
+		sourcefile:      "testdata/has_diffs_fmt.rst",
+		noDiff:          true,
+		lineCount:       25,
+		totalBlockCount: 2,
+	},
+	{
+		name:              "Rst formatting",
+		skipStdin:         true, // rst is detected by file extension, which stdin does not have
+		sourcefile:        "testdata/has_diffs.rst",
+		resultfile:        "testdata/has_diffs_fmt.rst",
+		lineCount:         25,
+		updatedBlockCount: 2,
+		totalBlockCount:   2,
+	},
+	{
 		name:              "Markdown formatting",
 		sourcefile:        "testdata/has_diffs.md",
 		resultfile:        "testdata/has_diffs_fmt.md",
@@ -127,6 +146,21 @@ var fmtTestcases = []struct {
 		updatedBlockCount: 4,
 		totalBlockCount:   5,
 	},
+	{
+		name:              "Markdown indented fences",
+		sourcefile:        "testdata/has_indented.md",
+		resultfile:        "testdata/has_indented_fmt.md",
+		lineCount:         18,
+		updatedBlockCount: 1,
+		totalBlockCount:   2,
+	},
+	{
+		name:            "Markdown indented fences no change",
+		sourcefile:      "testdata/has_indented_fmt.md",
+		noDiff:          true,
+		lineCount:       18,
+		totalBlockCount: 2,
+	},
 }
 
 func TestCmdFmtStdinDefault(t *testing.T) {
@@ -135,6 +169,10 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 	for _, testcase := range fmtTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
+
+			if testcase.skipStdin {
+				t.Skip("format cannot be detected from stdin")
+			}
 
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
@@ -192,6 +230,10 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 	for _, testcase := range fmtTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
+
+			if testcase.skipStdin {
+				t.Skip("format cannot be detected from stdin")
+			}
 
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
@@ -337,6 +379,58 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 			summaryLine := lines[len(lines)-1]
 			if summaryLine != expectedSummaryLine {
 				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
+	}
+}
+
+// TestCmdFmtIdempotency verifies fmt(fmt(x)) == fmt(x): running fmt on an
+// already-formatted file must not change it again.
+func TestCmdFmtIdempotency(t *testing.T) {
+	t.Parallel()
+
+	testcases := []struct {
+		sourcefile     string
+		fmtcompat      bool
+		fixFinishLines bool
+	}{
+		{sourcefile: "testdata/no_diffs.go"},
+		{sourcefile: "testdata/no_diffs.md"},
+		{sourcefile: "testdata/has_diffs_fmt.go"},
+		{sourcefile: "testdata/has_diffs_fmt_fix_finish.go", fixFinishLines: true},
+		{sourcefile: "testdata/has_diffs_fmt.md"},
+		{sourcefile: "testdata/has_diffs_fmt.rst"},
+		{sourcefile: "testdata/fmt_compat_fmtcompat.go", fmtcompat: true},
+		{sourcefile: "testdata/bad_terraform_fmt.go"},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.sourcefile, func(t *testing.T) {
+			t.Parallel()
+
+			// overlay the real fixtures with an in-memory write layer so fmt can
+			// "write back" without touching disk
+			fs := afero.NewCopyOnWriteFs(afero.NewReadOnlyFs(afero.NewOsFs()), afero.NewMemMapFs())
+
+			before, err := afero.ReadFile(fs, testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error reading %q: %s", testcase.sourcefile, err)
+			}
+
+			var outB strings.Builder
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			if _, err := formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB); err != nil {
+				t.Fatalf("Error formatting %q: %s", testcase.sourcefile, err)
+			}
+
+			after, err := afero.ReadFile(fs, testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error reading %q after fmt: %s", testcase.sourcefile, err)
+			}
+
+			if !bytes.Equal(before, after) {
+				t.Errorf("fmt is not idempotent for %q: ('-' before, '+' after)\n%s", testcase.sourcefile, diff.Diff(string(before), string(after)))
 			}
 		})
 	}

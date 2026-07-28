@@ -34,24 +34,24 @@ var blocksTestcases = []struct {
 			{
 				startLine: 8,
 				endLine:   12,
-				text: `resource "aws_s3_bucket" "simple" {
-  bucket = "tf-test-bucket-simple"
+				text: `resource "azurerm_storage_container" "simple" {
+  name = "tf-test-container-simple"
 }
 `,
 			},
 			{
 				startLine: 16,
 				endLine:   20,
-				text: `resource "aws_s3_bucket" "with-parameters" {
-  bucket = "tf-test-bucket-with-parameters-%d"
+				text: `resource "azurerm_storage_container" "with-parameters" {
+  name = "tf-test-container-with-parameters-%d"
 }
 `,
 			},
 			{
 				startLine: 24,
 				endLine:   28,
-				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+				text: `resource "azurerm_storage_container" "with-parameters-and-append" {
+  name = "tf-test-container-parameters-and-append-%d"
 }
 `,
 			},
@@ -65,44 +65,44 @@ var blocksTestcases = []struct {
 			{
 				startLine: 8,
 				endLine:   13,
-				text: `resource "aws_s3_bucket" "extra-lines" {
+				text: `resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `,
 			},
 			{
 				startLine: 18,
 				endLine:   22,
-				text: `resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+				text: `resource "azurerm_storage_container" "no-errors" {
+  name = "tf-test-container-no-errors-%d"
 }
 `,
 			},
 			{
 				startLine: 26,
 				endLine:   30,
-				text: `resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+				text: `resource "azurerm_storage_container" "extra-space" {
+  name    = "tf-test-container-extra-space-%d"
 }
 `,
 			},
 			{
 				startLine: 34,
 				endLine:   38,
-				text: `resource "aws_s3_bucket" "end-line" {
-  bucket = "tf-test-bucket-end-line-%d"
+				text: `resource "azurerm_storage_container" "end-line" {
+  name = "tf-test-container-end-line-%d"
 }
 `,
 			},
 			{
 				startLine: 42,
 				endLine:   77,
-				text: `resource "aws_alb_target_group" "test" {
+				text: `resource "azurerm_lb_backend_address_pool" "test" {
   name = "%s"
   port = 443
   protocol = "HTTPS"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = "${azurerm_virtual_network.test.id}"
 
   deregistration_delay = 200
 
@@ -127,7 +127,7 @@ var blocksTestcases = []struct {
   }
 }
 
-resource "aws_vpc" "test" {
+resource "azurerm_virtual_network" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
@@ -138,8 +138,8 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 81,
 				endLine:   85,
-				text: `    resource "aws_s3_bucket" "leading-space" {
-  bucket = "tf-test-bucket-leading-space-%d"
+				text: `    resource "azurerm_storage_container" "leading-space" {
+  name = "tf-test-container-leading-space-%d"
 }
 `,
 			},
@@ -153,8 +153,8 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 8,
 				endLine:   18,
-				text: `resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors-%d"
+				text: `resource "azurerm_storage_container" "no-errors" {
+  name = "tf-test-container-no-errors-%d"
 
   %s
 
@@ -167,16 +167,16 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 22,
 				endLine:   26,
-				text: `resource "aws_s3_bucket" "absolutely-nothing" {
-  bucket = "tf-test-bucket-absolutely-nothing"
+				text: `resource "azurerm_storage_container" "absolutely-nothing" {
+  name = "tf-test-container-absolutely-nothing"
 }
 `,
 			},
 			{
 				startLine: 30,
 				endLine:   40,
-				text: `resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space-%d"
+				text: `resource "azurerm_storage_container" "extra-space" {
+  name    = "tf-test-container-extra-space-%d"
 
   %s
 
@@ -189,8 +189,8 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 44,
 				endLine:   49,
-				text: `resource "aws_s3_bucket" "with-parameters-and-append" {
-  bucket = "tf-test-bucket-parameters-and-append-%d"
+				text: `resource "azurerm_storage_container" "with-parameters-and-append" {
+  name = "tf-test-container-parameters-and-append-%d"
   %[1]s     = "something"
 }
 `,
@@ -198,12 +198,12 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 53,
 				endLine:   63,
-				text: `resource "aws_elasticache_replication_group" "for-expression" {
+				text: `resource "azurerm_redis_cache" "for-expression" {
   replication_group_id = %[1]q
 
   node_groups {
-    primary_availability_zone  = aws_subnet.test[0].availability_zone
-    replica_availability_zones = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
+    primary_address_prefixes  = azurerm_subnet.test[0].address_prefixes
+    replica_address_prefixess = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].address_prefixes, x)]
     replica_count              = %[2]d
   }
 }
@@ -212,12 +212,12 @@ resource "aws_vpc" "test" {
 			{
 				startLine: 67,
 				endLine:   75,
-				text: `resource "aws_s3_bucket" %[1]q {
-  bucket = "tf-test-bucket-with-quotedname"
+				text: `resource "azurerm_storage_container" %[1]q {
+  name = "tf-test-container-with-quotedname"
 }
 
-resource "aws_s3_bucket" "%[1]s-copy" {
-  bucket = "tf-test-bucket-with-name-in-quotes"
+resource "azurerm_storage_container" "%[1]s-copy" {
+  name = "tf-test-container-with-name-in-quotes"
 }
 `,
 			},
@@ -231,16 +231,16 @@ resource "aws_s3_bucket" "%[1]s-copy" {
 			{
 				startLine: 8,
 				endLine:   12,
-				text: `rrrrrresource "aws_s3_bucket" "rrrrrrr" {
-  bucket =    "tf-test-bucket"
+				text: `rrrrrresource "azurerm_storage_container" "rrrrrrr" {
+  name =    "tf-test-container"
 }
 `,
 			},
 			{
 				startLine: 16,
 				endLine:   19,
-				text: `resource "aws_s3_bucket" "unclosed" {
-  bucket =    "tf-test-bucket"
+				text: `resource "azurerm_storage_container" "unclosed" {
+  name =    "tf-test-container"
 `,
 			},
 		},
@@ -253,14 +253,14 @@ resource "aws_s3_bucket" "%[1]s-copy" {
 			{
 				startLine: 8,
 				endLine:   20,
-				text: `resource "aws_s3_bucket" "multi-verb" {
-  bucket =    "tf-test-bucket"
+				text: `resource "azurerm_storage_container" "multi-verb" {
+  name =    "tf-test-container"
 
   tags = {
     %[1]q =    %[2]q
     Test  =  "${%[5]s.name}"
     Name  =       "${%s.name}"
-    byte       = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+    byte       = "${azurerm_key_vault_certificate.test.*.id[%[2]d]}"
     Data  =    "${data.%s.name}"
   }
 }
@@ -276,24 +276,24 @@ resource "aws_s3_bucket" "%[1]s-copy" {
 			{
 				startLine: 3,
 				endLine:   7,
-				text: `resource "aws_s3_bucket" "one" {
-  bucket = "tf-test-bucket-one"
+				text: `resource "azurerm_storage_container" "one" {
+  name = "tf-test-container-one"
 }
 `,
 			},
 			{
 				startLine: 9,
 				endLine:   13,
-				text: `resource "aws_s3_bucket" "two" {
-  bucket = "tf-test-bucket-two"
+				text: `resource "azurerm_storage_container" "two" {
+  name = "tf-test-container-two"
 }
 `,
 			},
 			{
 				startLine: 15,
 				endLine:   19,
-				text: `resource "aws_s3_bucket" "three" {
-  bucket = "tf-test-bucket-three"
+				text: `resource "azurerm_storage_container" "three" {
+  name = "tf-test-container-three"
 }
 `,
 			},
@@ -307,33 +307,33 @@ resource "aws_s3_bucket" "%[1]s-copy" {
 			{
 				startLine: 3,
 				endLine:   8,
-				text: `resource "aws_s3_bucket" "extra-lines" {
+				text: `resource "azurerm_storage_container" "extra-lines" {
   
-  bucket = "tf-test-bucket-extra-lines"
+  name = "tf-test-container-extra-lines"
 }
 `,
 			},
 			{
 				startLine: 10,
 				endLine:   14,
-				text: `resource "aws_s3_bucket" "no-errors" {
-  bucket = "tf-test-bucket-no-errors"
+				text: `resource "azurerm_storage_container" "no-errors" {
+  name = "tf-test-container-no-errors"
 }
 `,
 			},
 			{
 				startLine: 16,
 				endLine:   20,
-				text: `resource "aws_s3_bucket" "extra-space" {
-  bucket    = "tf-test-bucket-extra-space"
+				text: `resource "azurerm_storage_container" "extra-space" {
+  name    = "tf-test-container-extra-space"
 }
 `,
 			},
 			{
 				startLine: 22,
 				endLine:   27,
-				text: `resource "aws_s3_bucket" "end-line" {
-  bucket = "tf-test-bucket-end-line"
+				text: `resource "azurerm_storage_container" "end-line" {
+  name = "tf-test-container-end-line"
 }
   
 `,
@@ -341,8 +341,8 @@ resource "aws_s3_bucket" "%[1]s-copy" {
 			{
 				startLine: 29,
 				endLine:   33,
-				text: `     resource "aws_s3_bucket" "leading-space" {
-  bucket = "tf-test-bucket-leading-space"
+				text: `     resource "azurerm_storage_container" "leading-space" {
+  name = "tf-test-container-leading-space"
 }
 `,
 			},

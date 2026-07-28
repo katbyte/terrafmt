@@ -1,0 +1,6 @@
+<lightMagenta>testdata/has_indented.md</><darkGray>:</><magenta>5</>
+     resource "aws_s3_bucket" "one" {
+<red>-    bucket = "tf-test-bucket-one"</>
+<green>+      bucket        = "tf-test-bucket-one"</>
+       force_destroy = true
+     }

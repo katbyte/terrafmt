@@ -28,6 +28,64 @@ resource "resource" "test" {
 `,
 		},
 
+		{
+			// q verbs as function arguments used to escape into invalid hcl and fail to
+			// parse with "Missing argument separator" (issue #37)
+			name: "quoted verb as function argument",
+			block: `
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_signing_profile" "test" {
+  platform_id = "test-platform"
+  name = replace(%[1]q, "-", "_")
+  kat = split(%q, "a-b")
+}
+# ...
+`,
+			expected: `
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_signing_profile" "test" {
+  platform_id = "test-platform"
+  name        = replace(%[1]q, "-", "_")
+  kat         = split(%q, "a-b")
+}
+# ...
+`,
+		},
+
+		{
+			// two quoted verbs on one line with a trailing comma used to fail to parse
+			// because the second verb was never escaped (issue #46)
+			name: "quoted verbs with trailing comma",
+			block: `
+resource "azurerm_capacity_provider" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+  }
+
+  auto_scaling_group_provider {
+    auto_scaling_group_id    = azurerm_thing.test.id
+  }
+}
+`,
+			expected: `
+resource "azurerm_capacity_provider" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+  }
+
+  auto_scaling_group_provider {
+    auto_scaling_group_id = azurerm_thing.test.id
+  }
+}
+`,
+		},
+
 		// todo nested or forloop with letters?
 		{
 			name: "bareverb",
@@ -188,23 +246,23 @@ resource "resource" "test" {
 		},
 		{
 			name: "verb in index",
-			block: `resource "aws_apigatewayv2_domain_name" "test" {
+			block: `resource "azurerm_api_management_custom_domain" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,
-			expected: `resource "aws_apigatewayv2_domain_name" "test" {
+			expected: `resource "azurerm_api_management_custom_domain" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,

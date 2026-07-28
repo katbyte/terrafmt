@@ -6,15 +6,15 @@ import (
 
 func testInvalidBlockName(randInt int) string {
 	return fmt.Sprintf(`
-rrrrrresource "aws_s3_bucket" "rrrrrrr" {
-  bucket =    "tf-test-bucket"
+rrrrrresource "azurerm_storage_container" "rrrrrrr" {
+  name =    "tf-test-container"
 }
 `, randInt)
 }
 
 func testUnclosedBlock(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "unclosed" {
-  bucket =    "tf-test-bucket"
+resource "azurerm_storage_container" "unclosed" {
+  name =    "tf-test-container"
 `, randInt)
 }
