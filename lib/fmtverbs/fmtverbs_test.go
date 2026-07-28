@@ -366,8 +366,8 @@ resource "resource" "test" {
 }
 
 resource "resource" "test" {
-  kat  = "${aws_acm_certificate.test.*.arn[%d]}"
-  byte = "${aws_acm_certificate.test.*.arn[%[2]d]}"
+  kat  = "${azurerm_key_vault_certificate.test.*.arn[%d]}"
+  byte = "${azurerm_key_vault_certificate.test.*.arn[%[2]d]}"
 }
 `,
 			expected: `
@@ -377,15 +377,15 @@ resource "resource" "test" {
 }
 
 resource "resource" "test" {
-  kat  = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
-  byte = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+  kat  = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+  byte = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
 }
 `,
 		},
 		{
 			name: "conditional expression",
 			block: `
-resource "aws_dynamodb_table" "test" {
+resource "azurerm_cosmosdb_table" "test" {
   name = %[1]q
 
   ttl {
@@ -395,7 +395,7 @@ resource "aws_dynamodb_table" "test" {
 }
 `,
 			expected: `
-resource "aws_dynamodb_table" "test" {
+resource "azurerm_cosmosdb_table" "test" {
   name = "@@_@@ TFMT:%[1]q:TFMT @@_@@"
 
   ttl {
@@ -409,18 +409,18 @@ resource "aws_dynamodb_table" "test" {
 			name: "verb in index",
 			block: `
 resource "resource" "test" {
-  attr = aws_acm_certificate.test[%[2]d].arn
-  attr = "${aws_acm_certificate.test.*.arn[%[2]d]}"
-  attr = aws_acm_certificate.test[%d].arn
-  attr = "${aws_acm_certificate.test.*.arn[%d]}"
+  attr = azurerm_key_vault_certificate.test[%[2]d].arn
+  attr = "${azurerm_key_vault_certificate.test.*.arn[%[2]d]}"
+  attr = azurerm_key_vault_certificate.test[%d].arn
+  attr = "${azurerm_key_vault_certificate.test.*.arn[%d]}"
 }
 `,
 			expected: `
 resource "resource" "test" {
-  attr = aws_acm_certificate.test["@@_@@ TFMT:[%[2]d]:TFMT @@_@@"].arn
-  attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
-  attr = aws_acm_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].arn
-  attr = "${aws_acm_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
+  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%[2]d]:TFMT @@_@@"].arn
+  attr = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%[2]d:TFMT @@_@@*/]}"
+  attr = azurerm_key_vault_certificate.test["@@_@@ TFMT:[%d]:TFMT @@_@@"].arn
+  attr = "${azurerm_key_vault_certificate.test.*.arn[0/*@@_@@ TFMT:%d:TFMT @@_@@*/]}"
 }
 `,
 		},
@@ -489,22 +489,22 @@ resource "resource" "test6" {
 			name: "verb in for expression",
 			block: `
 resource "resource" "test" {
-  attr = [for x in range(1, %d+1) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(1, %[2]d+1) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%d, 3) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%[1]d, 3) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%d, %d) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(%[1]d, %[2]d) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, %d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, %[2]d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%[1]d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%d, %d) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(%[1]d, %[2]d) : element(azurerm_subnet.test[*].availability_zone, x)]
 }
 `,
 			expected: `
 resource "resource" "test" {
-  attr = [for x in range(1, TFMTFNPARAM_d+1) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(1, TFMTFNPARAM_2d+1) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_d, 3) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_1d, 3) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_d, TFMTFNPARAM_d) : element(aws_subnet.test[*].availability_zone, x)]
-  attr = [for x in range(TFMTFNPARAM_1d, TFMTFNPARAM_2d) : element(aws_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, TFMTFNPARAM_d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(1, TFMTFNPARAM_2d+1) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, 3) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_d, TFMTFNPARAM_d) : element(azurerm_subnet.test[*].availability_zone, x)]
+  attr = [for x in range(TFMTFNPARAM_1d, TFMTFNPARAM_2d) : element(azurerm_subnet.test[*].availability_zone, x)]
 }
 `,
 		},
@@ -548,6 +548,58 @@ data "data_source" "TFMTRESNAME_1q" {
 
 resource "resource" "TFMTRESNAME_q" {
   kat = resource.TFMTKTKTTFMT_1s.byte
+}
+`,
+		},
+		{
+			name: "verb in list name",
+			block: `
+list "azurerm_thing" "%s" {
+}
+
+list "azurerm_thing" "test-%[1]s" {
+}
+
+list "azurerm_thing" %q {
+}
+`,
+			expected: `
+list "azurerm_thing" "TFMTRESNAME_s" {
+}
+
+list "azurerm_thing" "test-TFMTRESNAME_1s" {
+}
+
+list "azurerm_thing" "TFMTRESNAME_q" {
+}
+`,
+		},
+		{
+			name: "verb in ephemeral and action name",
+			block: `
+ephemeral "azurerm_key_vault_secret" "%s" {
+}
+
+ephemeral "azurerm_key_vault_secret" "test-%[1]s" {
+}
+
+action "azurerm_virtual_machine_run_command" "%s" {
+}
+
+action "azurerm_virtual_machine_run_command" %q {
+}
+`,
+			expected: `
+ephemeral "azurerm_key_vault_secret" "TFMTRESNAME_s" {
+}
+
+ephemeral "azurerm_key_vault_secret" "test-TFMTRESNAME_1s" {
+}
+
+action "azurerm_virtual_machine_run_command" "TFMTRESNAME_s" {
+}
+
+action "azurerm_virtual_machine_run_command" "TFMTRESNAME_q" {
 }
 `,
 		},

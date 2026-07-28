@@ -48,7 +48,7 @@ var diffTestcases = []struct {
 			"block 3 @ %s:30 failed to process with: failed to parse hcl: testdata/fmt_compat.go:4,3-4:",
 			"block 4 @ %s:44 failed to process with: failed to parse hcl: testdata/fmt_compat.go:3,3-4:",
 			"block 5 @ %s:53 failed to process with: failed to parse hcl: testdata/fmt_compat.go:2,26-27:",
-			"block 6 @ %s:67 failed to process with: failed to parse hcl: testdata/fmt_compat.go:1,26-27:",
+			"block 6 @ %s:67 failed to process with: failed to parse hcl: testdata/fmt_compat.go:1,38-39:",
 		},
 		lineCount:       76,
 		totalBlockCount: 6,
@@ -67,7 +67,7 @@ var diffTestcases = []struct {
 		sourcefile: "testdata/bad_terraform.go",
 		resultfile: "testdata/bad_terraform_diff.go.txt",
 		errMsg: []string{
-			"block 2 @ %s:16 failed to process with: failed to parse hcl: testdata/bad_terraform.go:1,37-38: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: testdata/bad_terraform.go:1,49-50: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
 		},
 		lineCount:             20,
 		unformattedBlockCount: 1,

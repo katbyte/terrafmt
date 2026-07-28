@@ -3,7 +3,7 @@
 Test fenced code block with `hcl`
 
 ```hcl
-resource "aws_s3_bucket" "hcl" {
+resource "azurerm_storage_container" "hcl" {
   bucket = "tf-test-bucket-hcl"
 }
 ```
@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "hcl" {
 Test fenced code block with `tf`
 
 ```tf
-resource "aws_s3_bucket" "tf" {
+resource "azurerm_storage_container" "tf" {
   bucket = "tf-test-bucket-tf"
 }
 ```
@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "tf" {
 Test block with leading whitespace
 
 ```terraform
-    resource "aws_s3_bucket" "leading-space" {
+    resource "azurerm_storage_container" "leading-space" {
   bucket = "tf-test-bucket-leading-space"
 }
 ```
@@ -28,7 +28,7 @@ Test block with leading whitespace and line
 
 ```terraform
     
-    resource "aws_s3_bucket" "leading-space-and-line" {
+    resource "azurerm_storage_container" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line"
 }
 ```
@@ -36,7 +36,7 @@ Test block with leading whitespace and line
 Test block with capital letters in resource name
 
 ```terraform
-resource "aws_s3_bucket" "UpperCase" {
+resource "azurerm_storage_container" "UpperCase" {
   bucket = "tf-test-bucket-with-uppercase"
 }
 ```

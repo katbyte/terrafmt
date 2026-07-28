@@ -27,7 +27,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "simple" {
+					text: `resource "azurerm_storage_container" "simple" {
   bucket = "tf-test-bucket-simple"
 }
 `,
@@ -35,7 +35,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "simple2" {
+					text: `resource "azurerm_storage_container" "simple2" {
   bucket = "tf-test-bucket-simple2"
 }
 `,
@@ -43,7 +43,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "with-parameters" {
+					text: `resource "azurerm_storage_container" "with-parameters" {
   bucket = "tf-test-bucket-with-parameters-%d"
 }
 `,
@@ -51,7 +51,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "with-parameters-and-append" {
+					text: `resource "azurerm_storage_container" "with-parameters-and-append" {
   bucket = "tf-test-bucket-parameters-and-append-%d"
 }
 `,
@@ -59,7 +59,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "const" {
+					text: `resource "azurerm_storage_container" "const" {
   bucket = "tf-test-bucket-const"
 }
 `,
@@ -67,7 +67,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "composed" {
+					text: `resource "azurerm_storage_container" "composed" {
   bucket = "tf-test-bucket-composed-%d"
 }
 `,
@@ -75,7 +75,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `data "aws_s3_bucket" "simple" {
+					text: `data "azurerm_storage_container" "simple" {
   bucket = "tf-test-bucket-simple"
 }
 `,
@@ -83,7 +83,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `    resource "aws_s3_bucket" "leading-space" {
+					text: `    resource "azurerm_storage_container" "leading-space" {
   bucket = "tf-test-bucket-leading-space-%d"
 }
 `,
@@ -92,7 +92,7 @@ func TestBlockDetection(t *testing.T) {
 					leadingPadding:  "\n    \n",
 					trailingPadding: "\n",
 					text: `    
-    resource "aws_s3_bucket" "leading-space-and-line" {
+    resource "azurerm_storage_container" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line-%d"
 }
 `,
@@ -100,7 +100,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "%s" {
+					text: `resource "azurerm_storage_container" "%s" {
   bucket = "tf-test-bucket-with-quotedname"
 }
 `,
@@ -108,7 +108,7 @@ func TestBlockDetection(t *testing.T) {
 				{
 					leadingPadding:  "\n",
 					trailingPadding: "\n",
-					text: `resource "aws_s3_bucket" "UpperCase" {
+					text: `resource "azurerm_storage_container" "UpperCase" {
   bucket = "tf-test-bucket-with-uppercase"
 }
 `,
@@ -118,29 +118,29 @@ func TestBlockDetection(t *testing.T) {
 		{
 			sourcefile: "testdata/test2.markdown",
 			expectedBlocks: []block{
-				{text: `resource "aws_s3_bucket" "hcl" {
+				{text: `resource "azurerm_storage_container" "hcl" {
   bucket = "tf-test-bucket-hcl"
 }
 `},
-				{text: `resource "aws_s3_bucket" "tf" {
+				{text: `resource "azurerm_storage_container" "tf" {
   bucket = "tf-test-bucket-tf"
 }
 `},
 				{
-					text: `    resource "aws_s3_bucket" "leading-space" {
+					text: `    resource "azurerm_storage_container" "leading-space" {
   bucket = "tf-test-bucket-leading-space"
 }
 `,
 				},
 				{
 					text: `    
-    resource "aws_s3_bucket" "leading-space-and-line" {
+    resource "azurerm_storage_container" "leading-space-and-line" {
   bucket = "tf-test-bucket-leading-space-and-line"
 }
 `,
 				},
 				{
-					text: `resource "aws_s3_bucket" "UpperCase" {
+					text: `resource "azurerm_storage_container" "UpperCase" {
   bucket = "tf-test-bucket-with-uppercase"
 }
 `,
@@ -151,7 +151,7 @@ func TestBlockDetection(t *testing.T) {
 			sourcefile: "testdata/test3.rst",
 			expectedBlocks: []block{
 				{
-					text: `  resource "aws_s3_bucket" "terraform" {
+					text: `  resource "azurerm_storage_container" "terraform" {
     bucket = "tf-test-bucket-terraform"
   }
 
@@ -320,14 +320,14 @@ func TestLooksLikeTerraform(t *testing.T) {
 	}{
 		{
 			text: `
-resource "aws_s3_bucket" "simple-resource" {
+resource "azurerm_storage_container" "simple-resource" {
   bucket = "tf-test-bucket-simple"
 }`,
 			expected: true,
 		},
 		{
 			text: `
-data "aws_s3_bucket" "simple-data" {
+data "azurerm_storage_container" "simple-data" {
   bucket = "tf-test-bucket-simple"
 }`,
 			expected: true,
@@ -346,6 +346,22 @@ list "azurerm_resource_group" "example" {
 		},
 		{
 			text: `
+ephemeral "azurerm_key_vault_secret" "example" {
+  secret_id = data.azurerm_key_vault_secret.example.id
+}`,
+			expected: true,
+		},
+		{
+			text: `
+action "azurerm_virtual_machine_run_command" "example" {
+  config {
+    virtual_machine_id = azurerm_virtual_machine.example.id
+  }
+}`,
+			expected: true,
+		},
+		{
+			text: `
 variable "name" {
   type = string
 }`,
@@ -354,34 +370,34 @@ variable "name" {
 		{
 			text: `
 output "arn" {
-  value = aws_s3_bucket.simple-resource.arn
+  value = azurerm_storage_container.simple-resource.arn
 }`,
 			expected: true,
 		},
 		{
 			text: `
-resource "aws_s3_bucket" "%s" {
+resource "azurerm_storage_container" "%s" {
   bucket = "tf-test-bucket-simple"
 }`,
 			expected: true,
 		},
 		// 		{
 		// 			text: `
-		// resource "aws_s3_bucket" "%[1]s" {
+		// resource "azurerm_storage_container" "%[1]s" {
 		//   bucket = "tf-test-bucket-simple"
 		// }`,
 		// 			expected: true,
 		// 		},
 		// 		{
 		// 			text: `
-		// resource "aws_s3_bucket" %q {
+		// resource "azurerm_storage_container" %q {
 		//   bucket = "tf-test-bucket-simple"
 		// }`,
 		// 			expected: true,
 		// 		},
 		// 		{
 		// 			text: `
-		// resource "aws_s3_bucket" %[1]q {
+		// resource "azurerm_storage_container" %[1]q {
 		//   bucket = "tf-test-bucket-simple"
 		// }`,
 		// 			expected: true,

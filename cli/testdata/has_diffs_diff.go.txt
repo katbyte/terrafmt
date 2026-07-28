@@ -1,23 +1,23 @@
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>8</>
- resource "aws_s3_bucket" "extra-lines" {
+ resource "azurerm_storage_container" "extra-lines" {
 <red>-  </>
 <green>+</>
    bucket = "tf-test-bucket-extra-lines"
  }
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>26</>
- resource "aws_s3_bucket" "extra-space" {
+ resource "azurerm_storage_container" "extra-space" {
 <red>-  bucket    = "tf-test-bucket-extra-space-%d"</>
 <green>+  bucket = "tf-test-bucket-extra-space-%d"</>
  }
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>42</>
- resource "aws_alb_target_group" "test" {
+ resource "azurerm_lb_backend_address_pool" "test" {
 <red>-  name = "%s"</>
 <red>-  port = 443</>
 <green>+  name     = "%s"</>
 <green>+  port     = 443</>
    protocol = "HTTPS"
-<red>-  vpc_id = "${aws_vpc.test.id}"</>
-<green>+  vpc_id   = "${aws_vpc.test.id}"</>
+<red>-  vpc_id = "${azurerm_virtual_network.test.id}"</>
+<green>+  vpc_id   = "${azurerm_virtual_network.test.id}"</>
  
    deregistration_delay = 200
  
@@ -50,7 +50,7 @@
    }
  }
  
- resource "aws_vpc" "test" {
+ resource "azurerm_virtual_network" "test" {
    cidr_block = "10.0.0.0/16"
  
    tags = {
@@ -58,7 +58,7 @@
    }
  }
 <lightMagenta>testdata/has_diffs.go</><darkGray>:</><magenta>81</>
-<red>-    resource "aws_s3_bucket" "leading-space" {</>
-<green>+resource "aws_s3_bucket" "leading-space" {</>
+<red>-    resource "azurerm_storage_container" "leading-space" {</>
+<green>+resource "azurerm_storage_container" "leading-space" {</>
    bucket = "tf-test-bucket-leading-space-%d"
  }

@@ -57,7 +57,7 @@ var fmtTestcases = []struct {
 			"block 3 @ %s:30 failed to process with: failed to parse hcl: %s:4,3-4:",
 			"block 4 @ %s:44 failed to process with: failed to parse hcl: %s:3,3-4:",
 			"block 5 @ %s:53 failed to process with: failed to parse hcl: %s:2,26-27:",
-			"block 6 @ %s:67 failed to process with: failed to parse hcl: %s:1,26-27:",
+			"block 6 @ %s:67 failed to process with: failed to parse hcl: %s:1,38-39:",
 		},
 		lineCount:       76,
 		totalBlockCount: 6,
@@ -76,7 +76,7 @@ var fmtTestcases = []struct {
 		sourcefile: "testdata/bad_terraform.go",
 		resultfile: "testdata/bad_terraform_fmt.go",
 		errMsg: []string{
-			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:1,37-38: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
+			"block 2 @ %s:16 failed to process with: failed to parse hcl: %s:1,49-50: Unclosed configuration block; There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.\\nresource \\",
 		},
 		lineCount:         20,
 		updatedBlockCount: 1,

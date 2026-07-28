@@ -1,25 +1,25 @@
 # No Diffs
 
 ```terraform
-resource "aws_s3_bucket" "one" {
+resource "azurerm_storage_container" "one" {
   bucket = "tf-test-bucket-one"
 }
 ```
 
 ```hcl
-resource "aws_s3_bucket" "two" {
+resource "azurerm_storage_container" "two" {
   bucket = "tf-test-bucket-two"
 }
 ```
 
 ```tf
-resource "aws_s3_bucket" "three" {
+resource "azurerm_storage_container" "three" {
   bucket = "tf-test-bucket-three"
 }
 ```
 
 ```
-resource "aws_s3_bucket" "four" {
+resource "azurerm_storage_container" "four" {
   bucket = "tf-test-bucket-four"
 }
 ```

@@ -3,7 +3,7 @@
 Test fenced code block with `terraform`
 
 .. code:: terraform
-  resource "aws_s3_bucket" "terraform" {
+  resource "azurerm_storage_container" "terraform" {
     bucket = "tf-test-bucket-terraform"
   }
 

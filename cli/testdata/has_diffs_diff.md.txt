@@ -1,22 +1,22 @@
 <lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>3</>
- resource "aws_s3_bucket" "extra-lines" {
+ resource "azurerm_storage_container" "extra-lines" {
 <red>-  </>
 <green>+</>
    bucket = "tf-test-bucket-extra-lines"
  }
 <lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>16</>
- resource "aws_s3_bucket" "extra-space" {
+ resource "azurerm_storage_container" "extra-space" {
 <red>-  bucket    = "tf-test-bucket-extra-space"</>
 <green>+  bucket = "tf-test-bucket-extra-space"</>
  }
 <lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>22</>
- resource "aws_s3_bucket" "end-line" {
+ resource "azurerm_storage_container" "end-line" {
    bucket = "tf-test-bucket-end-line"
  }
 <red>-  </>
 <green>+</>
 <lightMagenta>testdata/has_diffs.md</><darkGray>:</><magenta>29</>
-<red>-     resource "aws_s3_bucket" "leading-space" {</>
-<green>+resource "aws_s3_bucket" "leading-space" {</>
+<red>-     resource "azurerm_storage_container" "leading-space" {</>
+<green>+resource "azurerm_storage_container" "leading-space" {</>
    bucket = "tf-test-bucket-leading-space"
  }
