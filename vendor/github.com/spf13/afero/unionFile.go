@@ -47,7 +47,7 @@ func (f *UnionFile) Read(s []byte) (int, error) {
 		if (err == nil || err == io.EOF) && f.Base != nil {
 			// advance the file position also in the base file, the next
 			// call may be a write at this position (or a seek with SEEK_CUR)
-			if _, seekErr := f.Base.Seek(int64(n), os.SEEK_CUR); seekErr != nil {
+			if _, seekErr := f.Base.Seek(int64(n), io.SeekCurrent); seekErr != nil {
 				// only overwrite err in case the seek fails: we need to
 				// report an eventual io.EOF to the caller
 				err = seekErr
@@ -92,7 +92,8 @@ func (f *UnionFile) Seek(o int64, w int) (pos int64, err error) {
 func (f *UnionFile) Write(s []byte) (n int, err error) {
 	if f.Layer != nil {
 		n, err = f.Layer.Write(s)
-		if err == nil && f.Base != nil { // hmm, do we have fixed size files where a write may hit the EOF mark?
+		if err == nil &&
+			f.Base != nil { // hmm, do we have fixed size files where a write may hit the EOF mark?
 			_, err = f.Base.Write(s)
 		}
 		return n, err
@@ -130,7 +131,7 @@ func (f *UnionFile) Name() string {
 type DirsMerger func(lofi, bofi []os.FileInfo) ([]os.FileInfo, error)
 
 var defaultUnionMergeDirsFn = func(lofi, bofi []os.FileInfo) ([]os.FileInfo, error) {
-	var files = make(map[string]os.FileInfo)
+	files := make(map[string]os.FileInfo)
 
 	for _, fi := range lofi {
 		files[fi.Name()] = fi
@@ -151,14 +152,13 @@ var defaultUnionMergeDirsFn = func(lofi, bofi []os.FileInfo) ([]os.FileInfo, err
 	}
 
 	return rfi, nil
-
 }
 
 // Readdir will weave the two directories together and
 // return a single view of the overlayed directories.
 // At the end of the directory view, the error is io.EOF if c > 0.
 func (f *UnionFile) Readdir(c int) (ofi []os.FileInfo, err error) {
-	var merge DirsMerger = f.Merger
+	merge := f.Merger
 	if merge == nil {
 		merge = defaultUnionMergeDirsFn
 	}
@@ -275,7 +275,7 @@ func copyFile(base Fs, layer Fs, name string, bfh File) error {
 		return err
 	}
 	if !exists {
-		err = layer.MkdirAll(filepath.Dir(name), 0777) // FIXME?
+		err = layer.MkdirAll(filepath.Dir(name), 0o777) // FIXME?
 		if err != nil {
 			return err
 		}
