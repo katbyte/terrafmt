@@ -64,11 +64,11 @@ func Escape(b string) string {
 	//  .12 - something.text%[n]s.prop
 	b = regexp.MustCompile(`\.([-a-zA-Z0-9_]+)%\[(\d+)\]([sdt])`).ReplaceAllString(b, `.${1}TFMTKTKTTFMT_${2}${3}`)
 
-	// = %s
-	b = regexp.MustCompile(`(?m:%(\.[0-9])?[sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	// = %s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
+	b = regexp.MustCompile(`(?m)(%(\.[0-9])?[sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
 
-	// = %[n]s
-	b = regexp.MustCompile(`(?m:%(\.[0-9])?\[[\d]+\][sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	// = %[n]s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
+	b = regexp.MustCompile(`(?m)(%(\.[0-9])?\[[\d]+\][sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
 
 	// function(..., %s, ...)
 	// function(..., %[n]s, ...)

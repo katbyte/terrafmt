@@ -54,6 +54,38 @@ resource "azurerm_signing_profile" "test" {
 `,
 		},
 
+		{
+			// two quoted verbs on one line with a trailing comma used to fail to parse
+			// because the second verb was never escaped (issue #46)
+			name: "quoted verbs with trailing comma",
+			block: `
+resource "azurerm_capacity_provider" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+  }
+
+  auto_scaling_group_provider {
+    auto_scaling_group_id    = azurerm_thing.test.id
+  }
+}
+`,
+			expected: `
+resource "azurerm_capacity_provider" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+  }
+
+  auto_scaling_group_provider {
+    auto_scaling_group_id = azurerm_thing.test.id
+  }
+}
+`,
+		},
+
 		// todo nested or forloop with letters?
 		{
 			name: "bareverb",

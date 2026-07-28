@@ -346,6 +346,31 @@ resource "resource" "test" {
 `,
 		},
 		{
+			// two quoted verbs on one line with a trailing comma; the comma used to block
+			// the end-of-line rule so the second verb was never escaped (issue #46)
+			name: "quoted verbs with trailing comma",
+			block: `
+resource "resource" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+    %q = %q,
+  }
+}
+`,
+			expected: `
+resource "resource" "test" {
+  name = "@@_@@ TFMT:%[1]q:TFMT @@_@@"
+
+  tags = {
+    Ω_2_q = "@@_@@ TFMT:%[3]q:TFMT @@_@@",
+    Ωq = "@@_@@ TFMT:%q:TFMT @@_@@",
+  }
+}
+`,
+		},
+		{
 			// No change expected
 			name: "looks like 012",
 			block: `
