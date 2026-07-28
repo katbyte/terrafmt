@@ -228,6 +228,8 @@ resource "resource" "test" {
   byte = md5(data.source.%s.id)
   kat  = base64encode(%[1]s)
   byte = md5(data.source.%[1]s.id)
+  name = replace(%[1]q, "-", "_")
+  mega = split(%q, "a-b")
 }
 `,
 			expected: `
@@ -236,6 +238,8 @@ resource "resource" "test" {
   byte = md5(data.source.TFMTKTKTTFMTs.id)
   kat  = base64encode(TFMTFNPARAM_1s)
   byte = md5(data.source.TFMTKTKTTFMT_1s.id)
+  name = replace(TFMTFNPARAM_1q, "-", "_")
+  mega = split(TFMTFNPARAM_q, "a-b")
 }
 `,
 		},
@@ -337,6 +341,31 @@ resource "resource" "test" {
 
   tags = {
     Ω_1_q = "@@_@@ TFMT:%[2]q:TFMT @@_@@"
+  }
+}
+`,
+		},
+		{
+			// two quoted verbs on one line with a trailing comma; the comma used to block
+			// the end-of-line rule so the second verb was never escaped (issue #46)
+			name: "quoted verbs with trailing comma",
+			block: `
+resource "resource" "test" {
+  name = %[1]q
+
+  tags = {
+    %[2]q = %[3]q,
+    %q = %q,
+  }
+}
+`,
+			expected: `
+resource "resource" "test" {
+  name = "@@_@@ TFMT:%[1]q:TFMT @@_@@"
+
+  tags = {
+    Ω_2_q = "@@_@@ TFMT:%[3]q:TFMT @@_@@",
+    Ωq = "@@_@@ TFMT:%q:TFMT @@_@@",
   }
 }
 `,
@@ -620,7 +649,7 @@ resource "resource" "test" {
 }
 
 resource "resource" "test2" {
-  provider = tfmtprovider.PROVIDER_1
+  provider = tfmtprovider.PROVIDER_1_
 }
 `,
 		},

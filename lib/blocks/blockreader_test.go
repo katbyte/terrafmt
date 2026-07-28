@@ -145,6 +145,12 @@ func TestBlockDetection(t *testing.T) {
 }
 `,
 				},
+				{
+					text: `    resource "aws_s3_bucket" "indented" {
+      bucket = "tf-test-bucket-indented"
+    }
+`,
+				},
 			},
 		},
 		{

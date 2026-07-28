@@ -27,7 +27,7 @@ func Escape(b string) string {
 	// provider meta-argument
 	// The provider name must be in lowercase
 	b = regexp.MustCompile(`(\bprovider\s+=\s+)%s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER`)
-	b = regexp.MustCompile(`(\bprovider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}`)
+	b = regexp.MustCompile(`(\bprovider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}_`)
 
 	// count meta-argument
 	b = regexp.MustCompile(`(\bcount\s+=\s+)%([ds])`).ReplaceAllString(b, `${1}1 # tfmtcount_${2}`)
@@ -64,11 +64,11 @@ func Escape(b string) string {
 	//  .12 - something.text%[n]s.prop
 	b = regexp.MustCompile(`\.([-a-zA-Z0-9_]+)%\[(\d+)\]([sdt])`).ReplaceAllString(b, `.${1}TFMTKTKTTFMT_${2}${3}`)
 
-	// = %s
-	b = regexp.MustCompile(`(?m:%(\.\d)?[sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
+	// = %s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
+	b = regexp.MustCompile(`(?m)(%(\.\d)?[sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`)
 
-	// = %[n]s
-	b = regexp.MustCompile(`(?m:%(\.\d)?\[\d+\][sdfgtq](\.[a-z_]+)*$)`).ReplaceAllString(b, `"@@_@@ TFMT:$0:TFMT @@_@@"`)
+	// = %[n]s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
+	b = regexp.MustCompile(`(?m)(%(\.\d)?\[\d+\][sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`)
 
 	// function(..., %s, ...)
 	// function(..., %[n]s, ...)
@@ -137,7 +137,7 @@ func Unscape(fb string) string {
 	fb = regexp.MustCompile(`1\s+# tfmtcount_([ds])`).ReplaceAllString(fb, `%${1}`)
 
 	// provider meta-argument
-	fb = regexp.MustCompile(`tfmtprovider.PROVIDER_(\d+)`).ReplaceAllString(fb, `%[${1}]s`)
+	fb = regexp.MustCompile(`tfmtprovider.PROVIDER_(\d+)_`).ReplaceAllString(fb, `%[${1}]s`)
 	fb = strings.ReplaceAll(fb, "tfmtprovider.PROVIDER", "%s")
 
 	return fb

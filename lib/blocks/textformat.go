@@ -15,12 +15,15 @@ type textFormat interface {
 type markdownTextFormat struct{}
 
 func (markdownTextFormat) isStartingLine(line string) bool {
+	// fences may be indented, e.g. inside a list item (issue #51)
+	trimmed := strings.TrimLeft(line, " \t")
+
 	//nolint:gocritic
-	if strings.HasPrefix(line, "```hcl") { // documentation
+	if strings.HasPrefix(trimmed, "```hcl") { // documentation
 		return true
-	} else if strings.HasPrefix(line, "```terraform") { // documentation
+	} else if strings.HasPrefix(trimmed, "```terraform") { // documentation
 		return true
-	} else if strings.HasPrefix(line, "```tf") { // documentation
+	} else if strings.HasPrefix(trimmed, "```tf") { // documentation
 		return true
 	}
 
@@ -28,7 +31,7 @@ func (markdownTextFormat) isStartingLine(line string) bool {
 }
 
 func (mbf markdownTextFormat) isFinishLine(line string) bool {
-	return strings.HasPrefix(line, "```")
+	return strings.HasPrefix(strings.TrimLeft(line, " \t"), "```")
 }
 
 func (mbf markdownTextFormat) preserveIndentation() bool {

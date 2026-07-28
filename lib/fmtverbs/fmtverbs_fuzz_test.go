@@ -42,8 +42,9 @@ func FuzzEscapeUnscapeRoundTrip(f *testing.F) {
 		"a\x00b\n", // NUL byte
 
 		// regressions found by fuzzing; keep so every plain `go test` run replays them
-		"[%s",   // literal [ before a line-ending verb: the list-form unescape ate the [
-		"%.0f0", // precision verb with trailing text: Ω marker dropped/never restored the precision
+		"provider = %[0]s0\n", // literal digit after an indexed provider verb blurred the marker boundary
+		"[%s",                 // literal [ before a line-ending verb: the list-form unescape ate the [
+		"%.0f0",               // precision verb with trailing text: Ω marker dropped/never restored the precision
 	}
 	for _, s := range seeds {
 		f.Add(s)
