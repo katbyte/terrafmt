@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -19,6 +20,7 @@ var fmtTestcases = []struct {
 	errMsg            []string
 	fmtcompat         bool
 	fixFinishLines    bool
+	skipStdin         bool
 	lineCount         int
 	updatedBlockCount int
 	totalBlockCount   int
@@ -111,6 +113,23 @@ var fmtTestcases = []struct {
 		totalBlockCount: 3,
 	},
 	{
+		name:            "Rst no change",
+		skipStdin:       true, // rst is detected by file extension, which stdin does not have
+		sourcefile:      "testdata/has_diffs_fmt.rst",
+		noDiff:          true,
+		lineCount:       25,
+		totalBlockCount: 2,
+	},
+	{
+		name:              "Rst formatting",
+		skipStdin:         true, // rst is detected by file extension, which stdin does not have
+		sourcefile:        "testdata/has_diffs.rst",
+		resultfile:        "testdata/has_diffs_fmt.rst",
+		lineCount:         25,
+		updatedBlockCount: 2,
+		totalBlockCount:   2,
+	},
+	{
 		name:              "Markdown formatting",
 		sourcefile:        "testdata/has_diffs.md",
 		resultfile:        "testdata/has_diffs_fmt.md",
@@ -135,6 +154,10 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 	for _, testcase := range fmtTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
+
+			if testcase.skipStdin {
+				t.Skip("format cannot be detected from stdin")
+			}
 
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
@@ -192,6 +215,10 @@ func TestCmdFmtStdinVerbose(t *testing.T) {
 	for _, testcase := range fmtTestcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
+
+			if testcase.skipStdin {
+				t.Skip("format cannot be detected from stdin")
+			}
 
 			fs := afero.NewReadOnlyFs(afero.NewOsFs())
 
@@ -337,6 +364,58 @@ func TestCmdFmtFileVerbose(t *testing.T) {
 			summaryLine := lines[len(lines)-1]
 			if summaryLine != expectedSummaryLine {
 				t.Errorf("Case %q: Unexpected summary:\nexpected %s\ngot      %s", testcase.name, expectedSummaryLine, summaryLine)
+			}
+		})
+	}
+}
+
+// TestCmdFmtIdempotency verifies fmt(fmt(x)) == fmt(x): running fmt on an
+// already-formatted file must not change it again.
+func TestCmdFmtIdempotency(t *testing.T) {
+	t.Parallel()
+
+	testcases := []struct {
+		sourcefile     string
+		fmtcompat      bool
+		fixFinishLines bool
+	}{
+		{sourcefile: "testdata/no_diffs.go"},
+		{sourcefile: "testdata/no_diffs.md"},
+		{sourcefile: "testdata/has_diffs_fmt.go"},
+		{sourcefile: "testdata/has_diffs_fmt_fix_finish.go", fixFinishLines: true},
+		{sourcefile: "testdata/has_diffs_fmt.md"},
+		{sourcefile: "testdata/has_diffs_fmt.rst"},
+		{sourcefile: "testdata/fmt_compat_fmtcompat.go", fmtcompat: true},
+		{sourcefile: "testdata/bad_terraform_fmt.go"},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.sourcefile, func(t *testing.T) {
+			t.Parallel()
+
+			// overlay the real fixtures with an in-memory write layer so fmt can
+			// "write back" without touching disk
+			fs := afero.NewCopyOnWriteFs(afero.NewReadOnlyFs(afero.NewOsFs()), afero.NewMemMapFs())
+
+			before, err := afero.ReadFile(fs, testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error reading %q: %s", testcase.sourcefile, err)
+			}
+
+			var outB strings.Builder
+			var errB strings.Builder
+			log := common.CreateLogger(&errB)
+			if _, err := formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB); err != nil {
+				t.Fatalf("Error formatting %q: %s", testcase.sourcefile, err)
+			}
+
+			after, err := afero.ReadFile(fs, testcase.sourcefile)
+			if err != nil {
+				t.Fatalf("Error reading %q after fmt: %s", testcase.sourcefile, err)
+			}
+
+			if !bytes.Equal(before, after) {
+				t.Errorf("fmt is not idempotent for %q: ('-' before, '+' after)\n%s", testcase.sourcefile, diff.Diff(string(before), string(after)))
 			}
 		})
 	}

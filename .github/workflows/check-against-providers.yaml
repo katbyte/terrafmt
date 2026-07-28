@@ -1,0 +1,30 @@
+---
+name: check against providers
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'vendor/**'
+      - 'scripts/check-against-providers.sh'
+      - '.github/workflows/check-against-providers.yaml'
+
+jobs:
+  check-against-providers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the golden comparison builds origin/main too
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: ./.go-version
+      - name: checkout provider repos (sparse)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/hashicorp/terraform-provider-azurerm "$RUNNER_TEMP/azurerm"
+          git -C "$RUNNER_TEMP/azurerm" sparse-checkout set website internal
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/hashicorp/terraform-provider-aws "$RUNNER_TEMP/aws"
+          git -C "$RUNNER_TEMP/aws" sparse-checkout set website internal
+      - name: check against providers
+        run: CORPUS_REPOS="$RUNNER_TEMP/azurerm $RUNNER_TEMP/aws" make check-against-providers

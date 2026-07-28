@@ -104,6 +104,21 @@ var diffTestcases = []struct {
 		totalBlockCount: 3,
 	},
 	{
+		name:            "Rst no change",
+		sourcefile:      "testdata/has_diffs_fmt.rst",
+		noDiff:          true,
+		lineCount:       25,
+		totalBlockCount: 2,
+	},
+	{
+		name:                  "Rst formatting",
+		sourcefile:            "testdata/has_diffs.rst",
+		resultfile:            "testdata/has_diffs_diff.rst.txt",
+		lineCount:             25,
+		unformattedBlockCount: 2,
+		totalBlockCount:       2,
+	},
+	{
 		name:                  "Markdown formatting",
 		sourcefile:            "testdata/has_diffs.md",
 		resultfile:            "testdata/has_diffs_diff.md.txt",
