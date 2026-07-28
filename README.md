@@ -111,12 +111,6 @@ find . | egrep "html.markdown" | sort | while read f; do terrafmt fmt -f $f; don
 ./website/docs/d/app_service_certificate_order.html.markdown: 79 lines & formatted 0/1 blocks!
 ```
 
-### Upgrade Terraform in a File to 0.12
-
-Use the `upgrade012` command to upgrade the blocks to 0.12:
-
-![fmt](.github/images/upgrade.png)
-
 ### Exit codes
 
 To help usage of `terrafmt` in workflows, some commands will return actionable exit codes.

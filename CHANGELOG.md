@@ -1,3 +1,7 @@
+## v0.6.0 (unreleased)
+
+- **BREAKING**: remove the `upgrade012` command; terraform 0.12's one-time HCL1->HCL2 `0.12upgrade` was removed from terraform itself in 0.13 (2020) and the pinned 0.12.31 binary it depends on has no builds for modern platforms (e.g. arm64). This also drops the `terraform-exec`, `hc-install`, and `go-version` dependencies.
+
 ## v0.5.7 (2026-07-21)
 
 - Fix versioning
