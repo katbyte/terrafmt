@@ -53,6 +53,10 @@ install:
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT} -X github.com/katbyte/terrafmt/lib/version.Version=${GIT_VERSION}" .
 
+check-against-providers:
+	@echo "==> Checking against real provider repos (golden vs main + idempotency)..."
+	./scripts/check-against-providers.sh
+
 check-all: build test lint depscheck
 
-.PHONY: fmt goimports build lint lint-fix depscheck check-all install tools
+.PHONY: fmt goimports build lint lint-fix depscheck check-against-providers check-all install tools

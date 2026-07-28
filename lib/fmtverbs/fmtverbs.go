@@ -14,43 +14,43 @@ func Escape(b string) string {
 	b = regexp.MustCompile(`(=\s*)(%\[[\d+]\]t)(\s\?)`).ReplaceAllString(b, `${1}true/*@@_@@ TFMT:${2}:TFMT @@_@@*/${3}`)
 
 	// resource name contains %[sdtfg]
-	b = regexp.MustCompile(`([resource|data]\s+"[-a-zA-Z0-9_]+"\s+"[-a-zA-Z0-9_]*)%(?:\[([\d]+)\])?([sdtfg])`).ReplaceAllString(b, `${1}TFMTRESNAME_${2}${3}`) //nolint:gocritic // TODO: [resource|data] is a char class, not alternation; fix in a follow-up PR
+	b = regexp.MustCompile(`((?:resource|data|list|ephemeral|action)\s+"[-a-zA-Z0-9_]+"\s+"[-a-zA-Z0-9_]*)%(?:\[(\d+)\])?([sdtfg])`).ReplaceAllString(b, `${1}TFMTRESNAME_${2}${3}`)
 
 	// resource name %q
-	b = regexp.MustCompile(`([resource|data]\s+"[-a-zA-Z0-9_]+"\s+)%(?:\[([\d]+)\])?q`).ReplaceAllString(b, `${1}"TFMTRESNAME_${2}q"`) //nolint:gocritic // TODO: [resource|data] is a char class, not alternation; fix in a follow-up PR
+	b = regexp.MustCompile(`((?:resource|data|list|ephemeral|action)\s+"[-a-zA-Z0-9_]+"\s+)%(?:\[(\d+)\])?q`).ReplaceAllString(b, `${1}"TFMTRESNAME_${2}q"`)
 
 	// %s - whole line
 	// figure out why the * doesn't match both later
-	b = regexp.MustCompile(`(?m:^%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)       //nolint:gocritic // TODO: simplify regex in a follow-up PR
-	b = regexp.MustCompile(`(?m:^[ \t]*%(\.[0-9])?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m:^%(\.\d)?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
+	b = regexp.MustCompile(`(?m:^[ \t]*%(\.\d)?[sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
 
 	// provider meta-argument
 	// The provider name must be in lowercase
 	b = regexp.MustCompile(`(\bprovider\s+=\s+)%s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER`)
-	b = regexp.MustCompile(`(\bprovider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}`)
+	b = regexp.MustCompile(`(\bprovider\s+=\s+)+%\[(\d+)\]s`).ReplaceAllString(b, `${1}tfmtprovider.PROVIDER_${2}_`)
 
 	// count meta-argument
 	b = regexp.MustCompile(`(\bcount\s+=\s+)%([ds])`).ReplaceAllString(b, `${1}1 # tfmtcount_${2}`)
 	b = regexp.MustCompile(`(\bcount\s+=\s+)+%(\[(\d+)\][ds])`).ReplaceAllString(b, `${1}1 # tfmtcount_${2}`)
 
 	// %[n]s
-	b = regexp.MustCompile(`(?m:^%(\.[0-9])?\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)       //nolint:gocritic // TODO: simplify regex in a follow-up PR
-	b = regexp.MustCompile(`(?m:^[ \t]*%(\.[0-9])?\[[\d]+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m:^%(\.\d)?\[\d+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
+	b = regexp.MustCompile(`(?m:^[ \t]*%(\.\d)?\[\d+\][sdfgtq]$)`).ReplaceAllString(b, `#@@_@@ TFMT:$0:TMFT @@_@@#`)
 
 	// %s =
-	b = regexp.MustCompile(`(?m)^([ \t]*)%((\.[0-9])?[sdfgtq])`).ReplaceAllString(b, `${1}Ω${2}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m)^([ \t]*)%((\.\d)?[sdfgtq])`).ReplaceAllString(b, `${1}Ω${2}`)
 
 	// %[n]s =
-	b = regexp.MustCompile(`(?m)^([ \t]*)%(\.[0-9])?\[([\d]+)\]([sdfgtq])`).ReplaceAllString(b, `${1}Ω_${3}_${4}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m)^([ \t]*)%(\.\d)?\[(\d+)\]([sdfgtq])`).ReplaceAllString(b, `${1}Ω${2}_${3}_${4}`)
 
 	// = "${...[%([n])d]}"
-	b = regexp.MustCompile(`(?m)("\${.*\[)(%(?:\.[0-9])?(?:\[[\d]+\])?d)(\]}")$`).ReplaceAllString(b, `${1}0/*@@_@@ TFMT:$2:TFMT @@_@@*/$3`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m)("\${.*\[)(%(?:\.\d)?(?:\[\d+\])?d)(\]}")$`).ReplaceAllString(b, `${1}0/*@@_@@ TFMT:$2:TFMT @@_@@*/$3`)
 
 	// = [%s(, %s)]
-	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?[sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m:\[(%(\.\d)?[sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
 	// = [%[n]s(, %[n]s)]
-	b = regexp.MustCompile(`(?m:\[(%(\.[0-9])?\[[\d]+\][sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m:\[(%(\.\d)?\[\d+\][sdfgtq](,\s*)?)+\])`).ReplaceAllString(b, `["@@_@@ TFMT:$0:TFMT @@_@@"]`)
 
 	//  .12 - something.%s.prop
 	b = regexp.MustCompile(`\.%([sdt])`).ReplaceAllString(b, `.TFMTKTKTTFMT${1}`)
@@ -65,10 +65,10 @@ func Escape(b string) string {
 	b = regexp.MustCompile(`\.([-a-zA-Z0-9_]+)%\[(\d+)\]([sdt])`).ReplaceAllString(b, `.${1}TFMTKTKTTFMT_${2}${3}`)
 
 	// = %s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
-	b = regexp.MustCompile(`(?m)(%(\.[0-9])?[sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m)(%(\.\d)?[sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`)
 
 	// = %[n]s (an optional trailing comma, e.g. a tags map entry, is kept outside the marker)
-	b = regexp.MustCompile(`(?m)(%(\.[0-9])?\[[\d]+\][sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	b = regexp.MustCompile(`(?m)(%(\.\d)?\[\d+\][sdfgtq](\.[a-z_]+)*)(,?)$`).ReplaceAllString(b, `"@@_@@ TFMT:${1}:TFMT @@_@@"${4}`)
 
 	// function(..., %s, ...)
 	// function(..., %[n]s, ...)
@@ -85,12 +85,14 @@ func Unscape(fb string) string {
 	// NOTE: the order of these replacements matter
 
 	// undo replace
-	fb = regexp.MustCompile(`[ ]*#@@_@@ TFMT:`).ReplaceAllString(fb, ``) //nolint:gocritic // TODO: simplify regex in a follow-up PR
+	fb = regexp.MustCompile(` *#@@_@@ TFMT:`).ReplaceAllString(fb, ``)
 	fb = strings.ReplaceAll(fb, "#@@_@@ TFMT:", "")
 	fb = strings.ReplaceAll(fb, ":TMFT @@_@@#", "")
 
-	fb = strings.ReplaceAll(fb, "[\"@@_@@ TFMT:", "")
-	fb = strings.ReplaceAll(fb, ":TFMT @@_@@\"]", "")
+	// the list form wraps a $0 that itself starts with [ and ends with ], so anchor on those
+	// brackets to avoid eating a literal [ that precedes a plain marker (e.g. a block containing `[%s`)
+	fb = strings.ReplaceAll(fb, "[\"@@_@@ TFMT:[", "[")
+	fb = strings.ReplaceAll(fb, "]:TFMT @@_@@\"]", "]")
 
 	fb = strings.ReplaceAll(fb, "0/*@@_@@ TFMT:", "")
 	fb = regexp.MustCompile(`true\s*/\*@@_@@ TFMT:`).ReplaceAllString(fb, ``)
@@ -113,10 +115,10 @@ func Unscape(fb string) string {
 	fb = strings.ReplaceAll(fb, "TFMTFNPARAM_", "%")
 
 	// %[n]s =
-	fb = regexp.MustCompile(`Ω_(\d+)_([sdfgtq])`).ReplaceAllString(fb, `%[${1}]${2}`)
+	fb = regexp.MustCompile(`Ω(\.\d)?_(\d+)_([sdfgtq])`).ReplaceAllString(fb, `%${1}[${2}]${3}`)
 
 	// %s =
-	fb = regexp.MustCompile(`Ω([sdfgtq])`).ReplaceAllString(fb, `%${1}`)
+	fb = regexp.MustCompile(`Ω(\.\d)?([sdfgtq])`).ReplaceAllString(fb, `%${1}${2}`)
 
 	// resource name %[n]s
 	fb = regexp.MustCompile(`TFMTRESNAME_(\d+)([sdtfg])`).ReplaceAllString(fb, `%[${1}]${2}`)
@@ -135,7 +137,7 @@ func Unscape(fb string) string {
 	fb = regexp.MustCompile(`1\s+# tfmtcount_([ds])`).ReplaceAllString(fb, `%${1}`)
 
 	// provider meta-argument
-	fb = regexp.MustCompile(`tfmtprovider.PROVIDER_(\d+)`).ReplaceAllString(fb, `%[${1}]s`)
+	fb = regexp.MustCompile(`tfmtprovider.PROVIDER_(\d+)_`).ReplaceAllString(fb, `%[${1}]s`)
 	fb = strings.ReplaceAll(fb, "tfmtprovider.PROVIDER", "%s")
 
 	return fb

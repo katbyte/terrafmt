@@ -246,23 +246,23 @@ resource "resource" "test" {
 		},
 		{
 			name: "verb in index",
-			block: `resource "aws_apigatewayv2_domain_name" "test" {
+			block: `resource "azurerm_api_management_custom_domain" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,
-			expected: `resource "aws_apigatewayv2_domain_name" "test" {
+			expected: `resource "azurerm_api_management_custom_domain" "test" {
   domain_name = "%[1]s.example.com"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.test[%[2]d].arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test[%[2]d].id
+    endpoint_type            = "REGIONAL"
+    security_policy          = "TLS_1_2"
   }
 }
 `,

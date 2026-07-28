@@ -1,0 +1,22 @@
+<lightMagenta>testdata/has_diffs.rst</><darkGray>:</><magenta>6</>
+<red>-</>
+<green>+  </>
+   resource "azurerm_resource_group" "example" {
+<red>-  name = "example"</>
+<green>+    name     = "example"</>
+     location = "West Europe"
+   }
+<red>-</>
+<green>+  </>
+<lightMagenta>testdata/has_diffs.rst</><darkGray>:</><magenta>15</>
+<red>-</>
+<green>+  </>
+   resource "azurerm_storage_account" "example" {
+     name                     = "examplesa"
+     resource_group_name      = azurerm_resource_group.example.name
+     location                 = azurerm_resource_group.example.location
+     account_tier             = "Standard"
+     account_replication_type = "LRS"
+   }
+<red>-</>
+<green>+  </>

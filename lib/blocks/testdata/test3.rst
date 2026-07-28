@@ -3,8 +3,8 @@
 Test fenced code block with `terraform`
 
 .. code:: terraform
-  resource "aws_s3_bucket" "terraform" {
-    bucket = "tf-test-bucket-terraform"
+  resource "azurerm_storage_container" "terraform" {
+    name = "tf-test-container-terraform"
   }
 
 Stuff that is not to be formatted.
