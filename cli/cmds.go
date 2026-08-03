@@ -34,13 +34,24 @@ const (
 	ExitCodeFormattingDiffError = 1 << 2
 )
 
-func Make() *cobra.Command {
+func Make() (*cobra.Command, error) {
 	root := &cobra.Command{
 		Use:           "terrafmt [fmt|diff|blocks]",
 		Short:         "terrafmt is a small utility to format terraform blocks found in files.",
 		Long:          `A small utility that formats terraform blocks found in files. Primarily intended to help with terraform provider development.`,
 		Args:          cobra.RangeArgs(0, 0),
 		SilenceErrors: true,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			if err := bindCommandFlags(cmd); err != nil {
+				return err
+			}
+
+			if viper.GetBool("uncoloured") {
+				c.Enable = false
+			}
+
+			return nil
+		},
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return errors.New("no command specified")
 		},
@@ -60,22 +71,23 @@ func Make() *cobra.Command {
 			}
 			log.Debugf("terrafmt  %s", path)
 
-			fs := afero.NewOsFs()
-
-			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(fs, path, pattern)
+			f, err := GetFlags()
 			if err != nil {
 				return err
 			}
-			fmtCompat := viper.GetBool("fmtcompat")
-			fixFinishLines, _ := cmd.Flags().GetBool("fix-finish-lines")
-			verbose := viper.GetBool("verbose")
+
+			fs := afero.NewOsFs()
+
+			filenames, err := allFiles(fs, path, f.Fmt.Pattern)
+			if err != nil {
+				return err
+			}
 
 			var errs *multierror.Error
 			exitCode := ExitCodeNoError
 
 			for _, filename := range filenames {
-				br, err := formatFile(fs, log, filename, fmtCompat, fixFinishLines, verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, err := formatFile(fs, log, filename, f.FmtCompat, f.Fmt.FixFinishLines, f.Verbose, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 				}
@@ -114,20 +126,23 @@ func Make() *cobra.Command {
 			}
 			log.Debugf("terrafmt fmt %s", path)
 
+			f, err := GetFlags()
+			if err != nil {
+				return err
+			}
+
 			fs := afero.NewOsFs()
 
-			pattern, _ := cmd.Flags().GetString("pattern")
-			filenames, err := allFiles(fs, path, pattern)
+			filenames, err := allFiles(fs, path, f.Fmt.Pattern)
 			if err != nil {
 				return err
 			}
 
 			var errs *multierror.Error
-			check := viper.GetBool("check")
 			exitCode := ExitCodeNoError
 
 			for _, filename := range filenames {
-				br, fileDiff, err := diffFile(fs, log, filename, viper.GetBool("fmtcompat"), viper.GetBool("verbose"), cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+				br, fileDiff, err := diffFile(fs, log, filename, f.FmtCompat, f.Verbose, f.Quiet, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 				if err != nil {
 					errs = multierror.Append(errs, err)
 					continue
@@ -135,7 +150,7 @@ func Make() *cobra.Command {
 				if br.ErrorBlocks > 0 {
 					exitCode |= ExitCodeBlockParsingError
 				}
-				if check && fileDiff {
+				if f.Check && fileDiff {
 					exitCode |= ExitCodeFormattingDiffError
 				}
 			}
@@ -168,16 +183,17 @@ func Make() *cobra.Command {
 			}
 			log.Debugf("terrafmt blocks %s", filename)
 
-			verbose := viper.GetBool("verbose")
-			zeroTerminated, _ := cmd.Flags().GetBool("zero-terminated")
-			jsonOutput, _ := cmd.Flags().GetBool("json")
-			if zeroTerminated && jsonOutput {
+			f, err := GetFlags()
+			if err != nil {
+				return err
+			}
+
+			if f.Blocks.ZeroTerminated && f.Blocks.JSON {
 				return errors.New("only one of zero-terminated or json can be specified")
 			}
-			fmtCompat := viper.GetBool("fmtcompat")
 			fs := afero.NewOsFs()
 
-			return findBlocksInFile(fs, log, filename, verbose, zeroTerminated, jsonOutput, fmtCompat, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
+			return findBlocksInFile(fs, log, filename, f.Verbose, f.Blocks.ZeroTerminated, f.Blocks.JSON, f.FmtCompat, cmd.InOrStdin(), cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	root.AddCommand(blocksCmd)
@@ -191,38 +207,11 @@ func Make() *cobra.Command {
 		Run:   versionCmd,
 	})
 
-	pflags := root.PersistentFlags()
-	pflags.BoolP("fmtcompat", "f", false, "enable format string (%s, %d etc) compatibility")
-	pflags.BoolP("check", "c", false, "return an error during diff if formatting is required")
-	pflags.BoolP("verbose", "v", false, "show files as they are processed & additional stats")
-	pflags.BoolP("quiet", "q", false, "quiet mode, only shows block line numbers ")
-	pflags.BoolP("uncoloured", "u", false, "disable coloured output")
-
-	if err := viper.BindPFlag("fmtcompat", pflags.Lookup("fmtcompat")); err != nil {
-		panic(err)
-	}
-	if err := viper.BindPFlag("check", pflags.Lookup("check")); err != nil {
-		panic(err)
-	}
-	if err := viper.BindPFlag("quiet", pflags.Lookup("quiet")); err != nil {
-		panic(err)
-	}
-	if err := viper.BindPFlag("verbose", pflags.Lookup("verbose")); err != nil {
-		panic(err)
-	}
-	if err := viper.BindPFlag("uncoloured", pflags.Lookup("uncoloured")); err != nil {
-		panic(err)
+	if err := configureFlags(root); err != nil {
+		return nil, err
 	}
 
-	// todo bind to env?
-
-	cobra.OnInitialize(func() {
-		if viper.GetBool("uncoloured") {
-			c.Enable = false
-		}
-	})
-
-	return root
+	return root, nil
 }
 
 func allFiles(fs afero.Fs, path, pattern string) ([]string, error) {
@@ -396,7 +385,7 @@ func findBlocksInFile(fs afero.Fs, log *logrus.Logger, filename string, verbose,
 	return nil
 }
 
-func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
+func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbose, quiet bool, stdin io.Reader, stdout, stderr io.Writer) (*blocks.Reader, bool, error) {
 	blocksWithDiff := 0
 	br := blocks.Reader{
 		Log:      log,
@@ -427,7 +416,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 
 			fmt.Fprint(outW, c.Sprintf("<lightMagenta>%s</><darkGray>:</><magenta>%d</>\n", br.FileName, br.LineCount-br.BlockCurrentLine))
 
-			if !viper.GetBool("quiet") {
+			if !quiet {
 				d := diff.LineDiff(b, fb)
 				scanner := bufio.NewScanner(strings.NewReader(d))
 				for scanner.Scan() {

@@ -164,7 +164,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			br, hasDiff, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, false, nil, &outB, &errB)
+			br, hasDiff, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
 			actualStdErr := errB.String()
 
@@ -208,7 +208,7 @@ func TestCmdDiffVerbose(t *testing.T) {
 			var outB strings.Builder
 			var errB strings.Builder
 			log := common.CreateLogger(&errB)
-			_, _, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, true, nil, &outB, &errB)
+			_, _, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, true, false, nil, &outB, &errB)
 			actualStdErr := errB.String()
 
 			if err != nil {
