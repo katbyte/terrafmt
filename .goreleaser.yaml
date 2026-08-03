@@ -1,0 +1,74 @@
+version: 2
+
+project_name: terrafmt
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+      - -mod=vendor
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    goos:
+      - linux
+      - darwin
+      - windows
+      - freebsd
+      - openbsd
+      - solaris
+    goarch:
+      - '386'
+      - amd64
+      - arm
+      - arm64
+      - riscv64
+    goarm:
+      - '6'
+      - '7'
+    ignore:
+      - goos: darwin
+        goarch: '386'
+      - goos: darwin
+        goarch: arm
+      - goos: darwin
+        goarch: riscv64
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: riscv64
+      - goos: solaris
+        goarch: '386'
+      - goos: solaris
+        goarch: arm
+      - goos: solaris
+        goarch: arm64
+      - goos: solaris
+        goarch: riscv64
+      - goos: openbsd
+        goarch: arm
+      - goos: freebsd
+        goarch: riscv64
+      - goos: openbsd
+        goarch: riscv64
+    ldflags:
+      - -s -w
+      - -X github.com/katbyte/terrafmt/lib/version.Version={{ .Tag }}
+      - -X github.com/katbyte/terrafmt/lib/version.GitCommit={{ .ShortCommit }}
+
+universal_binaries:
+  - replace: false # also ship a single fat darwin binary alongside amd64/arm64
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  filters:
+    exclude:
+      - '^Bump '
+      - 'merge main'
