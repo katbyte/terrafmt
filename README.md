@@ -93,6 +93,7 @@ Otherwise, `terrafmt` returns `1` on an error.
 This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) with a vendored `vendor/` directory.
 
 ```console
+make help       # list all targets
 make build      # build the binary
 make test       # run the tests (with -race)
 make lint       # run golangci-lint
