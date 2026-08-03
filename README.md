@@ -88,6 +88,27 @@ If the `diff` command with the `--check` flag enabled encounters a formatting di
 
 Otherwise, `terrafmt` returns `1` on an error.
 
+### Environment variables & config file
+
+Most flags can also be set with an environment variable, or persisted in a `.terrafmt` config file in the current directory or your home directory. Flags take precedence over environment variables, which take precedence over the config file.
+
+| Flag                 | Environment variable        |
+|----------------------|-----------------------------|
+| `--fmtcompat`/`-f`   | `TERRAFMT_FMTCOMPAT`        |
+| `--check`/`-c`       | `TERRAFMT_CHECK`            |
+| `--verbose`/`-v`     | `TERRAFMT_VERBOSE`          |
+| `--quiet`/`-q`       | `TERRAFMT_QUIET`            |
+| `--uncoloured`/`-u`  | `TERRAFMT_UNCOLOURED`       |
+| `--pattern`/`-p`     | `TERRAFMT_PATTERN`          |
+| `--fix-finish-lines` | `TERRAFMT_FIX_FINISH_LINES` |
+
+The config file uses `key=value` lines with the flag names as keys, for example:
+
+```console
+fmtcompat=true
+pattern=*.markdown
+```
+
 ## Development
 
 This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) with a vendored `vendor/` directory.
