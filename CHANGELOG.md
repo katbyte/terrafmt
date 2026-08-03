@@ -1,6 +1,13 @@
-## v0.6.0 (unreleased)
+## v1.0.0 (2026-08-02)
 
-- **BREAKING**: remove the `upgrade012` command; terraform 0.12's one-time HCL1->HCL2 `0.12upgrade` was removed from terraform itself in 0.13 (2020) and the pinned 0.12.31 binary it depends on has no builds for modern platforms (e.g. arm64). This also drops the `terraform-exec`, `hc-install`, and `go-version` dependencies.
+- **BREAKING CHANGE**: removed the `upgrade012` command; terraform 0.12's one-time HCL1->HCL2 `0.12upgrade` as it was removed from terraform itself in 0.13 (2020) and the pinned 0.12.31 binary it depends on has no builds for modern platforms (e.g. arm64). This also drops the `terraform-exec`, `hc-install`, and `go-version` dependencies.
+- dependencies: update `hcl/v2` to `v2.24.0`, `cobra` to `v1.10.2`, `viper` to `v1.21.0`, `afero` to `v1.15.0`, `gookit/color` to `v1.6.1`, `logrus` to `v1.9.4`
+- releases now include pre-compiled binaries for common platforms and architectures ([#88](https://github.com/katbyte/terrafmt/issues/88))
+- terrafmt can now be installed via homebrew: `brew install katbyte/tap/terrafmt` ([#87](https://github.com/katbyte/terrafmt/issues/87))
+- support `action` and `ephemeral` blocks ([#101](https://github.com/katbyte/terrafmt/pull/101))
+- support quoted format verbs inside function definitions ([#37](https://github.com/katbyte/terrafmt/issues/37))
+- fix two quoted format verb parameters on the same line not both being replaced ([#46](https://github.com/katbyte/terrafmt/issues/46))
+- recognize indented code blocks in markdown ([#51](https://github.com/katbyte/terrafmt/issues/51))
 
 ## v0.5.7 (2026-07-21)
 
