@@ -53,19 +53,7 @@ To output only the block content, separated by the null character, use `--zero-t
 
 To output the blocks as JSON, use `--json`/`-j`:
 
-```json
-{
-    "block_count": 1,
-    "blocks": [
-        {
-            "block_number": 1,
-            "start_line": 4,
-            "end_line": 9,
-            "text": "..."
-        }
-    ]
-}
-```
+![blocks -j](.github/images/blocks-j.png)
 
 Go [format verbs](https://golang.org/pkg/fmt/) (`%s`, `%d`, `%[1]q`, ...) can be escaped in the output blocks with `--fmtcompat`/`-f`.
 
