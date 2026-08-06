@@ -14,10 +14,13 @@ on:
   schedule:
     - cron: '17 4 * * 1' # weekly, so new CVEs against unchanged code still get flagged
 
+permissions:
+  contents: read
+
 jobs:
   govulncheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: golang/govulncheck-action@v1
+      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
         with:
           go-version-file: ./.go-version

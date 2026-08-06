@@ -176,7 +176,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			if testcase.noDiff && !actualNoDiff {
 				t.Errorf("Expected no diff, but got one")
 			} else if !testcase.noDiff && actualNoDiff {
-				t.Errorf(("Expected diff, but did not get one"))
+				t.Errorf("Expected diff, but did not get one")
 			}
 
 			if len(testcase.errMsg) != br.ErrorBlocks {

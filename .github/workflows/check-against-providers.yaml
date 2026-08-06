@@ -10,6 +10,9 @@ on:
       - 'scripts/check-against-providers.sh'
       - '.github/workflows/check-against-providers.yaml'
 
+permissions:
+  contents: read
+
 jobs:
   check-against-providers:
     runs-on: ubuntu-latest
