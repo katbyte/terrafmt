@@ -11,6 +11,9 @@ on:
       - 'vendor/**'
       - '.github/workflows/**'
 
+permissions:
+  contents: read
+
 jobs:
   depscheck:
     runs-on: ubuntu-latest
