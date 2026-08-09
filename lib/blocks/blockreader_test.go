@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/katbyte/terrafmt/lib/common"
-	"github.com/kylelemons/godebug/diff"
+	"github.com/katbyte/terrafmt/lib/diff"
 	"github.com/spf13/afero"
 )
 
@@ -301,7 +301,7 @@ func TestBlockDetection(t *testing.T) {
 		for i, actual := range actualBlocks {
 			expected := testcase.expectedBlocks[i]
 			if actual.text != expected.text {
-				t.Errorf("Case %q, block %d text: ('-' actual, '+' expected)\n%s", testcase.sourcefile, i+1, diff.Diff(actual.text, expected.text))
+				t.Errorf("Case %q, block %d text: ('-' actual, '+' expected)\n%s", testcase.sourcefile, i+1, diff.LineDiff(actual.text, expected.text))
 			}
 			if actual.leadingPadding != expected.leadingPadding {
 				t.Errorf("Case %q, block %d leading padding: expected %q, got %q", testcase.sourcefile, i+1, expected.leadingPadding, actual.leadingPadding)

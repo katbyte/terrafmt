@@ -1,10 +1,14 @@
+// Package diff produces linewise diffs between two strings.
+//
+// Absorbed from github.com/andreyvit/diff (via github.com/katbyte/andreyvit-diff,
+// MIT licensed, see LICENSE), trimmed to the LineDiff path used by terrafmt.
 package diff
 
 import (
 	"bytes"
 	"strings"
 
-	"github.com/katbyte/sergi-go-diff/diffmatchpatch"
+	"github.com/katbyte/terrafmt/lib/diff/diffmatchpatch"
 )
 
 func diff(a, b string) []diffmatchpatch.Diff {
@@ -15,31 +19,6 @@ func diff(a, b string) []diffmatchpatch.Diff {
 		diffs = dmp.DiffCleanupEfficiency(diffs)
 	}
 	return diffs
-}
-
-// CharacterDiff returns an inline diff between the two strings, using (++added++) and (~~deleted~~) markup.
-func CharacterDiff(a, b string) string {
-	return diffsToString(diff(a, b))
-}
-
-func diffsToString(diffs []diffmatchpatch.Diff) string {
-	var buff bytes.Buffer
-	for _, diff := range diffs {
-		text := diff.Text
-		switch diff.Type {
-		case diffmatchpatch.DiffInsert:
-			buff.WriteString("(++")
-			buff.WriteString(text)
-			buff.WriteString("++)")
-		case diffmatchpatch.DiffDelete:
-			buff.WriteString("(~~")
-			buff.WriteString(text)
-			buff.WriteString("~~)")
-		case diffmatchpatch.DiffEqual:
-			buff.WriteString(text)
-		}
-	}
-	return buff.String()
 }
 
 // LineDiff returns a normal linewise diff between the two given strings.
@@ -68,6 +47,7 @@ func (b *patchBuilder) AddCharacters(text string, op diffmatchpatch.Operation) {
 		b.oldLineBuffer.WriteString(text)
 	}
 }
+
 func (b *patchBuilder) AddNewline(op diffmatchpatch.Operation) {
 	oldLine := b.oldLineBuffer.String()
 	newLine := b.newLineBuffer.String()
@@ -88,6 +68,7 @@ func (b *patchBuilder) AddNewline(op diffmatchpatch.Operation) {
 		}
 	}
 }
+
 func (b *patchBuilder) FlushChunk() {
 	if b.oldLines != nil {
 		b.output = append(b.output, b.oldLines...)
@@ -98,12 +79,14 @@ func (b *patchBuilder) FlushChunk() {
 		b.newLines = nil
 	}
 }
+
 func (b *patchBuilder) Flush() {
-	if b.oldLineBuffer.Len() > 0 && b.newLineBuffer.Len() > 0 {
+	switch {
+	case b.oldLineBuffer.Len() > 0 && b.newLineBuffer.Len() > 0:
 		b.AddNewline(diffmatchpatch.DiffEqual)
-	} else if b.oldLineBuffer.Len() > 0 {
+	case b.oldLineBuffer.Len() > 0:
 		b.AddNewline(diffmatchpatch.DiffDelete)
-	} else if b.newLineBuffer.Len() > 0 {
+	case b.newLineBuffer.Len() > 0:
 		b.AddNewline(diffmatchpatch.DiffInsert)
 	}
 	b.FlushChunk()

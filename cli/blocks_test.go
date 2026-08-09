@@ -9,8 +9,8 @@ import (
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/katbyte/terrafmt/lib/diff"
 	"github.com/katbyte/terrafmt/lib/fmtverbs"
-	"github.com/kylelemons/godebug/diff"
 	"github.com/spf13/afero"
 )
 
@@ -384,7 +384,7 @@ func TestCmdBlocksDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.LineDiff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -449,7 +449,7 @@ func TestCmdBlocksZeroTerminated(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.LineDiff(actualStdOut, expected))
 			}
 
 			if actualStdErr != "" {
@@ -496,7 +496,7 @@ func TestCmdBlocksJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.LineDiff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {
@@ -543,7 +543,7 @@ func TestCmdBlocksFmtVerbsJson(t *testing.T) {
 			}
 
 			if !equivalentJSON([]byte(actualStdOut), expected) {
-				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, string(expected)))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.LineDiff(actualStdOut, string(expected)))
 			}
 
 			if actualStdErr != "" {
