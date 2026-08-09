@@ -15,9 +15,9 @@ import (
 
 	c "github.com/gookit/color"
 	"github.com/hashicorp/go-multierror"
-	diff "github.com/katbyte/andreyvit-diff"
 	"github.com/katbyte/terrafmt/lib/blocks"
 	"github.com/katbyte/terrafmt/lib/common"
+	"github.com/katbyte/terrafmt/lib/diff"
 	verbs "github.com/katbyte/terrafmt/lib/fmtverbs"
 	"github.com/katbyte/terrafmt/lib/format"
 	"github.com/katbyte/terrafmt/lib/version"

@@ -3,7 +3,7 @@ package fmtverbs
 import (
 	"testing"
 
-	"github.com/kylelemons/godebug/diff"
+	"github.com/katbyte/terrafmt/lib/diff"
 )
 
 func TestFmtVerbBlock(t *testing.T) {
@@ -716,12 +716,12 @@ resource "other_resource" "test6" {
 
 			result := Escape(test.block)
 			if result != test.expected {
-				t.Fatalf("Unexpected escaped result: ('-' actual, '+' expected)\n%s\n", diff.Diff(result, test.expected))
+				t.Fatalf("Unexpected escaped result: ('-' actual, '+' expected)\n%s\n", diff.LineDiff(result, test.expected))
 			}
 
 			roundtrip := Unscape(result)
 			if roundtrip != test.block {
-				t.Fatalf("Did not roundtrip: ('-' actual, '+' expected)\n%s\n", diff.Diff(roundtrip, test.block))
+				t.Fatalf("Did not roundtrip: ('-' actual, '+' expected)\n%s\n", diff.LineDiff(roundtrip, test.block))
 			}
 		})
 	}

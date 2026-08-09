@@ -7,7 +7,7 @@ import (
 
 	c "github.com/gookit/color"
 	"github.com/katbyte/terrafmt/lib/common"
-	"github.com/kylelemons/godebug/diff"
+	"github.com/katbyte/terrafmt/lib/diff"
 	"github.com/spf13/afero"
 )
 
@@ -184,7 +184,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			}
 
 			if actualStdOut != expected {
-				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.Diff(actualStdOut, expected))
+				t.Errorf("Output does not match expected: ('-' actual, '+' expected)\n%s", diff.LineDiff(actualStdOut, expected))
 			}
 
 			errMsg := []string{}
