@@ -67,6 +67,18 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
+signs:
+  - cmd: cosign
+    artifacts: checksum # signing checksums.txt covers every artifact it lists
+    # cosign v3 writes a single sigstore bundle (signature + certificate) instead of separate .sig/.pem files
+    signature: '${artifact}.sigstore.json'
+    args:
+      - sign-blob
+      - '--bundle=${signature}'
+      - '--yes' # keyless signing via the workflow's OIDC token, no prompt in CI
+      - '${artifact}'
+    output: true
+
 changelog:
   filters:
     exclude:
