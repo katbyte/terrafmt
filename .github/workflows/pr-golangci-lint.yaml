@@ -1,0 +1,38 @@
+---
+name: GolangCI Lint
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/**'
+      - '**.go'
+      - 'vendor/**'
+      - '.tools/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ./.go-version
+      # build the custom binary (golangci-lint + azproviderlint plugin, versions pinned in
+      # .tools/.custom-gcl.yml) so CI and make use the same binary, then hand it to the action
+      # as `golangci-lint` (install-mode: none) which still provides caching and annotations
+      - name: Build golangci-lint with plugins from .tools
+        run: |
+          make .tools/bin/golangci-with-modules
+          mkdir -p "$RUNNER_TEMP/gclbin"
+          ln -s "$PWD/.tools/bin/golangci-with-modules" "$RUNNER_TEMP/gclbin/golangci-lint"
+          echo "$RUNNER_TEMP/gclbin" >> "$GITHUB_PATH"
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          install-mode: none
+          args: -v

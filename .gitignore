@@ -5,3 +5,5 @@
 *.test
 *.out
 /dist/
+.tools/bin/
+.tools/venv/

@@ -1,5 +1,5 @@
 ---
-name: govulncheck
+name: Go Vulnerability Check
 on:
   push:
     branches: [ 'main' ]
@@ -10,7 +10,7 @@ on:
       - 'go.mod'
       - 'go.sum'
       - 'vendor/**'
-      - '.github/workflows/govulncheck.yaml'
+      - '.github/workflows/pr-govulncheck.yaml'
   schedule:
     - cron: '17 4 * * 1' # weekly, so new CVEs against unchanged code still get flagged
 

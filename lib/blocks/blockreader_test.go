@@ -287,8 +287,7 @@ func TestBlockDetection(t *testing.T) {
 				return nil
 			},
 		}
-		err := br.DoTheThing(fs, testcase.sourcefile, nil, nil)
-		if err != nil {
+		if err := br.DoTheThing(fs, testcase.sourcefile, nil, nil); err != nil {
 			t.Errorf("Case %q: Got an error when none was expected: %v", testcase.sourcefile, err)
 			continue
 		}

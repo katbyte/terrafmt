@@ -1,3 +1,4 @@
+// Terrafmt formats terraform blocks embedded in markdown documentation and Go test files.
 package main
 
 import (

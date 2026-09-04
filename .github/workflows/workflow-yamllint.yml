@@ -1,0 +1,30 @@
+name: Workflow YAML Lint
+
+# Lints the repo's YAML (workflows, configs) with yamllint; rules live in .yamllint.yml.
+# yamllint auto-detects GitHub Actions, emitting ::error annotations that show up inline
+# on the PR diff.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.yml'
+      - '**.yaml'
+      - '.yamllint.yml'
+      - 'makefile'
+
+concurrency:
+  group: 'workflow-yamllint-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  workflow-yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: make yamllint
