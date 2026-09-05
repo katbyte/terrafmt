@@ -1,11 +1,10 @@
-## v1.0.1 (unreleased)
+## v1.0.1 (206-09-05)
 
-- sign and attest release artifacts: releases now include a cosign keyless signature bundle (`checksums.txt.sigstore.json`), GitHub artifact attestations (verify with `gh attestation verify <file> -R katbyte/terrafmt`), and SLSA Build L3 provenance (`multiple.intoto.jsonl`)
+- sign and attest release artifacts ([#116](https://github.com/katbyte/terrafmt/issues/116))
 
 ## v1.0.0 (2026-08-02)
 
 - **BREAKING CHANGE**: removed the `upgrade012` command; terraform 0.12's one-time HCL1->HCL2 `0.12upgrade` as it was removed from terraform itself in 0.13 (2020) and the pinned 0.12.31 binary it depends on has no builds for modern platforms (e.g. arm64). This also drops the `terraform-exec`, `hc-install`, and `go-version` dependencies.
-- dependencies: update `hcl/v2` to `v2.24.0`, `cobra` to `v1.10.2`, `viper` to `v1.21.0`, `afero` to `v1.15.0`, `gookit/color` to `v1.6.1`, `logrus` to `v1.9.4`
 - releases now include pre-compiled binaries for common platforms and architectures ([#88](https://github.com/katbyte/terrafmt/issues/88))
 - terrafmt can now be installed via homebrew: `brew install katbyte/tap/terrafmt` ([#87](https://github.com/katbyte/terrafmt/issues/87))
 - support `action` and `ephemeral` blocks ([#101](https://github.com/katbyte/terrafmt/pull/101))
