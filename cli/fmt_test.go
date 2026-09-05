@@ -201,7 +201,6 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			log := common.CreateLogger(&errB)
 			br, err := formatFile(fs, log, "", testcase.fmtcompat, testcase.fixFinishLines, false, inR, &outB, &errB)
 			actualStdOut := outB.String()
-			actualStdErr := errB.String()
 
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
@@ -219,7 +218,7 @@ func TestCmdFmtStdinDefault(t *testing.T) {
 			for _, msg := range testcase.errMsg {
 				errMsg = append(errMsg, fmt.Sprintf(msg, "stdin", ""))
 			}
-			checkExpectedErrors(t, actualStdErr, errMsg)
+			checkExpectedErrors(t, errB.String(), errMsg)
 		})
 	}
 }
@@ -307,7 +306,6 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			log := common.CreateLogger(&errB)
 			br, err := formatFile(fs, log, testcase.sourcefile, testcase.fmtcompat, testcase.fixFinishLines, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
-			actualStdErr := errB.String()
 
 			if err != nil {
 				t.Fatalf("Case %q: Got an error when none was expected: %v", testcase.name, err)
@@ -334,7 +332,7 @@ func TestCmdFmtFileDefault(t *testing.T) {
 			for _, msg := range testcase.errMsg {
 				errMsg = append(errMsg, fmt.Sprintf(msg, testcase.sourcefile, testcase.sourcefile))
 			}
-			checkExpectedErrors(t, actualStdErr, errMsg)
+			checkExpectedErrors(t, errB.String(), errMsg)
 		})
 	}
 }

@@ -230,7 +230,7 @@ func allFiles(fs afero.Fs, path, pattern string) ([]string, error) {
 
 	var filenames []string
 
-	err = afero.Walk(fs, path,
+	if err = afero.Walk(fs, path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -257,8 +257,7 @@ func allFiles(fs afero.Fs, path, pattern string) ([]string, error) {
 
 			return nil
 		},
-	)
-	if err != nil {
+	); err != nil {
 		return nil, fmt.Errorf("error walking path (%s): %w", path, err)
 	}
 
@@ -278,7 +277,7 @@ func (w textBlockWriter) Write(index, _, endLine int, text string) {
 	fmt.Fprint(w.writer, text)
 }
 
-func (w textBlockWriter) Close() error { return nil }
+func (textBlockWriter) Close() error { return nil }
 
 type zeroTerminatedBlockWriter struct {
 	writer io.Writer
@@ -289,7 +288,7 @@ func (w zeroTerminatedBlockWriter) Write(_, _, _ int, text string) {
 	fmt.Fprint(w.writer, "\x00")
 }
 
-func (w zeroTerminatedBlockWriter) Close() error { return nil }
+func (zeroTerminatedBlockWriter) Close() error { return nil }
 
 type Block struct {
 	BlockNumber int    `json:"block_number"`
@@ -437,8 +436,7 @@ func diffFile(fs afero.Fs, log *logrus.Logger, filename string, fmtverbs, verbos
 		},
 	}
 
-	err := br.DoTheThing(fs, filename, stdin, stdout)
-	if err != nil {
+	if err := br.DoTheThing(fs, filename, stdin, stdout); err != nil {
 		return nil, false, err
 	}
 

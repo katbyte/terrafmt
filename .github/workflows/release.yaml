@@ -1,34 +1,59 @@
 ---
-name: release
+name: Release
 on:
   push:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # goreleaser uploads the release and its assets
+      id-token: write # cosign keyless signing and attestation signing via OIDC
+      attestations: write # actions/attest-build-provenance stores attestations
+    outputs:
+      hashes: ${{ steps.hashes.outputs.hashes }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # goreleaser derives the changelog and version from tag history
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ./.go-version
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: export artifact hashes for slsa provenance
+        id: hashes
+        run: echo "hashes=$(base64 -w0 < ./dist/checksums.txt)" >> "$GITHUB_OUTPUT"
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: ./dist/checksums.txt # attest every artifact goreleaser published
+
+  provenance:
+    needs: goreleaser
+    permissions:
+      actions: read # read the workflow run to record the build context
+      id-token: write # sign the provenance
+      contents: write # upload multiple.intoto.jsonl to the release
+    # the slsa builder must be referenced by tag, not commit hash; it verifies its own ref at runtime
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.goreleaser.outputs.hashes }}
+      upload-assets: true
 
   homebrew:
     needs: goreleaser
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: update tap formula (source build)
         env:
           TAG: ${{ github.ref_name }}

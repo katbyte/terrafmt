@@ -2,9 +2,9 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/katbyte/terrafmt?color=blueviolet)](https://github.com/katbyte/terrafmt/releases/latest)
 ![build](https://github.com/katbyte/terrafmt/actions/workflows/build.yaml/badge.svg)
-![test](https://github.com/katbyte/terrafmt/actions/workflows/test.yaml/badge.svg)
-![lint](https://github.com/katbyte/terrafmt/actions/workflows/lint.yaml/badge.svg)
-![govulncheck](https://github.com/katbyte/terrafmt/actions/workflows/govulncheck.yaml/badge.svg)
+![test](https://github.com/katbyte/terrafmt/actions/workflows/pr-tests.yaml/badge.svg)
+![lint](https://github.com/katbyte/terrafmt/actions/workflows/pr-golangci-lint.yaml/badge.svg)
+![govulncheck](https://github.com/katbyte/terrafmt/actions/workflows/pr-govulncheck.yaml/badge.svg)
 ![CodeQL](https://github.com/katbyte/terrafmt/actions/workflows/codeql-analysis.yml/badge.svg)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/katbyte/terrafmt?color=00ADD8)](https://github.com/katbyte/terrafmt/blob/main/go.mod)
 [![License](https://img.shields.io/github/license/katbyte/terrafmt?color=blue)](https://github.com/katbyte/terrafmt/blob/main/LICENSE)
@@ -111,17 +111,20 @@ pattern=*.markdown
 
 ## Development
 
-This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) with a vendored `vendor/` directory.
+This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) with a vendored `vendor/` directory. Dev tools are pinned in `.tools/go.mod` and built into `.tools/bin` on demand by make.
 
 ```console
 make help       # list all targets
 make build      # build the binary
 make test       # run the tests (with -race)
-make lint       # run golangci-lint
+make lint       # run golangci-lint (custom build incl. azproviderlint)
 make lint-fix   # run golangci-lint and apply autofixes
 make fmt        # gofmt/gofumpt/goimports the source
-make depscheck  # verify go.mod/go.sum/vendor are consistent
-make check-all  # build + test + lint + depscheck
+make actionlint # lint the github workflows
+make yamllint   # lint the repo's YAML
+make shellcheck # lint the shell scripts
+make depscheck  # verify go.mod/go.sum/vendor/.tools are consistent
+make check-all  # build + test + all linters + depscheck
 ```
 
 When updating dependencies, re-vendor:

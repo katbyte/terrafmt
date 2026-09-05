@@ -166,7 +166,6 @@ func TestCmdDiffDefault(t *testing.T) {
 			log := common.CreateLogger(&errB)
 			br, hasDiff, err := diffFile(fs, log, testcase.sourcefile, testcase.fmtcompat, false, false, nil, &outB, &errB)
 			actualStdOut := outB.String()
-			actualStdErr := errB.String()
 
 			if err != nil {
 				t.Fatalf("Got an error when none was expected: %v", err)
@@ -174,9 +173,9 @@ func TestCmdDiffDefault(t *testing.T) {
 
 			actualNoDiff := !hasDiff
 			if testcase.noDiff && !actualNoDiff {
-				t.Errorf("Expected no diff, but got one")
+				t.Error("Expected no diff, but got one")
 			} else if !testcase.noDiff && actualNoDiff {
-				t.Errorf("Expected diff, but did not get one")
+				t.Error("Expected diff, but did not get one")
 			}
 
 			if len(testcase.errMsg) != br.ErrorBlocks {
@@ -191,7 +190,7 @@ func TestCmdDiffDefault(t *testing.T) {
 			for _, msg := range testcase.errMsg {
 				errMsg = append(errMsg, fmt.Sprintf(msg, testcase.sourcefile))
 			}
-			checkExpectedErrors(t, actualStdErr, errMsg)
+			checkExpectedErrors(t, errB.String(), errMsg)
 		})
 	}
 }

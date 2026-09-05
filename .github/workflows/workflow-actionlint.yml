@@ -1,0 +1,38 @@
+name: Workflow Action Lint
+
+# Lints .github/workflows/ with rhysd/actionlint (expression/context errors, shellcheck on run:
+# blocks, action input validation). actionlint is pinned in .tools/go.mod (built by make) so the
+# gomod dependabot config keeps it up to date; its config lives in .github/actionlint.yaml.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint*'
+      - '.tools/**'
+      - 'makefile'
+
+concurrency:
+  group: 'workflow-actionlint-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  workflow-actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ./.go-version
+      # the problem matcher turns actionlint's file:line:col output into inline PR annotations
+      - name: Register actionlint problem matcher
+        run: echo "::add-matcher::.github/actionlint-matcher.json"
+      # the make target builds the pinned actionlint and passes -shellcheck=.tools/bin/shellcheck
+      - name: Run actionlint (with shellcheck) on workflow files
+        run: make actionlint

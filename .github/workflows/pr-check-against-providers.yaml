@@ -1,5 +1,5 @@
 ---
-name: check against providers
+name: Check Against Providers
 on:
   pull_request:
     types: ['opened', 'synchronize']
@@ -8,7 +8,7 @@ on:
       - 'go.mod'
       - 'vendor/**'
       - 'scripts/check-against-providers.sh'
-      - '.github/workflows/check-against-providers.yaml'
+      - '.github/workflows/pr-check-against-providers.yaml'
 
 permissions:
   contents: read
@@ -17,10 +17,10 @@ jobs:
   check-against-providers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # the golden comparison builds origin/main too
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ./.go-version
       - name: checkout provider repos (sparse)

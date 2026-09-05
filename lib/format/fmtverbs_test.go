@@ -282,7 +282,7 @@ resource "resource" "test" {
 				t.Fatalf("Got an error when none was expected: %v", err)
 			}
 			if err == nil && test.error {
-				t.Errorf("Expected an error and none was generated")
+				t.Error("Expected an error and none was generated")
 			}
 			if result != test.expected {
 				t.Errorf("Got: \n%#v\nexpected:\n%#v\n", result, test.expected)

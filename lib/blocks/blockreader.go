@@ -100,8 +100,7 @@ func (bv blockVisitor) Visit(cursor *astutil.Cursor) bool {
 				// This is to deal with some outputs using just LineCount and some using LineCount-BlockCurrentLine
 				bv.br.BlockCurrentLine = bv.fset.Position(node.End()).Line - bv.fset.Position(node.Pos()).Line
 
-				err := bv.f(bv.br, 0, value, false)
-				if err != nil {
+				if err := bv.f(bv.br, 0, value, false); err != nil {
 					bv.br.ErrorBlocks++
 					bv.br.Log.Errorf("block %d @ %s:%d failed to process with: %v", bv.br.BlockCount, bv.br.FileName, bv.fset.Position(node.Pos()).Line, err)
 				}
@@ -133,8 +132,7 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		}
 	} else {
 		tee := io.TeeReader(stdin, inStream)
-		teee := bufio.NewReader(tee)
-		if matched, err := regexp.MatchReader(`package [a-zA-Z0-9_]+\n`, teee); err != nil {
+		if matched, err := regexp.MatchReader(`package [a-zA-Z0-9_]+\n`, bufio.NewReader(tee)); err != nil {
 			return err
 		} else if !matched {
 			return br.doTheThingPatternMatch(fs, filename, inStream, stdout)
@@ -183,9 +181,9 @@ func (br *Reader) DoTheThing(fs afero.Fs, filename string, stdin io.Reader, stdo
 		fset: fset,
 		f:    br.BlockRead,
 	}
-	result := astutil.Apply(f, visitor.Visit, nil)
 
-	br.LineCount = fset.Position(f.End()).Line // For summary line
+	result := astutil.Apply(f, visitor.Visit, nil) //nolint:azproviderlint // AZG006: Apply rewrites the AST in place, so LineCount must read f.End() after it runs; inlining result into format.Node would move that evaluation past the LineCount assignment
+	br.LineCount = fset.Position(f.End()).Line     // For summary line
 	if err := format.Node(buf, fset, result); err != nil {
 		return err
 	}

@@ -18,23 +18,17 @@ func (markdownTextFormat) isStartingLine(line string) bool {
 	// fences may be indented, e.g. inside a list item (issue #51)
 	trimmed := strings.TrimLeft(line, " \t")
 
-	//nolint:gocritic
-	if strings.HasPrefix(trimmed, "```hcl") { // documentation
-		return true
-	} else if strings.HasPrefix(trimmed, "```terraform") { // documentation
-		return true
-	} else if strings.HasPrefix(trimmed, "```tf") { // documentation
-		return true
-	}
-
-	return false
+	// documentation fences
+	return strings.HasPrefix(trimmed, "```hcl") ||
+		strings.HasPrefix(trimmed, "```terraform") ||
+		strings.HasPrefix(trimmed, "```tf")
 }
 
-func (mbf markdownTextFormat) isFinishLine(line string) bool {
+func (markdownTextFormat) isFinishLine(line string) bool {
 	return strings.HasPrefix(strings.TrimLeft(line, " \t"), "```")
 }
 
-func (mbf markdownTextFormat) preserveIndentation() bool {
+func (markdownTextFormat) preserveIndentation() bool {
 	return false
 }
 
@@ -45,10 +39,10 @@ func (restructuredTextFormat) isStartingLine(line string) bool {
 	return strings.HasPrefix(line, ".. code:: terraform")
 }
 
-func (mbf restructuredTextFormat) isFinishLine(line string) bool {
+func (restructuredTextFormat) isFinishLine(line string) bool {
 	return line == strings.TrimLeftFunc(line, unicode.IsSpace)
 }
 
-func (mbf restructuredTextFormat) preserveIndentation() bool {
+func (restructuredTextFormat) preserveIndentation() bool {
 	return true
 }

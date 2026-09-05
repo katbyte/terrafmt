@@ -5,7 +5,6 @@
 set -euo pipefail
 
 TAG="${TAG:?set TAG to the release tag, e.g. v0.6.0}"
-VERSION="${TAG#v}"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
