@@ -12,8 +12,9 @@ updates:
     schedule:
       interval: "weekly"
 
-  # dev tools (actionlint, golangci-lint, gofumpt) pinned in .tools/go.mod
+  # dev tools (actionlint, golangci-lint, gofumpt) pinned in .tools/go.mod; tools move slowly,
+  # so only check quarterly
   - package-ecosystem: "gomod"
     directory: "/.tools"
     schedule:
-      interval: "weekly"
+      interval: "quarterly"
