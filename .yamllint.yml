@@ -4,6 +4,7 @@ extends: default
 ignore:
   - vendor/
   - dist/
+  - .tools/venv/ # gitignored python venv, yamllint's own bundled configs live in here
 
 rules:
   comments:

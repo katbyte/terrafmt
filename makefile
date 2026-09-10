@@ -13,11 +13,13 @@ GOFUMPT=$(TOOLS_BIN)/gofumpt
 GOLANGCI_LINT=$(TOOLS_BIN)/golangci-lint
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck is a static haskell binary downloaded from its github release,
-# yamllint is python installed into a repo-local venv. both rebuild when this makefile changes.
+# cannot bump them): shellcheck and typos are static binaries downloaded from their github releases,
+# yamllint is python installed into a repo-local venv. all rebuild when this makefile changes.
 SHELLCHECK_VERSION=v0.11.0
+TYPOS_VERSION=v1.50.1
 YAMLLINT_VERSION=1.38.0
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
+TYPOS=$(TOOLS_BIN)/typos
 YAMLLINT=$(TOOLS_BIN)/yamllint
 
 # golangci-lint with the azproviderlint module plugin compiled in (.tools/.custom-gcl.yml);
@@ -42,6 +44,14 @@ $(SHELLCHECK): makefile
 		curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$$os.$$arch.tar.xz" \
 		| tar -xJ -O shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
 
+$(TYPOS): makefile
+	@echo "==> downloading typos $(TYPOS_VERSION)..."
+	@mkdir -p $(TOOLS_BIN)
+	@case "$$(uname)" in Darwin) target=apple-darwin;; *) target=unknown-linux-musl;; esac; \
+		arch=$$(uname -m); [ "$$arch" = "arm64" ] && arch=aarch64; \
+		curl -sSfL "https://github.com/crate-ci/typos/releases/download/$(TYPOS_VERSION)/typos-$(TYPOS_VERSION)-$$arch-$$target.tar.gz" \
+		| tar -xz -O ./typos > $@ && chmod +x $@
+
 $(YAMLLINT): makefile
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
 	@echo "==> installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
@@ -64,7 +74,7 @@ install: ## Install terrafmt into GOPATH/bin with version info from git
 	@echo "==> installing..."
 	go install -ldflags "-X github.com/katbyte/terrafmt/lib/version.GitCommit=${GIT_COMMIT} -X github.com/katbyte/terrafmt/lib/version.Version=${GIT_VERSION}" .
 
-tools: $(ACTIONLINT) $(GOFUMPT) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(SHELLCHECK) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin
 
 ##@ Formatting
 fmt: $(GOFUMPT) $(GOLANGCI_LINT) ## Fix Go formatting (gofmt, gofumpt, goimports)
@@ -100,6 +110,14 @@ shellcheck: $(SHELLCHECK) ## Check shell scripts with shellcheck
 	@echo "==> Checking shell scripts with shellcheck..."
 	@$(SHELLCHECK) scripts/*.sh
 
+typos: $(TYPOS) ## Check all files for spelling mistakes with typos (config in .typos.toml)
+	@echo "==> Checking for typos..."
+	@$(TYPOS)
+
+typos-fix: $(TYPOS) ## Fix spelling mistakes found by typos
+	@echo "==> Fixing typos..."
+	@$(TYPOS) --write-changes
+
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
@@ -127,6 +145,6 @@ check-against-providers: ## Check formatting against real provider repos (golden
 	@echo "==> Checking against real provider repos (golden vs main + idempotency)..."
 	./scripts/check-against-providers.sh
 
-check-all: build test lint actionlint yamllint shellcheck depscheck ## Run build + test + all linters + depscheck
+check-all: build test lint actionlint yamllint shellcheck typos depscheck ## Run build + test + all linters + depscheck
 
-.PHONY: default all help fmt goimports build lint lint-fix actionlint yamllint shellcheck depscheck check-against-providers check-all install tools test
+.PHONY: default all help fmt goimports build lint lint-fix actionlint yamllint shellcheck typos typos-fix depscheck check-against-providers check-all install tools test

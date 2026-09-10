@@ -1,0 +1,24 @@
+name: Typos
+
+# Spell checks every file in the repo with typos (config in .typos.toml). Complements the misspell
+# linter in golangci-lint, which only sees Go files.
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 'typos-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: make typos
