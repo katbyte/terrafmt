@@ -7,7 +7,7 @@
 ![test](https://github.com/katbyte/terrafmt/actions/workflows/pr-tests.yaml/badge.svg)
 ![lint](https://github.com/katbyte/terrafmt/actions/workflows/pr-golangci-lint.yaml/badge.svg)
 ![CodeQL](https://github.com/katbyte/terrafmt/actions/workflows/codeql-analysis.yml/badge.svg)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/katbyte/terrafmt/badge)](https://scorecard.dev/viewer/?uri=github.com/katbyte/terrafmt)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/katbyte/terrafmt?label=openssf)](https://scorecard.dev/viewer/?uri=github.com/katbyte/terrafmt)
 
 A tool for extracting and formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in other files, primarily intended to help with [provider](https://www.terraform.io/docs/providers/index.html) development.
 
