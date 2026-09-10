@@ -1,12 +1,12 @@
 # terrafmt
 
 [![GitHub release](https://img.shields.io/github/v/release/katbyte/terrafmt?color=blueviolet)](https://github.com/katbyte/terrafmt/releases/latest)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/katbyte/terrafmt?color=00ADD8)](https://github.com/katbyte/terrafmt/blob/main/go.mod)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/katbyte/terrafmt?label=go&color=00ADD8)](https://github.com/katbyte/terrafmt/blob/main/go.mod)
 [![License](https://img.shields.io/github/license/katbyte/terrafmt?color=blue)](https://github.com/katbyte/terrafmt/blob/main/LICENSE)
 ![build](https://github.com/katbyte/terrafmt/actions/workflows/build.yaml/badge.svg)
-![test](https://github.com/katbyte/terrafmt/actions/workflows/pr-tests.yaml/badge.svg)
 ![lint](https://github.com/katbyte/terrafmt/actions/workflows/pr-golangci-lint.yaml/badge.svg)
 ![CodeQL](https://github.com/katbyte/terrafmt/actions/workflows/codeql-analysis.yml/badge.svg)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/katbyte/terrafmt?label=openSSF)](https://scorecard.dev/viewer/?uri=github.com/katbyte/terrafmt)
 
 A tool for extracting and formatting [Terraform](https://www.terraform.io/docs/) configuration embedded in other files, primarily intended to help with [provider](https://www.terraform.io/docs/providers/index.html) development.
 
