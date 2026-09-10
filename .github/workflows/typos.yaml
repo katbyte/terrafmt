@@ -1,4 +1,4 @@
-name: Typos
+name: typos
 
 # Spell checks every file in the repo with typos (config in .typos.toml). Complements the misspell
 # linter in golangci-lint, which only sees Go files.

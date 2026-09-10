@@ -1,4 +1,4 @@
-name: Workflow Action Lint
+name: workflow action lint
 
 # Lints .github/workflows/ with rhysd/actionlint (expression/context errors, shellcheck on run:
 # blocks, action input validation). actionlint is pinned in .tools/go.mod (built by make) so the

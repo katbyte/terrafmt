@@ -1,5 +1,5 @@
 ---
-name: Check Against Providers
+name: check against providers
 on:
   pull_request:
     types: ['opened', 'synchronize']

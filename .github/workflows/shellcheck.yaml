@@ -1,4 +1,4 @@
-name: ShellCheck
+name: shellcheck
 on:
   push:
     branches: [ 'main' ]

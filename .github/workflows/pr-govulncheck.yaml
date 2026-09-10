@@ -1,5 +1,5 @@
 ---
-name: Go Vulnerability Check
+name: go vulnerability check
 on:
   push:
     branches: [ 'main' ]

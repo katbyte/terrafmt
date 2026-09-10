@@ -1,5 +1,5 @@
 ---
-name: GolangCI
+name: golangCI
 on:
   push:
     branches: [ 'main' ]
