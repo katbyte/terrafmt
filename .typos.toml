@@ -1,0 +1,31 @@
+# Configuration for typos (https://github.com/crate-ci/typos), run by `make typos` and
+# .github/workflows/typos.yaml. It checks every file type (Go, markdown, YAML, shell, makefile),
+# splitting identifiers so misspelled function and variable names are caught too - misspell in
+# golangci-lint only sees Go files and enforces UK spelling in comments; typos stays on the default
+# locale because en-gb flags US spellings baked into identifiers, headers, and the licence text.
+
+[files]
+ignore-hidden = false # the default skips dotfiles, which would leave .github/ workflows unchecked
+extend-exclude = [
+  ".git/",
+  ".claude/",
+  ".idea/",
+  ".tools/bin/",  # gitignored built tools
+  ".tools/venv/", # gitignored python venv
+  "**/vendor/",   # third-party code
+  "**/go.sum",    # hashes
+  "lib/diff/diffmatchpatch/", # forked third-party code (sergi/go-diff), exempted in .golangci.yml too
+]
+
+[default]
+extend-ignore-re = [
+  # go.mod pseudo-versions (vX.Y.Z-yyyymmddhhmmss-hash, vX.Y.Z-0.yyyymmddhhmmss-hash, vX.Y.Z-pre.0.yyyymmddhhmmss-hash)
+  # end in a commit hash typos tries to read
+  'v\d+\.\d+\.\d+-(\S+\.)?\d{14}-[0-9a-f]{12}',
+]
+
+[default.extend-words]
+# words typos would otherwise "correct" - keep this list short and explain each entry
+decorder = "decorder" # golangci linter name
+importas = "importas" # golangci linter name
+intoto = "intoto"     # in-toto attestation files published by goreleaser
