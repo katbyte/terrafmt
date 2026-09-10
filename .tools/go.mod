@@ -229,3 +229,8 @@ require (
 	honnef.co/go/tools v0.8.1 // indirect
 	mvdan.cc/unparam v0.0.0-20260823230713-2fa3d841b0c8 // indirect
 )
+
+// actionlint (v1.7.12 and current main) compiles against the go.yaml.in/yaml/v4 rc.3 API, while golangci-lint v2.13+
+// (via gosec) pulls in rc.6 whose breaking changes (structured errors became strings, yaml.ParserError removed) make
+// actionlint fail to build. Everything here still compiles against rc.3, so pin it until actionlint supports rc.6.
+replace go.yaml.in/yaml/v4 => go.yaml.in/yaml/v4 v4.0.0-rc.3
