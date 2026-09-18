@@ -11,7 +11,7 @@ tool (
 require (
 	github.com/golangci/golangci-lint/v2 v2.13.2
 	github.com/rhysd/actionlint v1.7.12
-	mvdan.cc/gofumpt v0.11.0
+	mvdan.cc/gofumpt v0.12.0
 )
 
 require (
