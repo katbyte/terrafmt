@@ -1,0 +1,27 @@
+name: workflow security audit
+
+# Audits .github/workflows/ with zizmor (template injection, credential persistence, excessive
+# permissions, dangerous triggers). Complements actionlint, which covers syntax, expressions and
+# shell but not these. make downloads the version pinned in the makefile.
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: ['opened', 'synchronize']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 'workflow-zizmor-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  workflow-zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make zizmor

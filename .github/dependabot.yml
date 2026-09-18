@@ -5,12 +5,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   # dependabot auto-detects the vendor/ directory and runs `go mod tidy` + `go mod vendor` on updates
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   # dev tools (actionlint, golangci-lint, gofumpt) pinned in .tools/go.mod; tools move slowly,
   # so only check quarterly
@@ -18,3 +22,5 @@ updates:
     directory: "/.tools"
     schedule:
       interval: "quarterly"
+    cooldown:
+      default-days: 7
