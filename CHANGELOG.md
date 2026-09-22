@@ -1,4 +1,4 @@
-## v1.0.1 (206-09-05)
+## v1.0.1 (2026-09-05)
 
 - sign and attest release artifacts ([#116](https://github.com/katbyte/terrafmt/issues/116))
 
