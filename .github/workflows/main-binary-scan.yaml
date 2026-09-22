@@ -10,13 +10,7 @@ on:
     branches: [ 'main' ]
   schedule:
     - cron: '23 5 * * 1' # weekly, so new advisories against unchanged binaries still turn main red
-  # rescan once a release has published, so shipping the fix clears the red rather than the next commit.
-  # workflow_run is flagged as dangerous because it can hand secrets to a run triggered by untrusted code;
-  # here it only reacts to the tag-triggered release workflow, checks out main and has read-only permissions
-  workflow_run:  # zizmor: ignore[dangerous-triggers]
-    workflows: ['release']
-    types: ['completed']
-  workflow_dispatch:
+  workflow_dispatch: # release.yaml reruns the failed jobs of the latest run on main once a release publishes
 
 permissions:
   contents: read
@@ -25,8 +19,6 @@ jobs:
   release:
     name: release binary
     runs-on: ubuntu-latest
-    # after a release, only scan if it actually published
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -54,8 +46,6 @@ jobs:
   main:
     name: build of main
     runs-on: ubuntu-latest
-    # after a release, only scan if it actually published
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
