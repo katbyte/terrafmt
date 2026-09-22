@@ -1,3 +1,9 @@
+## v1.0.2 (2026-09-22)
+
+- bump hashicorp/hcl to v2.25.0 and go-cty to v1.19.0, the parser terrafmt formats with ([#127](https://github.com/katbyte/terrafmt/pull/127))
+- ci: scan the released binary and a build of main with trivy on every push to main, weekly, and after each release ([#129](https://github.com/katbyte/terrafmt/pull/129))
+- ci: audit workflows with zizmor, spell check with typos, group dependabot updates and check monthly ([#118](https://github.com/katbyte/terrafmt/pull/118), [#123](https://github.com/katbyte/terrafmt/pull/123), [#125](https://github.com/katbyte/terrafmt/pull/125))
+
 ## v1.0.1 (2026-09-05)
 
 - sign and attest release artifacts ([#116](https://github.com/katbyte/terrafmt/issues/116))
