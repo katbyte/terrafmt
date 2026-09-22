@@ -1,0 +1,75 @@
+---
+# Scans the binaries for known vulnerabilities via the Go module and stdlib versions they embed. Two jobs so
+# the red X on main says what to do: `release` scans the last published release (what users are running, so
+# red means cut a release) and `main` scans a fresh build of this commit (what the next release would ship,
+# so red means bump the dependency). govulncheck (pr-govulncheck.yaml) is the reachability check on PRs;
+# this is the version-based artifact check, the same shape as hashicorp's release security scan.
+name: binary vulnerability scan
+on:
+  push:
+    branches: [ 'main' ]
+  schedule:
+    - cron: '23 5 * * 1' # weekly, so new advisories against unchanged binaries still turn main red
+  # rescan once a release has published, so shipping the fix clears the red rather than the next commit.
+  # workflow_run is flagged as dangerous because it can hand secrets to a run triggered by untrusted code;
+  # here it only reacts to the tag-triggered release workflow, checks out main and has read-only permissions
+  workflow_run:  # zizmor: ignore[dangerous-triggers]
+    workflows: ['release']
+    types: ['completed']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: release binary
+    runs-on: ubuntu-latest
+    # after a release, only scan if it actually published
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release download --pattern '*linux_amd64.tar.gz' --dir release
+          tar -xzf release/*.tar.gz -C release
+          rm release/*.tar.gz
+      # rootfs, not fs: fs mode does not read go binaries. unfixed findings are skipped because nothing can
+      # clear them; anything else triaged out goes in .github/trivyignore with a reason
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: rootfs
+          scan-ref: release
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .github/trivyignore
+          exit-code: 1
+
+  main:
+    name: build of main
+    runs-on: ubuntu-latest
+    # after a release, only scan if it actually published
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ./.go-version
+      - run: go build -o out/terrafmt .
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: rootfs
+          scan-ref: out
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .github/trivyignore
+          exit-code: 1

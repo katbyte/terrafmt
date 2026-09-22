@@ -1,0 +1,3 @@
+# Advisories triaged out of main-binary-scan.yaml, one ID per line with the reason above it. Findings with
+# no fixed version are already skipped by the workflow, so this is only for fixable findings in code the
+# binary never calls. Remove an entry once the dependency moves past it.
