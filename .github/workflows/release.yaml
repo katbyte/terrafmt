@@ -63,3 +63,24 @@ jobs:
           TAG: ${{ github.ref_name }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
         run: ./scripts/update-homebrew-formula.sh
+
+  # the binary scan (main-binary-scan.yaml) goes red on main when the published release has a known
+  # vulnerability, and only a release can clear it. rerun the failed jobs of the scan runs on main's head so
+  # the red check runs are replaced in place; a fresh run from a new event would sit beside them and the
+  # commit would stay red
+  rescan:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write # rerun workflow jobs
+    steps:
+      - name: rerun the failed binary scan jobs on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          head=$(gh api "repos/$GH_REPO/commits/main" --jq .sha)
+          runs=$(gh run list -w main-binary-scan.yaml -c "$head" --json databaseId,conclusion \
+            --jq '.[] | select(.conclusion == "failure") | .databaseId')
+          if [ -z "$runs" ]; then echo "no failed binary scan on main ($head), nothing to rerun"; exit 0; fi
+          for run in $runs; do echo "rerunning failed jobs of $run"; gh run rerun "$run" --failed; done
